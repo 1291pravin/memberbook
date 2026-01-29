@@ -9,8 +9,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "memberbook-db",
-      "database_id": "af435606-794a-4900-b3c8-8decc973009d",
+      "database_name": "memberbook-db-prd",
+      "database_id": "7b694b50-7cbb-4f81-989c-c28ab4884f02",
       "migrations_table": "d1_migrations",
       "migrations_dir": "server/db/migrations/sqlite",
     },
