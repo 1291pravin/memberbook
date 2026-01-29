@@ -9,4 +9,15 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   css: ["~/assets/css/main.css"],
+  hub: {
+    db: "sqlite",
+  },
+  runtimeConfig: {
+    oauth: {
+      google: {
+        clientId: "",
+        clientSecret: "",
+      },
+    },
+  },
 });

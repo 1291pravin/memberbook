@@ -10,15 +10,21 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.0",
     "@nuxt/eslint": "^1.13.0",
     "@nuxt/hints": "^1.0.0-alpha.6",
     "@nuxthub/core": "^0.10.5",
     "@tailwindcss/vite": "^4.1.18",
-    "eslint": "^9.39.2",
+    "drizzle-orm": "^0.45.1",
     "nuxt": "^4.3.0",
     "nuxt-auth-utils": "^0.5.28",
     "tailwindcss": "^4.1.18",
     "vue": "^3.5.27",
     "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "better-sqlite3": "^12.6.2",
+    "drizzle-kit": "^0.31.8",
+    "eslint": "^9.39.2"
   }
 }

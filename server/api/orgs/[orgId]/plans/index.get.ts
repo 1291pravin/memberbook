@@ -1,0 +1,11 @@
+import { eq } from "drizzle-orm";
+
+export default defineEventHandler(async (event) => {
+  const access = await requireOrgAccess(event);
+  const plans = await db
+    .select()
+    .from(schema.subscriptionPlans)
+    .where(eq(schema.subscriptionPlans.orgId, access.orgId))
+    .orderBy(schema.subscriptionPlans.name);
+  return { plans };
+});
