@@ -61,6 +61,7 @@
 definePageMeta({ layout: "default", middleware: "guest" });
 
 const { fetch: refreshSession } = useUserSession();
+const { loadOrgs } = useOrg();
 
 const form = reactive({ email: "", password: "" });
 const error = ref("");
@@ -75,7 +76,8 @@ async function handleLogin() {
       body: { email: form.email, password: form.password },
     });
     await refreshSession();
-    navigateTo("/dashboard");
+    const orgs = await loadOrgs();
+    navigateTo(orgs.length > 0 ? "/dashboard" : "/onboarding");
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };
     error.value = err.data?.statusMessage || "Login failed";
