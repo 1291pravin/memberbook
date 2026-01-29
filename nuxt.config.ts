@@ -7,6 +7,9 @@ export default defineNuxtConfig({
   modules: ["@nuxt/eslint", "@nuxt/hints", "@nuxthub/core", "nuxt-auth-utils"],
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      sourcemap: false,
+    },
   },
   css: ["~/assets/css/main.css"],
   hub: {

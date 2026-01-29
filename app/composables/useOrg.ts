@@ -12,7 +12,7 @@ export function useOrg() {
   async function loadOrgs() {
     const data = await $fetch<{ orgs: Org[] }>("/api/orgs");
     if (data.orgs.length > 0 && !currentOrg.value) {
-      currentOrg.value = data.orgs[0];
+      currentOrg.value = data.orgs[0] ?? null;
     }
     return data.orgs;
   }
