@@ -11,8 +11,8 @@
       "binding": "DB",
       "database_name": "memberbook-db",
       "database_id": "af435606-794a-4900-b3c8-8decc973009d",
-      "migrations_table": "_hub_migrations",
-      "migrations_dir": ".output/server/db/migrations/",
+      "migrations_table": "d1_migrations",
+      "migrations_dir": "server/db/migrations/sqlite",
     },
   ],
   "observability": {
