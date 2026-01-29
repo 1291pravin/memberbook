@@ -11,6 +11,14 @@
       "binding": "DB",
       "database_name": "memberbook-db",
       "database_id": "af435606-794a-4900-b3c8-8decc973009d",
+      "migrations_table": "_hub_migrations",
+      "migrations_dir": ".output/server/db/migrations/",
     },
   ],
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+    },
+  },
 }
