@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   const memberId = Number(getRouterParam(event, "memberId"));
 
   const memberRows = await db

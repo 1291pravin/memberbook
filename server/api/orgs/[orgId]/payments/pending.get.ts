@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   // Find active subscriptions where total payments < subscription amount
   const pending = await db.all(sql`
     SELECT

@@ -1,7 +1,7 @@
 import { eq, and, between } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   const today = new Date().toISOString().split("T")[0];
   const weekLater = new Date();
   weekLater.setDate(weekLater.getDate() + 7);

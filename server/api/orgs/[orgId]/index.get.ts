@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   const rows = await db
     .select()
     .from(schema.organizations)

@@ -1,7 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   const paymentList = await db
     .select({
       id: schema.payments.id,

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   requireOwner(access);
 
   const body = await readBody(event);

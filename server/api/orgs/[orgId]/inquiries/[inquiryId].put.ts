@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   const inquiryId = Number(getRouterParam(event, "inquiryId"));
   const body = await readBody(event);
 

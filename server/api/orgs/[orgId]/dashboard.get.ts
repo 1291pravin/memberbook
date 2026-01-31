@@ -1,7 +1,7 @@
 import { eq, and, sql, between, gte } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   const orgId = access.orgId;
 
   const today = new Date().toISOString().split("T")[0];

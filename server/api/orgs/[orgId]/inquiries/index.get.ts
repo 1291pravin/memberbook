@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   const query = getQuery(event);
   const status = query.status as string | undefined;
 

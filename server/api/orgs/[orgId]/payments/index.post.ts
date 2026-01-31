@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const access = await requireOrgAccess(event);
+  const access = event.context.access;
   const body = await readBody(event);
   const { memberId, amount, date, method, notes, subscriptionId } = body;
 
