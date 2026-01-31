@@ -143,11 +143,6 @@ interface Plan {
   active: boolean;
 }
 
-const member = ref<MemberDetail | null>(null);
-const subscriptions = ref<Subscription[]>([]);
-const payments = ref<Payment[]>([]);
-const plans = ref<Plan[]>([]);
-
 const showAssignModal = ref(false);
 const showPaymentModal = ref(false);
 const assigning = ref(false);
@@ -164,23 +159,21 @@ const paymentMethods = [
   { value: "bank_transfer", label: "Bank Transfer" },
 ];
 
+const { data: memberData, refresh: refreshMember } = await useFetch<{ member: MemberDetail; subscriptions: Subscription[]; payments: Payment[] }>(
+  () => `/api/orgs/${orgId.value}/members/${memberId}`,
+);
+const member = computed(() => memberData.value?.member ?? null);
+const subscriptions = computed(() => memberData.value?.subscriptions ?? []);
+const payments = computed(() => memberData.value?.payments ?? []);
+
+const { data: plansData } = await useFetch<{ plans: Plan[] }>(
+  () => `/api/orgs/${orgId.value}/plans`,
+);
+const plans = computed(() => plansData.value?.plans ?? []);
+
 const planOptions = computed(() =>
   plans.value.filter(p => p.active).map(p => ({ value: p.id, label: p.name })),
 );
-
-async function loadMember() {
-  const data = await $fetch<{ member: MemberDetail; subscriptions: Subscription[]; payments: Payment[] }>(
-    `/api/orgs/${orgId.value}/members/${memberId}`,
-  );
-  member.value = data.member;
-  subscriptions.value = data.subscriptions;
-  payments.value = data.payments;
-}
-
-async function loadPlans() {
-  const data = await $fetch<{ plans: Plan[] }>(`/api/orgs/${orgId.value}/plans`);
-  plans.value = data.plans;
-}
 
 async function toggleStatus() {
   if (!member.value) return;
@@ -189,7 +182,7 @@ async function toggleStatus() {
     method: "PUT",
     body: { status: newStatus },
   });
-  await loadMember();
+  await refreshMember();
 }
 
 async function assignPlan() {
@@ -200,7 +193,7 @@ async function assignPlan() {
   });
   showAssignModal.value = false;
   assigning.value = false;
-  await loadMember();
+  await refreshMember();
 }
 
 async function recordPayment() {
@@ -219,8 +212,6 @@ async function recordPayment() {
   recordingPayment.value = false;
   paymentForm.amount = "";
   paymentForm.notes = "";
-  await loadMember();
+  await refreshMember();
 }
-
-await Promise.all([loadMember(), loadPlans()]);
 </script>

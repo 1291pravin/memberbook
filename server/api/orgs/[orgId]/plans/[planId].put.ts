@@ -26,5 +26,6 @@ export default defineEventHandler(async (event) => {
     .where(and(eq(schema.subscriptionPlans.id, planId), eq(schema.subscriptionPlans.orgId, access.orgId)))
     .limit(1);
 
+  await invalidateCache(access.orgId, "plans");
   return { plan: rows[0] };
 });

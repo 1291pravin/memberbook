@@ -38,5 +38,6 @@ export default defineEventHandler(async (event) => {
     role: "staff",
   });
 
+  await invalidateCache(access.orgId, "staff");
   return { success: true };
 });

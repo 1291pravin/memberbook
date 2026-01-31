@@ -61,8 +61,8 @@ interface PendingItem {
   pending_amount: number;
 }
 
-const pending = ref<PendingItem[]>([]);
-
-const data = await $fetch<{ pending: PendingItem[] }>(`/api/orgs/${orgId.value}/payments/pending`);
-pending.value = data.pending;
+const { data: pendingData } = await useFetch<{ pending: PendingItem[] }>(
+  () => `/api/orgs/${orgId.value}/payments/pending`,
+);
+const pending = computed(() => pendingData.value?.pending ?? []);
 </script>

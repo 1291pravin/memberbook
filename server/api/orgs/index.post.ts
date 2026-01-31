@@ -29,5 +29,10 @@ export default defineEventHandler(async (event) => {
     role: "owner",
   });
 
+  await setUserSession(event, {
+    user: { id: user.id, email: user.email, name: user.name },
+    currentOrg: { orgId: org.id, name: org.name, slug: org.slug, type: org.type, role: "owner" },
+  });
+
   return { org };
 });

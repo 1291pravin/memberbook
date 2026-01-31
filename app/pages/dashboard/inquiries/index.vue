@@ -81,7 +81,18 @@ const statuses = [
 ];
 
 const statusFilter = ref("all");
-const inquiries = ref<Inquiry[]>([]);
+
+const query = computed(() => {
+  const params: Record<string, string> = {};
+  if (statusFilter.value !== "all") params.status = statusFilter.value;
+  return params;
+});
+
+const { data: inquiriesData, refresh: refreshInquiries } = await useFetch<{ inquiries: Inquiry[] }>(
+  () => `/api/orgs/${orgId.value}/inquiries`,
+  { query },
+);
+const inquiries = computed(() => inquiriesData.value?.inquiries ?? []);
 
 function statusColor(status: string) {
   const map: Record<string, "green" | "yellow" | "blue" | "gray" | "red"> = {
@@ -93,21 +104,11 @@ function statusColor(status: string) {
   return map[status] || "gray";
 }
 
-async function loadInquiries() {
-  const params = statusFilter.value !== "all" ? `?status=${statusFilter.value}` : "";
-  const data = await $fetch<{ inquiries: Inquiry[] }>(`/api/orgs/${orgId.value}/inquiries${params}`);
-  inquiries.value = data.inquiries;
-}
-
 async function updateStatus(id: number, status: string) {
   await $fetch(`/api/orgs/${orgId.value}/inquiries/${id}`, {
     method: "PUT",
     body: { status },
   });
-  await loadInquiries();
+  await refreshInquiries();
 }
-
-watch(statusFilter, () => loadInquiries());
-
-await loadInquiries();
 </script>

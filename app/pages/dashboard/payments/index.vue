@@ -41,8 +41,8 @@ interface PaymentRow {
   memberName: string;
 }
 
-const payments = ref<PaymentRow[]>([]);
-
-const data = await $fetch<{ payments: PaymentRow[] }>(`/api/orgs/${orgId.value}/payments`);
-payments.value = data.payments;
+const { data: paymentsData } = await useFetch<{ payments: PaymentRow[] }>(
+  () => `/api/orgs/${orgId.value}/payments`,
+);
+const payments = computed(() => paymentsData.value?.payments ?? []);
 </script>

@@ -1,6 +1,6 @@
 import { eq, and, between } from "drizzle-orm";
 
-export default defineEventHandler(async (event) => {
+export default cachedEventHandler(async (event) => {
   const access = await requireOrgAccess(event);
   const today = new Date().toISOString().split("T")[0];
   const weekLater = new Date();
@@ -29,4 +29,7 @@ export default defineEventHandler(async (event) => {
     .orderBy(schema.memberSubscriptions.endDate);
 
   return { expiring };
+}, {
+  maxAge: 300,
+  getKey: (event) => orgCacheKey(event, "members"),
 });

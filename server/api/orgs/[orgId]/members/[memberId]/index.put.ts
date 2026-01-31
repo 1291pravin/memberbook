@@ -27,5 +27,6 @@ export default defineEventHandler(async (event) => {
     .where(and(eq(schema.members.id, memberId), eq(schema.members.orgId, access.orgId)))
     .limit(1);
 
+  await invalidateCache(access.orgId, "members");
   return { member: rows[0] };
 });

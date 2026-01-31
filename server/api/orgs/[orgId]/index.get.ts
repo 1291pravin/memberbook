@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 
-export default defineEventHandler(async (event) => {
+export default cachedEventHandler(async (event) => {
   const access = await requireOrgAccess(event);
   const rows = await db
     .select()
@@ -9,4 +9,7 @@ export default defineEventHandler(async (event) => {
     .limit(1);
 
   return { org: rows[0], role: access.role };
+}, {
+  maxAge: 3600,
+  getKey: (event) => orgCacheKey(event, "org"),
 });

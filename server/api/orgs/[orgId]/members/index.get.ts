@@ -1,6 +1,6 @@
 import { eq, and, like, or } from "drizzle-orm";
 
-export default defineEventHandler(async (event) => {
+export default cachedEventHandler(async (event) => {
   const access = await requireOrgAccess(event);
   const query = getQuery(event);
   const search = query.search as string | undefined;
@@ -28,4 +28,7 @@ export default defineEventHandler(async (event) => {
     .orderBy(schema.members.name);
 
   return { members: memberList };
+}, {
+  maxAge: 3600,
+  getKey: (event) => orgCacheKey(event, "members"),
 });

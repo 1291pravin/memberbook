@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 
-export default defineEventHandler(async (event) => {
+export default cachedEventHandler(async (event) => {
   const access = await requireOrgAccess(event);
   const query = getQuery(event);
   const status = query.status as string | undefined;
@@ -17,4 +17,7 @@ export default defineEventHandler(async (event) => {
     .orderBy(schema.inquiries.createdAt);
 
   return { inquiries: inquiryList };
+}, {
+  maxAge: 3600,
+  getKey: (event) => orgCacheKey(event, "inquiries"),
 });

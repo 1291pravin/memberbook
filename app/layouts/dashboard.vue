@@ -61,14 +61,7 @@
 import { h } from "vue";
 const route = useRoute();
 const { clear } = useUserSession();
-const { currentOrg, orgsLoaded, loadOrgs, clearOrg } = useOrg();
-
-if (import.meta.client && !orgsLoaded.value) {
-  await loadOrgs();
-  if (!currentOrg.value) {
-    navigateTo("/onboarding");
-  }
-}
+const { currentOrg } = useOrg();
 
 function icon(d: string) {
   return () => h("svg", { class: "w-5 h-5", fill: "none", stroke: "currentColor", "stroke-width": "1.5", viewBox: "0 0 24 24" }, [
@@ -94,7 +87,6 @@ function isActive(to: string) {
 
 async function logout() {
   await $fetch("/api/auth/logout", { method: "POST" });
-  clearOrg();
   await clear();
   navigateTo("/login");
 }

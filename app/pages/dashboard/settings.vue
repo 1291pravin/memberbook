@@ -80,13 +80,17 @@ interface StaffMember {
 const orgForm = reactive({ name: currentOrg.value?.name || "", type: currentOrg.value?.type || "" });
 const savingOrg = ref(false);
 
-const staff = ref<StaffMember[]>([]);
 const staffEmail = ref("");
 const addingStaff = ref(false);
 const staffError = ref("");
 const staffSuccess = ref("");
 
 const isOwner = computed(() => currentOrg.value?.role === "owner");
+
+const { data: staffData, refresh: refreshStaff } = await useFetch<{ staff: StaffMember[] }>(
+  () => `/api/orgs/${orgId.value}/staff`,
+);
+const staff = computed(() => staffData.value?.staff ?? []);
 
 async function saveOrg() {
   savingOrg.value = true;
@@ -95,11 +99,6 @@ async function saveOrg() {
     body: orgForm,
   });
   savingOrg.value = false;
-}
-
-async function loadStaff() {
-  const data = await $fetch<{ staff: StaffMember[] }>(`/api/orgs/${orgId.value}/staff`);
-  staff.value = data.staff;
 }
 
 async function addStaff() {
@@ -113,7 +112,7 @@ async function addStaff() {
     });
     staffSuccess.value = "Staff member added successfully";
     staffEmail.value = "";
-    await loadStaff();
+    await refreshStaff();
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };
     staffError.value = err.data?.statusMessage || "Failed to add staff member";
@@ -126,8 +125,6 @@ async function removeStaff(membershipId: number) {
   await $fetch(`/api/orgs/${orgId.value}/staff/${membershipId}`, {
     method: "DELETE",
   });
-  await loadStaff();
+  await refreshStaff();
 }
-
-await loadStaff();
 </script>

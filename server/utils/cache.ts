@@ -1,0 +1,46 @@
+import type { H3Event } from "h3";
+
+/**
+ * Build a deterministic cache key from the request.
+ * Nitro normalizes keys by stripping non-alphanumeric chars,
+ * so `org5membersstatusactive` is the stored form.
+ */
+export function orgCacheKey(event: H3Event, resource: string): string {
+  const orgId = getRouterParam(event, "orgId");
+  const query = getQuery(event);
+  const sorted = Object.keys(query)
+    .sort()
+    .map((k) => `${k}${query[k]}`)
+    .join("");
+  return `org${orgId}${resource}${sorted || "all"}`;
+}
+
+/**
+ * Invalidation map: which cache prefixes to clear when a resource is mutated.
+ */
+const INVALIDATION_MAP: Record<string, string[]> = {
+  members: ["members", "dashboard"],
+  subscriptions: ["members", "dashboard", "payments"],
+  payments: ["payments", "dashboard"],
+  plans: ["plans"],
+  inquiries: ["inquiries"],
+  staff: ["staff"],
+  org: ["org", "dashboard"],
+};
+
+/**
+ * Clear cached data for an org after a mutation.
+ * Uses prefix-based clearing so all query variants are invalidated.
+ *
+ * Cache key format in storage: `nitro:handlers:org{orgId}{resource}....json`
+ */
+export async function invalidateCache(
+  orgId: number | string,
+  resource: string,
+) {
+  const prefixes = INVALIDATION_MAP[resource] || [resource];
+  const storage = useStorage("cache");
+  await Promise.all(
+    prefixes.map((r) => storage.clear(`nitro:handlers:org${orgId}${r}`)),
+  );
+}

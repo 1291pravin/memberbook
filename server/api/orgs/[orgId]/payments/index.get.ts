@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 
-export default defineEventHandler(async (event) => {
+export default cachedEventHandler(async (event) => {
   const access = await requireOrgAccess(event);
   const paymentList = await db
     .select({
@@ -19,4 +19,7 @@ export default defineEventHandler(async (event) => {
     .orderBy(desc(schema.payments.date));
 
   return { payments: paymentList };
+}, {
+  maxAge: 3600,
+  getKey: (event) => orgCacheKey(event, "payments"),
 });

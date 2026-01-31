@@ -81,16 +81,14 @@ interface ExpiringItem {
   amount: number;
 }
 
-const stats = reactive({ activeMembers: 0, expiringSoon: 0, pendingPayments: 0, monthRevenue: 0 });
-const recentPayments = ref<DashboardData["recentPayments"]>([]);
-const expiring = ref<ExpiringItem[]>([]);
+const { data: dashData } = await useFetch<DashboardData>(
+  () => `/api/orgs/${orgId.value}/dashboard`,
+);
+const { data: expiringData } = await useFetch<{ expiring: ExpiringItem[] }>(
+  () => `/api/orgs/${orgId.value}/members/expiring`,
+);
 
-const [dashData, expiringData] = await Promise.all([
-  $fetch<DashboardData>(`/api/orgs/${orgId.value}/dashboard`),
-  $fetch<{ expiring: ExpiringItem[] }>(`/api/orgs/${orgId.value}/members/expiring`),
-]);
-
-Object.assign(stats, dashData.stats);
-recentPayments.value = dashData.recentPayments;
-expiring.value = expiringData.expiring;
+const stats = computed(() => dashData.value?.stats ?? { activeMembers: 0, expiringSoon: 0, pendingPayments: 0, monthRevenue: 0 });
+const recentPayments = computed(() => dashData.value?.recentPayments ?? []);
+const expiring = computed(() => expiringData.value?.expiring ?? []);
 </script>

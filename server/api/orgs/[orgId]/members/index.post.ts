@@ -15,5 +15,6 @@ export default defineEventHandler(async (event) => {
     notes: notes?.trim() || null,
   }).returning();
 
+  await invalidateCache(access.orgId, "members");
   return { member: result[0] };
 });

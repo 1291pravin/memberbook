@@ -4,6 +4,16 @@ declare module '#auth-utils' {
     email: string
     name: string
   }
+
+  interface UserSession {
+    currentOrg?: {
+      orgId: number
+      name: string
+      slug: string
+      type: string
+      role: string
+    }
+  }
 }
 
 export {}

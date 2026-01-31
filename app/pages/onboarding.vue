@@ -33,7 +33,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default", middleware: "auth" });
 
-const { setOrg } = useOrg();
+const { fetch: refreshSession } = useUserSession();
 
 const form = reactive({ name: "", type: "" });
 const error = ref("");
@@ -50,11 +50,11 @@ async function handleCreate() {
   error.value = "";
   loading.value = true;
   try {
-    const data = await $fetch<{ org: { id: number; name: string; slug: string; type: string } }>("/api/orgs", {
+    await $fetch("/api/orgs", {
       method: "POST",
       body: { name: form.name, type: form.type },
     });
-    setOrg({ orgId: data.org.id, name: data.org.name, slug: data.org.slug, type: data.org.type, role: "owner" });
+    await refreshSession();
     navigateTo("/dashboard");
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };

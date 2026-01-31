@@ -17,5 +17,6 @@ export default defineEventHandler(async (event) => {
     subscriptionId: subscriptionId ? Number(subscriptionId) : null,
   }).returning();
 
+  await invalidateCache(access.orgId, "payments");
   return { payment: result[0] };
 });

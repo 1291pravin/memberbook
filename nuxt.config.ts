@@ -14,6 +14,10 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   hub: {
     db: "sqlite",
+    cache: {
+      driver: "cloudflare-kv-binding",
+      binding: "CACHE",
+    },
   },
   runtimeConfig: {
     oauth: {

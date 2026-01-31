@@ -6,6 +6,12 @@
   "assets": {
     "directory": ".output/public",
   },
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "2e5b2b3d603346dfab9979436363be9e",
+    },
+  ],
   "d1_databases": [
     {
       "binding": "DB",

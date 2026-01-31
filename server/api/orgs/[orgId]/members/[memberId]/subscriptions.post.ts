@@ -35,5 +35,6 @@ export default defineEventHandler(async (event) => {
     amount: plan.price,
   }).returning();
 
+  await invalidateCache(access.orgId, "subscriptions");
   return { subscription: result[0] };
 });

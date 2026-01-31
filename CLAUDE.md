@@ -4,35 +4,74 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MemberBook is a Nuxt 4 full-stack web application with authentication, Tailwind CSS styling, and NuxtHub deployment support.
+MemberBook is a multi-tenant SaaS application for managing memberships, subscriptions, and payments — targeting gyms, libraries, and tuition centers. Built as a Nuxt 4 full-stack app deployed to Cloudflare Workers.
 
 ## Commands
 
 - `npm run dev` — Start development server
 - `npm run build` — Production build
 - `npm run preview` — Preview production build locally
-- `npm run generate` — Generate static site
-- `npm run postinstall` — Run `nuxt prepare` (auto-runs after install)
 - `npx eslint .` — Lint the project
+- `npx drizzle-kit generate` — Generate DB migration from schema changes
+- `npx drizzle-kit migrate` — Apply migrations locally
 
 ## Tech Stack
 
 - **Framework:** Nuxt 4.3 (Vue 3.5, Vue Router 4)
 - **Styling:** Tailwind CSS 4 via Vite plugin
-- **Auth:** nuxt-auth-utils (session-based, configured via `NUXT_SESSION_PASSWORD` env var)
-- **Deployment:** @nuxthub/core for edge deployment
-- **Build:** Vite, TypeScript, ES modules
+- **Database:** Drizzle ORM with Cloudflare D1 (SQLite)
+- **Auth:** nuxt-auth-utils (session-based + Google OAuth)
+- **Deployment:** cloudflare Workers edge deployment
 - **Linting:** ESLint with @nuxt/eslint preset
 
 ## Architecture
 
-- `app/app.vue` — Root application component
-- `app/assets/css/main.css` — Tailwind CSS entry point
-- `nuxt.config.ts` — Nuxt config: modules, Vite plugins, CSS imports
-- `eslint.config.mjs` — ESLint config extending Nuxt's generated config from `.nuxt/`
-- `.env` — Environment variables (session password); `.env.example` should be maintained for reference
+### Multi-Tenancy Model
 
-Nuxt conventions apply: pages go in `app/pages/`, layouts in `app/layouts/`, components in `app/components/`, server routes in `server/api/`, composables in `app/composables/`.
+All data is scoped to an organization (`orgId`). Users belong to organizations via `orgMemberships` with roles: `owner` or `staff`. The `useOrg()` composable on the frontend and `requireOrgAccess(event)` on the server enforce org context throughout.
+
+### Authentication
+
+Two auth methods: email/password and Google OAuth. Session management via `nuxt-auth-utils`. Server-side helpers in `server/utils/auth.ts` (`requireAuth`, `findUserByEmail`, `findUserByGoogleId`).
+
+### Server API Pattern
+
+All org-scoped API routes live under `server/api/orgs/[orgId]/` and use `requireOrgAccess(event)` to validate the user has membership in the org. This returns `{ userId, orgId, role }`. Owner-only routes additionally call `requireOwner(access)`.
+
+Resources: members, payments, plans, inquiries, staff — all nested under the org.
+
+### Frontend Routing & Middleware
+
+- **`auth`** middleware — requires login, redirects to `/login`
+- **`guest`** middleware — redirects logged-in users to `/dashboard`
+- **`org-required`** middleware — requires auth + active org, redirects to `/onboarding`
+
+Dashboard pages use the `dashboard` layout (sidebar on desktop, bottom nav on mobile). Public pages use `default` layout.
+
+### Database Schema
+
+Defined in `server/db/schema.ts` using Drizzle ORM. Monetary amounts (price, amount) are stored in **paise** (integer, 1/100 of INR). Migrations go in `server/db/migrations/sqlite/`.
+
+Key tables: `users`, `organizations`, `orgMemberships`, `subscriptionPlans`, `members`, `memberSubscriptions`, `payments`, `inquiries`.
+
+### Reusable Components
+
+UI primitives in `app/components/`: `AppButton`, `AppInput`, `AppSelect`, `AppCard`, `AppModal`, `AppBadge`, `AppEmptyState`, `AppSearchBar`, `AppStatCard`. Use these instead of raw HTML elements for consistency.
+
+### Key Composables
+
+- `useOrg()` — current org state, `loadOrgs()`, `setOrg()`, `clearOrg()`, computed `orgId`
+- `useApi()` — typed `$fetch` wrapper with Content-Type header
+- `useFormatCurrency()` — currency formatting
+- `useWhatsApp()` — WhatsApp messaging integration
+
+## Environment Variables
+
+Required in `.env`:
+
+- `NUXT_SESSION_PASSWORD` — session secret (min 32 chars)
+- `NUXT_OAUTH_GOOGLE_CLIENT_ID` — Google OAuth client ID
+- `NUXT_OAUTH_GOOGLE_CLIENT_SECRET` — Google OAuth client secret
 
 ## Git
 

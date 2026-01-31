@@ -24,11 +24,15 @@ export default defineOAuthGoogleEventHandler({
       }
     }
 
+    const orgs = await getUserOrgs(user.id);
+    const currentOrg = orgs.length > 0 ? orgs[0] : undefined;
+
     await setUserSession(event, {
       user: { id: user.id, email: user.email, name: user.name },
+      currentOrg,
     });
 
-    return sendRedirect(event, "/dashboard");
+    return sendRedirect(event, currentOrg ? "/dashboard" : "/onboarding");
   },
   onError(event, error) {
     console.error("Google OAuth error:", error);

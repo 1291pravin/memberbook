@@ -14,5 +14,6 @@ export default defineEventHandler(async (event) => {
     durationDays: Number(durationDays),
   }).returning();
 
+  await invalidateCache(access.orgId, "plans");
   return { plan: result[0] };
 });

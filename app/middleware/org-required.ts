@@ -1,11 +1,9 @@
 export default defineNuxtRouteMiddleware(() => {
-  const { loggedIn } = useUserSession();
+  const { loggedIn, session } = useUserSession();
   if (!loggedIn.value) {
     return navigateTo("/login");
   }
-
-  const { currentOrg, orgsLoaded } = useOrg();
-  if (orgsLoaded.value && !currentOrg.value) {
+  if (!session.value?.currentOrg) {
     return navigateTo("/onboarding");
   }
 });

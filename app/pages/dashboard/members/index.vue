@@ -68,24 +68,20 @@ interface Member {
   status: string;
 }
 
-const members = ref<Member[]>([]);
-const loading = ref(true);
 const search = ref("");
 const statusFilter = ref("all");
 
-const filteredMembers = computed(() => members.value);
+const query = computed(() => {
+  const params: Record<string, string> = {};
+  if (search.value) params.search = search.value;
+  if (statusFilter.value !== "all") params.status = statusFilter.value;
+  return params;
+});
 
-async function loadMembers() {
-  loading.value = true;
-  const params = new URLSearchParams();
-  if (search.value) params.set("search", search.value);
-  if (statusFilter.value !== "all") params.set("status", statusFilter.value);
-  const data = await $fetch<{ members: Member[] }>(`/api/orgs/${orgId.value}/members?${params}`);
-  members.value = data.members;
-  loading.value = false;
-}
-
-watch([search, statusFilter], () => loadMembers(), { debounce: 300 } as never);
-
-await loadMembers();
+const { data: membersData, status: membersStatus } = await useFetch<{ members: Member[] }>(
+  () => `/api/orgs/${orgId.value}/members`,
+  { query },
+);
+const filteredMembers = computed(() => membersData.value?.members ?? []);
+const loading = computed(() => membersStatus.value === "pending");
 </script>

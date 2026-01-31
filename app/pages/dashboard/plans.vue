@@ -67,19 +67,16 @@ interface Plan {
   active: boolean;
 }
 
-const plans = ref<Plan[]>([]);
-const loading = ref(true);
 const showForm = ref(false);
 const saving = ref(false);
 const editingPlan = ref<Plan | null>(null);
 const form = reactive({ name: "", price: "", durationDays: "" });
 
-async function loadPlans() {
-  loading.value = true;
-  const data = await $fetch<{ plans: Plan[] }>(`/api/orgs/${orgId.value}/plans`);
-  plans.value = data.plans;
-  loading.value = false;
-}
+const { data: plansData, refresh: refreshPlans, status: plansStatus } = await useFetch<{ plans: Plan[] }>(
+  () => `/api/orgs/${orgId.value}/plans`,
+);
+const plans = computed(() => plansData.value?.plans ?? []);
+const loading = computed(() => plansStatus.value === "pending");
 
 function editPlan(plan: Plan) {
   editingPlan.value = plan;
@@ -117,7 +114,7 @@ async function savePlan() {
     });
   }
 
-  await loadPlans();
+  await refreshPlans();
   closeForm();
   saving.value = false;
 }
@@ -127,8 +124,6 @@ async function toggleActive(plan: Plan) {
     method: "PUT",
     body: { active: !plan.active },
   });
-  await loadPlans();
+  await refreshPlans();
 }
-
-await loadPlans();
 </script>
