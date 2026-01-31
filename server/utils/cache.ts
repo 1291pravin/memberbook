@@ -32,7 +32,7 @@ const INVALIDATION_MAP: Record<string, string[]> = {
  * Clear cached data for an org after a mutation.
  * Uses prefix-based clearing so all query variants are invalidated.
  *
- * Cache key format in storage: `nitro:handlers:org{orgId}{resource}....json`
+ * Cache key format in storage: `nitro:handlers:_:org{orgId}{resource}....json`
  */
 export async function invalidateCache(
   orgId: number | string,
@@ -40,7 +40,9 @@ export async function invalidateCache(
 ) {
   const prefixes = INVALIDATION_MAP[resource] || [resource];
   const storage = useStorage("cache");
-  await Promise.all(
-    prefixes.map((r) => storage.clear(`nitro:handlers:org${orgId}${r}`)),
+  const allKeys = await storage.getKeys("nitro:handlers");
+  const toRemove = allKeys.filter((key) =>
+    prefixes.some((r) => key.includes(`org${orgId}${r}`)),
   );
+  await Promise.all(toRemove.map((key) => storage.removeItem(key)));
 }
