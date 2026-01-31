@@ -13,15 +13,8 @@ export default defineNuxtConfig({
   },
   css: ["~/assets/css/main.css"],
   hub: {
-    db: {
-      dialect: "sqlite",
-      driver: "d1",
-      connection: { databaseId: "7b694b50-7cbb-4f81-989c-c28ab4884f02" },
-    },
-    cache: {
-      driver: "cloudflare-kv-binding",
-      namespaceId: "2e5b2b3d603346dfab9979436363be9e",
-    },
+    db: "sqlite",
+    cache: true,
   },
   runtimeConfig: {
     oauth: {
