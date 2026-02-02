@@ -29,5 +29,5 @@ export default cachedEventHandler(async (event) => {
   return { pending };
 }, {
   maxAge: 300,
-  getKey: (event) => orgCacheKey(event, "payments"),
+  getKey: (event) => orgCacheKey(event, "payments-pending"),
 });

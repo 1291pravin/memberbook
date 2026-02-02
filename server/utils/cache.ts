@@ -19,9 +19,9 @@ export function orgCacheKey(event: H3Event, resource: string): string {
  * Invalidation map: which cache prefixes to clear when a resource is mutated.
  */
 const INVALIDATION_MAP: Record<string, string[]> = {
-  members: ["members", "dashboard"],
-  subscriptions: ["members", "dashboard", "payments"],
-  payments: ["payments", "dashboard"],
+  members: ["members", "members-expiring", "dashboard"],
+  subscriptions: ["members", "members-expiring", "dashboard", "payments", "payments-pending"],
+  payments: ["payments", "payments-pending", "dashboard"],
   plans: ["plans"],
   inquiries: ["inquiries"],
   staff: ["staff"],

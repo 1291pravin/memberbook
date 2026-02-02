@@ -31,5 +31,5 @@ export default cachedEventHandler(async (event) => {
   return { expiring };
 }, {
   maxAge: 300,
-  getKey: (event) => orgCacheKey(event, "members"),
+  getKey: (event) => orgCacheKey(event, "members-expiring"),
 });
