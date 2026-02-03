@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -24,7 +24,9 @@ export const orgMemberships = sqliteTable("org_memberships", {
   orgId: integer("org_id").notNull().references(() => organizations.id),
   role: text("role").notNull().default("staff"), // owner, staff
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  userOrgUnique: uniqueIndex("org_memberships_user_org_unique").on(table.userId, table.orgId),
+}));
 
 export const subscriptionPlans = sqliteTable("subscription_plans", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -82,4 +84,19 @@ export const inquiries = sqliteTable("inquiries", {
   status: text("status").notNull().default("new"), // new, contacted, converted, lost
   notes: text("notes"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const orgInvites = sqliteTable("org_invites", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  invitedByUserId: integer("invited_by_user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  status: text("status").notNull().default("pending"), // pending, accepted, expired, revoked
+  expiresAt: text("expires_at").notNull(),
+  acceptedByUserId: integer("accepted_by_user_id").references(() => users.id),
+  acceptedAt: text("accepted_at"),
+  revokedByUserId: integer("revoked_by_user_id").references(() => users.id),
+  revokedAt: text("revoked_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
 });

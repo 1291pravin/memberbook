@@ -6,6 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 MemberBook is a multi-tenant SaaS application for managing memberships, subscriptions, and payments — targeting gyms, libraries, and tuition centers. Built as a Nuxt 4 full-stack app deployed to Cloudflare Workers.
 
+## Task Orchestration
+
+**IMPORTANT:** All tasks should be orchestrated through `.claude/agents/orchestrator.md`. The orchestrator analyzes incoming requests and delegates to the appropriate specialist agents in the correct order:
+
+- **product-manager** — Feature scoping, PRDs, prioritization
+- **business-analyst** — Data requirements, schema analysis, business rules
+- **ui-ux-expert** — Page designs, wireframes, user flows
+- **fullstack-developer** — End-to-end implementation (schema, API, frontend)
+- **code-reviewer** — Quality, patterns, multi-tenancy safety
+- **qa-expert** — Test strategies and test cases
+- **security-auditor** — Vulnerability assessment, compliance
+
+The orchestrator ensures the right workflow is followed based on the task type (new feature, bug fix, UI change, performance issue, security concern, etc.).
+
 ## Commands
 
 - `npm run dev` — Start development server

@@ -17,7 +17,17 @@
 
     <!-- Staff Management -->
     <AppCard title="Staff Members">
-      <div class="space-y-3 mb-4">
+      <!-- Invite via WhatsApp (owner only) -->
+      <div v-if="isOwner" class="mb-6 pb-6 border-b border-gray-100">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-sm font-medium text-gray-700">Invite Staff via WhatsApp</h4>
+        </div>
+        <AppButton size="sm" @click="showInviteModal = true">
+          Manage Invitations
+        </AppButton>
+      </div>
+
+      <div class="space-y-3">
         <div v-for="s in staff" :key="s.id" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
           <div>
             <p class="text-sm font-medium text-gray-900">{{ s.name }}</p>
@@ -37,23 +47,114 @@
         </div>
         <div v-if="staff.length === 0" class="text-sm text-gray-500">No staff added yet.</div>
       </div>
-
-      <div v-if="isOwner">
-        <h4 class="text-sm font-medium text-gray-700 mb-2">Add Staff</h4>
-        <form class="flex gap-2" @submit.prevent="addStaff">
-          <AppInput
-            v-model="staffEmail"
-            type="email"
-            placeholder="staff@example.com"
-            class="flex-1"
-            required
-          />
-          <AppButton type="submit" size="sm" :loading="addingStaff">Add</AppButton>
-        </form>
-        <p v-if="staffError" class="mt-1 text-sm text-red-600">{{ staffError }}</p>
-        <p v-if="staffSuccess" class="mt-1 text-sm text-green-600">{{ staffSuccess }}</p>
-      </div>
     </AppCard>
+
+    <!-- Invite Modal -->
+    <AppModal :open="showInviteModal" title="Staff Invitations" size="lg" @close="showInviteModal = false">
+      <div class="space-y-4">
+        <!-- Generate new invite -->
+        <div class="pb-4 border-b border-gray-100">
+          <AppButton size="sm" :loading="generatingInvite" @click="generateInvite">
+            Generate New Invitation
+          </AppButton>
+          <p v-if="inviteError" class="mt-2 text-sm text-red-600">{{ inviteError }}</p>
+          <p v-if="copySuccess" class="mt-2 text-sm text-green-600">{{ copySuccess }}</p>
+          <p v-if="copyError" class="mt-2 text-sm text-red-600">{{ copyError }}</p>
+          <p class="mt-1 text-xs text-gray-500">
+            {{ pendingInvites.length }} / 10 pending invitations
+          </p>
+        </div>
+
+        <!-- Active (pending) invites -->
+        <div>
+          <h4 class="text-sm font-semibold text-gray-900 mb-3">Active Invitations</h4>
+          <div v-if="pendingInvites.length === 0">
+            <AppEmptyState title="No active invitations" />
+          </div>
+          <div v-else class="space-y-3">
+            <div
+              v-for="invite in pendingInvites"
+              :key="invite.id"
+              class="p-3 bg-gray-50 rounded-lg border border-gray-200"
+            >
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <AppBadge color="blue">{{ invite.status }}</AppBadge>
+                    <span class="text-xs text-gray-500">
+                      Expires {{ formatExpiry(invite.expiresAt) }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Created {{ formatDate(invite.createdAt) }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <AppButton size="sm" variant="secondary" @click="copyInviteLink(invite)">
+                  Copy Link
+                </AppButton>
+                <AppButton
+                  size="sm"
+                  :style="{ backgroundColor: '#25D366', color: 'white' }"
+                  @click="sendViaWhatsApp(invite)"
+                >
+                  WhatsApp
+                </AppButton>
+                <AppButton size="sm" variant="danger" @click="revokeInvite(invite.id)">
+                  Revoke
+                </AppButton>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Used invites (collapsible) -->
+        <div>
+          <button
+            class="flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-gray-700"
+            @click="showUsedInvites = !showUsedInvites"
+          >
+            <svg
+              class="w-4 h-4 transition-transform"
+              :class="{ 'rotate-90': showUsedInvites }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            Used Invitations ({{ usedInvites.length }})
+          </button>
+          <div v-if="showUsedInvites" class="mt-3 space-y-2">
+            <div v-if="usedInvites.length === 0" class="text-sm text-gray-500">
+              No used invitations
+            </div>
+            <div
+              v-for="invite in usedInvites"
+              v-else
+              :key="invite.id"
+              class="p-3 bg-gray-50 rounded-lg border border-gray-200"
+            >
+              <div class="flex items-center gap-2 mb-1">
+                <AppBadge :color="invite.status === 'accepted' ? 'green' : 'red'">
+                  {{ invite.status }}
+                </AppBadge>
+              </div>
+              <p class="text-xs text-gray-500">
+                Created {{ formatDate(invite.createdAt) }}
+              </p>
+              <p v-if="invite.acceptedAt && invite.acceptedBy" class="text-xs text-gray-600 mt-1">
+                Accepted by {{ invite.acceptedBy.name }} on {{ formatDate(invite.acceptedAt) }}
+              </p>
+              <p v-if="invite.revokedAt" class="text-xs text-gray-600 mt-1">
+                Revoked on {{ formatDate(invite.revokedAt) }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AppModal>
   </div>
 </template>
 
@@ -61,6 +162,8 @@
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const { orgId, currentOrg } = useOrg();
+const { getInviteMessage } = useWhatsApp();
+const { copyToClipboard } = useClipboard();
 
 const businessTypes = [
   { value: "gym", label: "Gym / Fitness Center" },
@@ -77,13 +180,28 @@ interface StaffMember {
   role: string;
 }
 
+interface Invite {
+  id: number;
+  token: string;
+  status: string;
+  expiresAt: string;
+  createdAt: string;
+  acceptedAt?: string;
+  revokedAt?: string;
+  invitedBy: { name: string; email: string };
+  acceptedBy?: { name: string; email: string } | null;
+  revokedBy?: { name: string; email: string } | null;
+}
+
 const orgForm = reactive({ name: currentOrg.value?.name || "", type: currentOrg.value?.type || "" });
 const savingOrg = ref(false);
 
-const staffEmail = ref("");
-const addingStaff = ref(false);
-const staffError = ref("");
-const staffSuccess = ref("");
+const showInviteModal = ref(false);
+const generatingInvite = ref(false);
+const inviteError = ref("");
+const showUsedInvites = ref(false);
+const copySuccess = ref("");
+const copyError = ref("");
 
 const isOwner = computed(() => currentOrg.value?.role === "owner");
 
@@ -91,6 +209,24 @@ const { data: staffData, refresh: refreshStaff } = await useFetch<{ staff: Staff
   () => `/api/orgs/${orgId.value}/staff`,
 );
 const staff = computed(() => staffData.value?.staff ?? []);
+
+const { data: invitesData, refresh: refreshInvites } = await useFetch<{ invites: Invite[] }>(
+  () => `/api/orgs/${orgId.value}/invites`,
+  { immediate: false },
+);
+
+const pendingInvites = computed(() => {
+  const now = new Date().toISOString();
+  return (invitesData.value?.invites ?? []).filter(
+    (inv) => inv.status === "pending" && inv.expiresAt > now
+  );
+});
+
+const usedInvites = computed(() => {
+  return (invitesData.value?.invites ?? []).filter(
+    (inv) => inv.status !== "pending" || inv.expiresAt <= new Date().toISOString()
+  );
+});
 
 async function saveOrg() {
   savingOrg.value = true;
@@ -101,30 +237,100 @@ async function saveOrg() {
   savingOrg.value = false;
 }
 
-async function addStaff() {
-  staffError.value = "";
-  staffSuccess.value = "";
-  addingStaff.value = true;
-  try {
-    await $fetch(`/api/orgs/${orgId.value}/staff`, {
-      method: "POST",
-      body: { email: staffEmail.value },
-    });
-    staffSuccess.value = "Staff member added successfully";
-    staffEmail.value = "";
-    await refreshStaff();
-  } catch (e: unknown) {
-    const err = e as { data?: { statusMessage?: string } };
-    staffError.value = err.data?.statusMessage || "Failed to add staff member";
-  } finally {
-    addingStaff.value = false;
-  }
-}
-
 async function removeStaff(membershipId: number) {
   await $fetch(`/api/orgs/${orgId.value}/staff/${membershipId}`, {
     method: "DELETE",
   });
   await refreshStaff();
 }
+
+async function generateInvite() {
+  generatingInvite.value = true;
+  inviteError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/invites`, {
+      method: "POST",
+    });
+    await refreshInvites();
+  } catch (e: unknown) {
+    const err = e as { data?: { statusMessage?: string } };
+    inviteError.value = err.data?.statusMessage || "Failed to generate invitation";
+  } finally {
+    generatingInvite.value = false;
+  }
+}
+
+async function copyInviteLink(invite: Invite) {
+  copySuccess.value = "";
+  copyError.value = "";
+  const url = `${window.location.origin}/invite/${invite.token}`;
+  const success = await copyToClipboard(url);
+  if (success) {
+    copySuccess.value = "Invitation link copied to clipboard!";
+    setTimeout(() => { copySuccess.value = ""; }, 3000);
+  } else {
+    copyError.value = "Failed to copy link";
+    setTimeout(() => { copyError.value = ""; }, 3000);
+  }
+}
+
+function sendViaWhatsApp(invite: Invite) {
+  const url = `${window.location.origin}/invite/${invite.token}`;
+  const message = getInviteMessage(currentOrg.value?.name || "MemberBook", url);
+  // For WhatsApp web, we don't need a phone number - just send the message
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, "_blank");
+}
+
+async function revokeInvite(inviteId: number) {
+  if (!confirm("Are you sure you want to revoke this invitation?")) {
+    return;
+  }
+  inviteError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/invites/${inviteId}`, {
+      method: "DELETE",
+    });
+    await refreshInvites();
+  } catch (e: unknown) {
+    const err = e as { data?: { statusMessage?: string } };
+    inviteError.value = err.data?.statusMessage || "Failed to revoke invitation";
+  }
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatExpiry(dateStr: string): string {
+  const expiry = new Date(dateStr);
+  const now = new Date();
+  const diffMs = expiry.getTime() - now.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (diffHours > 24) {
+    return `in ${Math.floor(diffHours / 24)} days`;
+  } else if (diffHours > 0) {
+    return `in ${diffHours}h ${diffMins}m`;
+  } else if (diffMins > 0) {
+    return `in ${diffMins} minutes`;
+  } else {
+    return "expired";
+  }
+}
+
+// Load invites when modal opens
+watch(showInviteModal, (isOpen) => {
+  if (isOpen) {
+    refreshInvites();
+  }
+});
 </script>

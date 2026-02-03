@@ -75,11 +75,27 @@ Always use these instead of raw HTML:
 
 ## Development Workflow
 
-When implementing a feature:
+### Step 0: Plan Before You Build
+
+Before writing any code, create an implementation plan and present it to the user for approval. The plan must include:
+
+1. **Files to create/modify** — List every file with a brief description of what changes
+2. **Schema changes** — Exact table/column additions with types, constraints, and indexes
+3. **API endpoints** — Method, path, auth requirements, request/response shape
+4. **Frontend changes** — Pages, components, composables affected
+5. **Edge cases & risks** — Anything that could go wrong (Workers compatibility, race conditions, multi-tenancy leaks)
+6. **Migration impact** — Whether existing data is affected
+
+**Wait for explicit user approval before proceeding to implementation.**
+
+**Skip planning for trivial tasks** — single-line fixes, config changes, typo corrections, or tasks where the user has already provided an explicit step-by-step plan. Use your judgment: if the change touches more than 2-3 files or involves schema/API changes, plan first.
+
+### Implementation Steps (after plan approval)
+
 1. **Schema first** — Add/modify tables in `server/db/schema.ts`, run `npx drizzle-kit generate`
 2. **API routes** — Create server handlers following the `requireOrgAccess` pattern
 3. **Frontend** — Build Vue pages/components using `App*` components and composables
-4. **Lint** — Run `npx eslint .` to verify
+4. **Verify** — Run `npm run build` to ensure no errors
 
 ## Code Quality Standards
 

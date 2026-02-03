@@ -59,7 +59,7 @@
         <div v-if="payments.length === 0" class="text-sm text-gray-500 py-2">No payments recorded</div>
       </div>
       <div class="mt-3">
-        <AppButton size="sm" @click="showPaymentModal = true">Record Payment</AppButton>
+        <AppButton size="sm" @click="openPaymentModal">Record Payment</AppButton>
       </div>
     </AppCard>
 
@@ -84,6 +84,13 @@
     <!-- Record Payment Modal -->
     <AppModal :open="showPaymentModal" title="Record Payment" @close="showPaymentModal = false">
       <form class="space-y-4" @submit.prevent="recordPayment">
+        <AppSelect
+          v-if="subscriptionOptions.length > 0"
+          v-model="paymentForm.subscriptionId"
+          label="For Subscription"
+          :options="subscriptionOptions"
+          placeholder="Select subscription (optional)"
+        />
         <AppInput v-model="paymentForm.amount" label="Amount (Rupees)" type="number" required />
         <AppInput v-model="paymentForm.date" label="Date" type="date" required />
         <AppSelect
@@ -150,7 +157,7 @@ const recordingPayment = ref(false);
 
 const today = new Date().toISOString().split("T")[0];
 const assignForm = reactive({ planId: "", startDate: today });
-const paymentForm = reactive({ amount: "", date: today, method: "cash", notes: "" });
+const paymentForm = reactive({ amount: "", date: today, method: "cash", notes: "", subscriptionId: "" });
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
@@ -173,6 +180,17 @@ const plans = computed(() => plansData.value?.plans ?? []);
 
 const planOptions = computed(() =>
   plans.value.filter(p => p.active).map(p => ({ value: p.id, label: p.name })),
+);
+
+const activeSubscriptions = computed(() =>
+  subscriptions.value.filter(s => s.status === "active"),
+);
+
+const subscriptionOptions = computed(() =>
+  activeSubscriptions.value.map(s => ({
+    value: s.id,
+    label: `${s.planName} (${s.startDate} to ${s.endDate})`,
+  })),
 );
 
 async function toggleStatus() {
@@ -206,12 +224,24 @@ async function recordPayment() {
       date: paymentForm.date,
       method: paymentForm.method,
       notes: paymentForm.notes || null,
+      subscriptionId: paymentForm.subscriptionId ? Number(paymentForm.subscriptionId) : null,
     },
   });
   showPaymentModal.value = false;
   recordingPayment.value = false;
   paymentForm.amount = "";
   paymentForm.notes = "";
+  paymentForm.subscriptionId = "";
   await refreshMember();
+}
+
+function openPaymentModal() {
+  // Auto-select subscription if there's only one active
+  if (activeSubscriptions.value.length === 1) {
+    paymentForm.subscriptionId = String(activeSubscriptions.value[0].id);
+  } else {
+    paymentForm.subscriptionId = "";
+  }
+  showPaymentModal.value = true;
 }
 </script>

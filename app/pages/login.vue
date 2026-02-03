@@ -69,7 +69,7 @@
       <p class="mt-6 text-center text-sm text-gray-500">
         Don't have an account?
         <NuxtLink
-          to="/register"
+          :to="route.query.redirect ? `/register?redirect=${encodeURIComponent(route.query.redirect as string)}` : '/register'"
           class="text-indigo-600 hover:text-indigo-500 font-medium"
           >Sign up</NuxtLink
         >
@@ -96,7 +96,14 @@ async function handleLogin() {
       body: { email: form.email, password: form.password },
     });
     await refreshSession();
-    navigateTo(session.value?.currentOrg ? "/dashboard" : "/onboarding");
+
+    // Handle redirect parameter
+    const redirect = route.query.redirect as string;
+    if (redirect && redirect.startsWith("/")) {
+      navigateTo(redirect);
+    } else {
+      navigateTo(session.value?.currentOrg ? "/dashboard" : "/onboarding");
+    }
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };
     error.value = err.data?.statusMessage || "Login failed";

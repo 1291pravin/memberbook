@@ -23,5 +23,8 @@ export default defineNuxtConfig({
         clientSecret: "",
       },
     },
+    public: {
+      appUrl: "",
+    },
   },
 });

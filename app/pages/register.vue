@@ -75,7 +75,7 @@
       <p class="mt-6 text-center text-sm text-gray-500">
         Already have an account?
         <NuxtLink
-          to="/login"
+          :to="route.query.redirect ? `/login?redirect=${encodeURIComponent(route.query.redirect as string)}` : '/login'"
           class="text-indigo-600 hover:text-indigo-500 font-medium"
           >Sign in</NuxtLink
         >
@@ -93,6 +93,8 @@ const form = reactive({ name: "", email: "", password: "" });
 const error = ref("");
 const loading = ref(false);
 
+const route = useRoute();
+
 async function handleRegister() {
   error.value = "";
   loading.value = true;
@@ -102,7 +104,14 @@ async function handleRegister() {
       body: { name: form.name, email: form.email, password: form.password },
     });
     await refreshSession();
-    navigateTo("/onboarding");
+
+    // Handle redirect parameter
+    const redirect = route.query.redirect as string;
+    if (redirect && redirect.startsWith("/")) {
+      navigateTo(redirect);
+    } else {
+      navigateTo("/onboarding");
+    }
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };
     error.value = err.data?.statusMessage || "Registration failed";
