@@ -5,11 +5,18 @@ export default defineEventHandler(async (event) => {
   requireOwner(access);
 
   const body = await readBody(event);
-  const { name, type } = body;
+  const { name, type, gracePeriodDays } = body;
 
-  const updates: Record<string, string> = {};
+  const updates: Record<string, unknown> = {};
   if (name) updates.name = name.trim();
   if (type) updates.type = type;
+  if (gracePeriodDays !== undefined) {
+    const days = Number(gracePeriodDays);
+    if (!Number.isInteger(days) || days < 0) {
+      throw createError({ statusCode: 400, statusMessage: "Grace period must be a non-negative integer" });
+    }
+    updates.gracePeriodDays = days;
+  }
 
   if (Object.keys(updates).length === 0) {
     throw createError({ statusCode: 400, statusMessage: "Nothing to update" });

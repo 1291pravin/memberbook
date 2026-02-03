@@ -15,6 +15,7 @@ export const organizations = sqliteTable("organizations", {
   slug: text("slug").notNull().unique(),
   type: text("type").notNull(), // gym, library, tuition, other
   currency: text("currency").notNull().default("INR"),
+  gracePeriodDays: integer("grace_period_days").notNull().default(0),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -33,7 +34,8 @@ export const subscriptionPlans = sqliteTable("subscription_plans", {
   orgId: integer("org_id").notNull().references(() => organizations.id),
   name: text("name").notNull(),
   price: integer("price").notNull(), // in paise
-  durationDays: integer("duration_days").notNull(),
+  durationType: text("duration_type").notNull(), // daily, weekly, monthly, yearly
+  durationValue: integer("duration_value").notNull(),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
@@ -58,6 +60,8 @@ export const memberSubscriptions = sqliteTable("member_subscriptions", {
   endDate: text("end_date").notNull(),
   amount: integer("amount").notNull(), // in paise
   status: text("status").notNull().default("active"), // active, expired, cancelled
+  autoRenew: integer("auto_renew", { mode: "boolean" }).notNull().default(true),
+  paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid, partial, paid
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 

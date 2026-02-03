@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 space-y-4">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-gray-900">Members</h1>
+      <h1 class="text-xl font-bold text-slate-800">Members</h1>
       <NuxtLink to="/dashboard/members/new">
         <AppButton>Add Member</AppButton>
       </NuxtLink>
@@ -11,7 +11,7 @@
       <AppSearchBar v-model="search" placeholder="Search by name or phone..." class="flex-1" />
       <select
         v-model="statusFilter"
-        class="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+        class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
       >
         <option value="all">All</option>
         <option value="active">Active</option>
@@ -42,8 +42,8 @@
         <AppCard class="hover:border-primary-200 transition-colors">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium text-gray-900">{{ member.name }}</p>
-              <p v-if="member.phone" class="text-sm text-gray-500">{{ member.phone }}</p>
+              <p class="font-medium text-slate-800">{{ member.name }}</p>
+              <p v-if="member.phone" class="text-sm text-slate-500">{{ member.phone }}</p>
             </div>
             <AppBadge :color="member.status === 'active' ? 'green' : 'gray'">
               {{ member.status }}

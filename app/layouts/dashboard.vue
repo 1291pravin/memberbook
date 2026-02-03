@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50 lg:flex">
+  <div class="min-h-screen bg-slate-50 lg:flex">
     <!-- Desktop Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-gray-200 lg:bg-white">
-      <div class="p-4 border-b border-gray-100">
-        <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-600">MemberBook</NuxtLink>
-        <p v-if="currentOrg" class="text-xs text-gray-500 mt-1">{{ currentOrg.name }}</p>
+    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-slate-800">
+      <div class="p-4 border-b border-slate-700">
+        <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300">MemberBook</NuxtLink>
+        <p v-if="currentOrg" class="text-xs text-slate-500 mt-1">{{ currentOrg.name }}</p>
       </div>
       <nav class="flex-1 p-3 space-y-1">
         <NuxtLink
@@ -12,15 +12,15 @@
           :key="item.to"
           :to="item.to"
           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-          :class="isActive(item.to) ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50'"
+          :class="isActive(item.to) ? 'bg-[rgba(99,102,241,0.15)] text-primary-200' : 'text-slate-400 hover:bg-[rgba(148,163,184,0.1)]'"
         >
           <component :is="item.icon" class="w-5 h-5" />
           {{ item.label }}
         </NuxtLink>
       </nav>
-      <div class="p-3 border-t border-gray-100">
+      <div class="p-3 border-t border-slate-700">
         <button
-          class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+          class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-[rgba(148,163,184,0.1)]"
           @click="logout"
         >
           Logout
@@ -31,13 +31,13 @@
     <!-- Main Content -->
     <div class="flex-1 pb-20 lg:pb-0">
       <!-- Mobile Header -->
-      <header class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <header class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <NuxtLink to="/dashboard" class="text-lg font-bold text-primary-600">MemberBook</NuxtLink>
         <div class="flex items-center gap-2">
-          <p v-if="currentOrg" class="text-xs text-gray-500">{{ currentOrg.name }}</p>
+          <p v-if="currentOrg" class="text-xs text-slate-500">{{ currentOrg.name }}</p>
           <div class="relative">
             <button
-              class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
+              class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"
               @click="mobileMenuOpen = !mobileMenuOpen"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -46,11 +46,11 @@
             </button>
             <div
               v-if="mobileMenuOpen"
-              class="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+              class="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50"
             >
               <NuxtLink
                 to="/dashboard/settings"
-                class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                 @click="mobileMenuOpen = false"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -59,7 +59,7 @@
                 Settings
               </NuxtLink>
               <button
-                class="flex items-center gap-2 w-full px-4 py-2 text-sm text-danger-600 hover:bg-gray-50"
+                class="flex items-center gap-2 w-full px-4 py-2 text-sm text-danger-600 hover:bg-slate-50"
                 @click="logout"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -78,14 +78,18 @@
     </div>
 
     <!-- Mobile Bottom Tab Bar -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 flex justify-around py-2 z-40">
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex justify-around py-2 z-40">
       <NuxtLink
         v-for="item in mobileNavItems"
         :key="item.to"
         :to="item.to"
-        class="flex flex-col items-center gap-0.5 px-2 py-1 text-xs"
-        :class="isActive(item.to) ? 'text-primary-600' : 'text-gray-500'"
+        class="relative flex flex-col items-center gap-0.5 px-2 py-1 text-xs"
+        :class="isActive(item.to) ? 'text-primary-600' : 'text-slate-500'"
       >
+        <span
+          v-if="isActive(item.to)"
+          class="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-primary-500 rounded-full"
+        />
         <component :is="item.icon" class="w-5 h-5" />
         {{ item.label }}
       </NuxtLink>

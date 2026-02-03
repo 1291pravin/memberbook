@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
   const access = event.context.access;
@@ -23,11 +23,32 @@ export default cachedEventHandler(async (event) => {
       endDate: schema.memberSubscriptions.endDate,
       amount: schema.memberSubscriptions.amount,
       status: schema.memberSubscriptions.status,
+      autoRenew: schema.memberSubscriptions.autoRenew,
+      paymentStatus: schema.memberSubscriptions.paymentStatus,
+      durationType: schema.subscriptionPlans.durationType,
+      durationValue: schema.subscriptionPlans.durationValue,
     })
     .from(schema.memberSubscriptions)
     .innerJoin(schema.subscriptionPlans, eq(schema.memberSubscriptions.planId, schema.subscriptionPlans.id))
     .where(and(eq(schema.memberSubscriptions.memberId, memberId), eq(schema.memberSubscriptions.orgId, access.orgId)))
     .orderBy(schema.memberSubscriptions.startDate);
+
+  // Get total paid per subscription
+  const subPayments = await db
+    .select({
+      subscriptionId: schema.payments.subscriptionId,
+      totalPaid: sql<number>`COALESCE(SUM(${schema.payments.amount}), 0)`,
+    })
+    .from(schema.payments)
+    .where(and(eq(schema.payments.memberId, memberId), eq(schema.payments.orgId, access.orgId)))
+    .groupBy(schema.payments.subscriptionId);
+
+  const paidMap = new Map(subPayments.map(p => [p.subscriptionId, p.totalPaid]));
+
+  const subscriptionsWithPaid = subscriptions.map(s => ({
+    ...s,
+    totalPaid: paidMap.get(s.id) ?? 0,
+  }));
 
   const paymentList = await db
     .select()
@@ -35,7 +56,7 @@ export default cachedEventHandler(async (event) => {
     .where(and(eq(schema.payments.memberId, memberId), eq(schema.payments.orgId, access.orgId)))
     .orderBy(schema.payments.date);
 
-  return { member: memberRows[0], subscriptions, payments: paymentList };
+  return { member: memberRows[0], subscriptions: subscriptionsWithPaid, payments: paymentList };
 }, {
   maxAge: 3600,
   getKey: (event) => orgCacheKey(event, "members") + getRouterParam(event, "memberId"),

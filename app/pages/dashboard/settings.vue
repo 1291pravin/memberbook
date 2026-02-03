@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 space-y-6 max-w-2xl">
-    <h1 class="text-xl font-bold text-gray-900">Settings</h1>
+    <h1 class="text-xl font-bold text-slate-800">Settings</h1>
 
     <!-- Org Info -->
     <AppCard title="Organization">
@@ -18,9 +18,9 @@
     <!-- Staff Management -->
     <AppCard title="Staff Members">
       <!-- Invite via WhatsApp (owner only) -->
-      <div v-if="isOwner" class="mb-6 pb-6 border-b border-gray-100">
+      <div v-if="isOwner" class="mb-6 pb-6 border-b border-slate-100">
         <div class="flex items-center justify-between mb-2">
-          <h4 class="text-sm font-medium text-gray-700">Invite Staff via WhatsApp</h4>
+          <h4 class="text-sm font-medium text-slate-700">Invite Staff via WhatsApp</h4>
         </div>
         <AppButton size="sm" @click="showInviteModal = true">
           Manage Invitations
@@ -28,10 +28,10 @@
       </div>
 
       <div class="space-y-3">
-        <div v-for="s in staff" :key="s.id" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+        <div v-for="s in staff" :key="s.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
-            <p class="text-sm font-medium text-gray-900">{{ s.name }}</p>
-            <p class="text-xs text-gray-500">{{ s.email }}</p>
+            <p class="text-sm font-medium text-slate-800">{{ s.name }}</p>
+            <p class="text-xs text-slate-500">{{ s.email }}</p>
           </div>
           <div class="flex items-center gap-2">
             <AppBadge :color="s.role === 'owner' ? 'blue' : 'gray'">{{ s.role }}</AppBadge>
@@ -45,13 +45,28 @@
             </AppButton>
           </div>
         </div>
-        <div v-if="staff.length === 0" class="text-sm text-gray-500">No staff added yet.</div>
+        <div v-if="staff.length === 0" class="text-sm text-slate-500">No staff added yet.</div>
       </div>
+    </AppCard>
+
+    <!-- Subscription Settings (owner only) -->
+    <AppCard v-if="isOwner" title="Subscription Settings">
+      <form class="space-y-4" @submit.prevent="saveSubscriptionSettings">
+        <AppInput
+          v-model="subscriptionForm.gracePeriodDays"
+          label="Grace Period (days)"
+          type="number"
+          min="0"
+          placeholder="0"
+        />
+        <p class="text-xs text-slate-500 -mt-2">Allow members to continue using services for this many days after subscription expires. Set to 0 to disable.</p>
+        <AppButton type="submit" size="sm" :loading="savingSubscriptionSettings">Save</AppButton>
+      </form>
     </AppCard>
 
     <!-- Cache Management (owner only) -->
     <AppCard v-if="isOwner" title="Cache">
-      <p class="text-sm text-gray-500 mb-3">
+      <p class="text-sm text-slate-500 mb-3">
         Data like dashboard stats and analytics are cached for up to 10 minutes. Clear the cache if you need to see the latest data immediately.
       </p>
       <div class="flex items-center gap-3">
@@ -66,21 +81,21 @@
     <AppModal :open="showInviteModal" title="Staff Invitations" size="lg" @close="showInviteModal = false">
       <div class="space-y-4">
         <!-- Generate new invite -->
-        <div class="pb-4 border-b border-gray-100">
+        <div class="pb-4 border-b border-slate-100">
           <AppButton size="sm" :loading="generatingInvite" @click="generateInvite">
             Generate New Invitation
           </AppButton>
           <p v-if="inviteError" class="mt-2 text-sm text-red-600">{{ inviteError }}</p>
           <p v-if="copySuccess" class="mt-2 text-sm text-green-600">{{ copySuccess }}</p>
           <p v-if="copyError" class="mt-2 text-sm text-red-600">{{ copyError }}</p>
-          <p class="mt-1 text-xs text-gray-500">
+          <p class="mt-1 text-xs text-slate-500">
             {{ pendingInvites.length }} / 10 pending invitations
           </p>
         </div>
 
         <!-- Active (pending) invites -->
         <div>
-          <h4 class="text-sm font-semibold text-gray-900 mb-3">Active Invitations</h4>
+          <h4 class="text-sm font-semibold text-slate-800 mb-3">Active Invitations</h4>
           <div v-if="pendingInvites.length === 0">
             <AppEmptyState title="No active invitations" />
           </div>
@@ -88,17 +103,17 @@
             <div
               v-for="invite in pendingInvites"
               :key="invite.id"
-              class="p-3 bg-gray-50 rounded-lg border border-gray-200"
+              class="p-3 bg-slate-50 rounded-lg border border-slate-200"
             >
               <div class="flex items-start justify-between mb-2">
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <AppBadge color="blue">{{ invite.status }}</AppBadge>
-                    <span class="text-xs text-gray-500">
+                    <span class="text-xs text-slate-500">
                       Expires {{ formatExpiry(invite.expiresAt) }}
                     </span>
                   </div>
-                  <p class="text-xs text-gray-500 mt-1">
+                  <p class="text-xs text-slate-500 mt-1">
                     Created {{ formatDate(invite.createdAt) }}
                   </p>
                 </div>
@@ -125,7 +140,7 @@
         <!-- Used invites (collapsible) -->
         <div>
           <button
-            class="flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-gray-700"
+            class="flex items-center gap-2 text-sm font-semibold text-slate-800 hover:text-slate-700"
             @click="showUsedInvites = !showUsedInvites"
           >
             <svg
@@ -140,27 +155,27 @@
             Used Invitations ({{ usedInvites.length }})
           </button>
           <div v-if="showUsedInvites" class="mt-3 space-y-2">
-            <div v-if="usedInvites.length === 0" class="text-sm text-gray-500">
+            <div v-if="usedInvites.length === 0" class="text-sm text-slate-500">
               No used invitations
             </div>
             <div
               v-for="invite in usedInvites"
               v-else
               :key="invite.id"
-              class="p-3 bg-gray-50 rounded-lg border border-gray-200"
+              class="p-3 bg-slate-50 rounded-lg border border-slate-200"
             >
               <div class="flex items-center gap-2 mb-1">
                 <AppBadge :color="invite.status === 'accepted' ? 'green' : 'red'">
                   {{ invite.status }}
                 </AppBadge>
               </div>
-              <p class="text-xs text-gray-500">
+              <p class="text-xs text-slate-500">
                 Created {{ formatDate(invite.createdAt) }}
               </p>
-              <p v-if="invite.acceptedAt && invite.acceptedBy" class="text-xs text-gray-600 mt-1">
+              <p v-if="invite.acceptedAt && invite.acceptedBy" class="text-xs text-slate-600 mt-1">
                 Accepted by {{ invite.acceptedBy.name }} on {{ formatDate(invite.acceptedAt) }}
               </p>
-              <p v-if="invite.revokedAt" class="text-xs text-gray-600 mt-1">
+              <p v-if="invite.revokedAt" class="text-xs text-slate-600 mt-1">
                 Revoked on {{ formatDate(invite.revokedAt) }}
               </p>
             </div>
@@ -208,6 +223,9 @@ interface Invite {
 
 const orgForm = reactive({ name: currentOrg.value?.name || "", type: currentOrg.value?.type || "" });
 const savingOrg = ref(false);
+
+const subscriptionForm = reactive({ gracePeriodDays: String(currentOrg.value?.gracePeriodDays ?? 0) });
+const savingSubscriptionSettings = ref(false);
 
 const showInviteModal = ref(false);
 const generatingInvite = ref(false);
@@ -268,6 +286,15 @@ async function saveOrg() {
     body: orgForm,
   });
   savingOrg.value = false;
+}
+
+async function saveSubscriptionSettings() {
+  savingSubscriptionSettings.value = true;
+  await $fetch(`/api/orgs/${orgId.value}`, {
+    method: "PUT",
+    body: { gracePeriodDays: Number(subscriptionForm.gracePeriodDays) },
+  });
+  savingSubscriptionSettings.value = false;
 }
 
 async function removeStaff(membershipId: number) {

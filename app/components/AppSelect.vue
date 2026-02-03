@@ -1,6 +1,6 @@
 <template>
   <div>
-    <label v-if="label" :for="id" class="block text-sm font-medium text-gray-700 mb-1">
+    <label v-if="label" :for="id" class="block text-sm font-medium text-slate-700 mb-1">
       {{ label }}
     </label>
     <select
@@ -8,7 +8,7 @@
       :value="modelValue"
       :required="required"
       :disabled="disabled"
-      class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 sm:text-sm"
+      class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-slate-50 sm:text-sm"
       @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
     >
       <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>

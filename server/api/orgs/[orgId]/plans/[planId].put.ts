@@ -8,8 +8,22 @@ export default defineEventHandler(async (event) => {
   const updates: Record<string, unknown> = {};
   if (body.name) updates.name = body.name.trim();
   if (body.price !== undefined) updates.price = Number(body.price);
-  if (body.durationDays !== undefined) updates.durationDays = Number(body.durationDays);
   if (body.active !== undefined) updates.active = body.active;
+
+  if (body.durationType !== undefined) {
+    const validTypes = ["daily", "weekly", "monthly", "yearly"];
+    if (!validTypes.includes(body.durationType)) {
+      throw createError({ statusCode: 400, statusMessage: "Duration type must be daily, weekly, monthly, or yearly" });
+    }
+    updates.durationType = body.durationType;
+  }
+
+  if (body.durationValue !== undefined) {
+    if (!Number.isInteger(Number(body.durationValue)) || Number(body.durationValue) < 1) {
+      throw createError({ statusCode: 400, statusMessage: "Duration value must be a positive integer" });
+    }
+    updates.durationValue = Number(body.durationValue);
+  }
 
   if (Object.keys(updates).length === 0) {
     throw createError({ statusCode: 400, statusMessage: "Nothing to update" });

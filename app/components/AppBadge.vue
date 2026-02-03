@@ -20,7 +20,7 @@ const colorClasses = computed(() => {
     red: "bg-danger-100 text-danger-700",
     yellow: "bg-warning-100 text-warning-700",
     blue: "bg-info-100 text-info-700",
-    gray: "bg-gray-100 text-gray-700",
+    gray: "bg-slate-100 text-slate-700",
   };
   return map[props.color];
 });

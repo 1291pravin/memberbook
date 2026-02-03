@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 space-y-4">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-gray-900">Inquiries</h1>
+      <h1 class="text-xl font-bold text-slate-800">Inquiries</h1>
       <NuxtLink to="/dashboard/inquiries/new">
         <AppButton>Add Inquiry</AppButton>
       </NuxtLink>
@@ -12,7 +12,7 @@
         v-for="s in statuses"
         :key="s.value"
         class="whitespace-nowrap rounded-full px-3 py-1 text-sm font-medium transition-colors"
-        :class="statusFilter === s.value ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        :class="statusFilter === s.value ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
         @click="statusFilter = s.value"
       >
         {{ s.label }}
@@ -33,16 +33,16 @@
       <AppCard v-for="inq in inquiries" :key="inq.id">
         <div class="flex items-start justify-between">
           <div>
-            <p class="font-medium text-gray-900 text-sm">{{ inq.name }}</p>
-            <p v-if="inq.phone" class="text-xs text-gray-500">{{ inq.phone }}</p>
-            <p v-if="inq.interest" class="text-xs text-gray-400 mt-1">{{ inq.interest }}</p>
-            <p v-if="inq.followUpDate" class="text-xs text-gray-400">Follow up: {{ inq.followUpDate }}</p>
+            <p class="font-medium text-slate-800 text-sm">{{ inq.name }}</p>
+            <p v-if="inq.phone" class="text-xs text-slate-500">{{ inq.phone }}</p>
+            <p v-if="inq.interest" class="text-xs text-slate-400 mt-1">{{ inq.interest }}</p>
+            <p v-if="inq.followUpDate" class="text-xs text-slate-400">Follow up: {{ inq.followUpDate }}</p>
           </div>
           <div class="flex items-center gap-2">
             <AppBadge :color="statusColor(inq.status)">{{ inq.status }}</AppBadge>
             <select
               :value="inq.status"
-              class="text-xs border border-gray-200 rounded px-1 py-0.5"
+              class="text-xs border border-slate-200 rounded px-1 py-0.5"
               @change="updateStatus(inq.id, ($event.target as HTMLSelectElement).value)"
             >
               <option value="new">New</option>

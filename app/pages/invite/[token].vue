@@ -4,7 +4,7 @@
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-8">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-        <p class="mt-4 text-sm text-gray-600">Validating invitation...</p>
+        <p class="mt-4 text-sm text-slate-600">Validating invitation...</p>
       </div>
 
       <!-- Valid - Not Logged In -->
@@ -15,8 +15,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 class="mt-4 text-xl font-bold text-gray-900">You're Invited!</h2>
-          <p class="mt-2 text-sm text-gray-600">
+          <h2 class="mt-4 text-xl font-bold text-slate-800">You're Invited!</h2>
+          <p class="mt-2 text-sm text-slate-600">
             You've been invited to join <span class="font-semibold">{{ inviteData?.orgName }}</span> as a staff member.
           </p>
           <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -32,7 +32,7 @@
           <AppButton class="w-full" variant="secondary" @click="handleRegister">
             Create New Account
           </AppButton>
-          <p class="text-xs text-center text-gray-500 mt-2">
+          <p class="text-xs text-center text-slate-500 mt-2">
             You'll return here to accept the invitation after signing in
           </p>
         </div>
@@ -46,8 +46,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 class="mt-4 text-xl font-bold text-gray-900">Accept Invitation</h2>
-          <p class="mt-2 text-sm text-gray-600">
+          <h2 class="mt-4 text-xl font-bold text-slate-800">Accept Invitation</h2>
+          <p class="mt-2 text-sm text-slate-600">
             Join <span class="font-semibold">{{ inviteData?.orgName }}</span> as a staff member.
           </p>
         </div>
@@ -68,8 +68,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 class="mt-4 text-xl font-bold text-gray-900">Invitation Expired</h2>
-        <p class="mt-2 text-sm text-gray-600">
+        <h2 class="mt-4 text-xl font-bold text-slate-800">Invitation Expired</h2>
+        <p class="mt-2 text-sm text-slate-600">
           This invitation has expired. Please contact the organization owner for a new invitation.
         </p>
       </div>
@@ -81,8 +81,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
-        <h2 class="mt-4 text-xl font-bold text-gray-900">Invitation Revoked</h2>
-        <p class="mt-2 text-sm text-gray-600">
+        <h2 class="mt-4 text-xl font-bold text-slate-800">Invitation Revoked</h2>
+        <p class="mt-2 text-sm text-slate-600">
           This invitation has been revoked. Please contact the organization owner if you think this is a mistake.
         </p>
       </div>
@@ -94,8 +94,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 class="mt-4 text-xl font-bold text-gray-900">Already Accepted</h2>
-        <p class="mt-2 text-sm text-gray-600">
+        <h2 class="mt-4 text-xl font-bold text-slate-800">Already Accepted</h2>
+        <p class="mt-2 text-sm text-slate-600">
           This invitation has already been accepted.
         </p>
         <div class="pt-4">
@@ -112,8 +112,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 class="mt-4 text-xl font-bold text-gray-900">Already a Member</h2>
-        <p class="mt-2 text-sm text-gray-600">
+        <h2 class="mt-4 text-xl font-bold text-slate-800">Already a Member</h2>
+        <p class="mt-2 text-sm text-slate-600">
           You are already a member of this organization.
         </p>
         <div class="pt-4">
@@ -130,8 +130,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 class="mt-4 text-xl font-bold text-gray-900">Something went wrong</h2>
-        <p class="mt-2 text-sm text-gray-600">
+        <h2 class="mt-4 text-xl font-bold text-slate-800">Something went wrong</h2>
+        <p class="mt-2 text-sm text-slate-600">
           {{ error || "Unable to load invitation details." }}
         </p>
       </div>

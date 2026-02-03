@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between">
       <div>
         <NuxtLink to="/dashboard/payments" class="text-sm text-primary-600 hover:text-primary-500">&larr; All Payments</NuxtLink>
-        <h1 class="text-xl font-bold text-gray-900 mt-1">Pending Payments</h1>
+        <h1 class="text-xl font-bold text-slate-800 mt-1">Pending Payments</h1>
       </div>
     </div>
 
@@ -15,9 +15,9 @@
       <AppCard v-for="item in pending" :key="item.subscription_id">
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-medium text-gray-900 text-sm">{{ item.member_name }}</p>
-            <p class="text-xs text-gray-500">{{ item.plan_name }} &middot; Due: {{ formatCurrency(item.pending_amount) }}</p>
-            <p class="text-xs text-gray-400">{{ item.start_date }} &mdash; {{ item.end_date }}</p>
+            <p class="font-medium text-slate-800 text-sm">{{ item.member_name }}</p>
+            <p class="text-xs text-slate-500">{{ item.plan_name }} &middot; Due: {{ formatCurrency(item.pending_amount) }}</p>
+            <p class="text-xs text-slate-400">{{ item.start_date }} &mdash; {{ item.end_date }}</p>
           </div>
           <div class="flex items-center gap-2">
             <a

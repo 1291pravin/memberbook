@@ -33,9 +33,9 @@ const props = withDefaults(defineProps<{
 const variantClasses = computed(() => {
   const map = {
     primary: "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
-    secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-400",
+    secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-400",
     danger: "bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500",
-    ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-400",
+    ghost: "text-slate-600 hover:bg-slate-100 focus:ring-slate-400",
   };
   return map[props.variant];
 });

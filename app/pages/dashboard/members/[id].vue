@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between">
       <div>
         <NuxtLink to="/dashboard/members" class="text-sm text-primary-600 hover:text-primary-500">&larr; Members</NuxtLink>
-        <h1 class="text-xl font-bold text-gray-900 mt-1">{{ member?.name }}</h1>
+        <h1 class="text-xl font-bold text-slate-800 mt-1">{{ member?.name }}</h1>
       </div>
       <AppBadge v-if="member" :color="member.status === 'active' ? 'green' : 'gray'">
         {{ member.status }}
@@ -13,9 +13,9 @@
     <!-- Member Info -->
     <AppCard v-if="member" title="Contact">
       <div class="space-y-2 text-sm">
-        <p v-if="member.phone"><span class="text-gray-500">Phone:</span> {{ member.phone }}</p>
-        <p v-if="member.email"><span class="text-gray-500">Email:</span> {{ member.email }}</p>
-        <p v-if="member.notes"><span class="text-gray-500">Notes:</span> {{ member.notes }}</p>
+        <p v-if="member.phone"><span class="text-slate-500">Phone:</span> {{ member.phone }}</p>
+        <p v-if="member.email"><span class="text-slate-500">Email:</span> {{ member.email }}</p>
+        <p v-if="member.notes"><span class="text-slate-500">Notes:</span> {{ member.notes }}</p>
       </div>
       <div class="mt-3 flex gap-2">
         <AppButton size="sm" variant="ghost" @click="toggleStatus">
@@ -27,19 +27,37 @@
     <!-- Subscriptions -->
     <AppCard title="Subscriptions">
       <div class="space-y-3">
-        <div v-for="sub in subscriptions" :key="sub.id" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+        <div v-for="sub in subscriptions" :key="sub.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
-            <p class="font-medium text-gray-900 text-sm">{{ sub.planName }}</p>
-            <p class="text-xs text-gray-500">{{ sub.startDate }} &mdash; {{ sub.endDate }}</p>
+            <p class="font-medium text-slate-800 text-sm">{{ sub.planName }}</p>
+            <p class="text-sm text-slate-600">{{ formatDuration(sub.durationType, sub.durationValue) }}</p>
+            <p class="text-xs text-slate-400">{{ sub.startDate }} &mdash; {{ sub.endDate }}</p>
           </div>
-          <div class="text-right">
+          <div class="text-right space-y-1">
             <p class="text-sm font-semibold">{{ formatCurrency(sub.amount) }}</p>
-            <AppBadge :color="sub.status === 'active' ? 'green' : 'gray'" class="mt-0.5">
-              {{ sub.status }}
-            </AppBadge>
+            <div class="flex items-center gap-1 justify-end">
+              <AppBadge :color="sub.status === 'active' ? 'green' : 'gray'" class="text-xs">
+                {{ sub.status }}
+              </AppBadge>
+              <AppBadge :color="paymentStatusColor(sub.paymentStatus)" class="text-xs">
+                {{ paymentStatusLabel(sub.paymentStatus) }}
+              </AppBadge>
+            </div>
+            <p v-if="sub.totalPaid > 0 && sub.paymentStatus !== 'paid'" class="text-xs text-slate-500">
+              Paid: {{ formatCurrency(sub.totalPaid) }} / {{ formatCurrency(sub.amount) }}
+            </p>
+            <AppButton
+              v-if="sub.status === 'expired'"
+              size="sm"
+              variant="ghost"
+              class="mt-1"
+              @click="renewSubscription(sub)"
+            >
+              Renew
+            </AppButton>
           </div>
         </div>
-        <div v-if="subscriptions.length === 0" class="text-sm text-gray-500 py-2">No subscriptions</div>
+        <div v-if="subscriptions.length === 0" class="text-sm text-slate-500 py-2">No subscriptions</div>
       </div>
       <div class="mt-3">
         <AppButton size="sm" @click="showAssignModal = true">Assign Plan</AppButton>
@@ -49,14 +67,14 @@
     <!-- Payments -->
     <AppCard title="Payments">
       <div class="space-y-3">
-        <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+        <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
-            <p class="text-sm font-medium text-gray-900">{{ formatCurrency(payment.amount) }}</p>
-            <p class="text-xs text-gray-500">{{ payment.date }} &middot; {{ payment.method }}</p>
+            <p class="text-sm font-medium text-slate-800">{{ formatCurrency(payment.amount) }}</p>
+            <p class="text-xs text-slate-500">{{ payment.date }} &middot; {{ payment.method }}</p>
           </div>
-          <p v-if="payment.notes" class="text-xs text-gray-500 max-w-[200px] truncate">{{ payment.notes }}</p>
+          <p v-if="payment.notes" class="text-xs text-slate-500 max-w-[200px] truncate">{{ payment.notes }}</p>
         </div>
-        <div v-if="payments.length === 0" class="text-sm text-gray-500 py-2">No payments recorded</div>
+        <div v-if="payments.length === 0" class="text-sm text-slate-500 py-2">No payments recorded</div>
       </div>
       <div class="mt-3">
         <AppButton size="sm" @click="openPaymentModal">Record Payment</AppButton>
@@ -85,10 +103,10 @@
     <AppModal :open="showPaymentModal" title="Record Payment" @close="showPaymentModal = false">
       <form class="space-y-4" @submit.prevent="recordPayment">
         <AppSelect
-          v-if="subscriptionOptions.length > 0"
+          v-if="unpaidSubscriptionOptions.length > 0"
           v-model="paymentForm.subscriptionId"
           label="For Subscription"
-          :options="subscriptionOptions"
+          :options="unpaidSubscriptionOptions"
           placeholder="Select subscription (optional)"
         />
         <AppInput v-model="paymentForm.amount" label="Amount (Rupees)" type="number" required />
@@ -128,11 +146,17 @@ interface MemberDetail {
 
 interface Subscription {
   id: number;
+  planId: number;
   planName: string;
   startDate: string;
   endDate: string;
   amount: number;
   status: string;
+  autoRenew: boolean;
+  paymentStatus: string;
+  durationType: string;
+  durationValue: number;
+  totalPaid: number;
 }
 
 interface Payment {
@@ -182,16 +206,43 @@ const planOptions = computed(() =>
   plans.value.filter(p => p.active).map(p => ({ value: p.id, label: p.name })),
 );
 
-const activeSubscriptions = computed(() =>
-  subscriptions.value.filter(s => s.status === "active"),
+const unpaidSubscriptionOptions = computed(() =>
+  subscriptions.value
+    .filter(s => s.paymentStatus !== "paid")
+    .map(s => ({
+      value: s.id,
+      label: `${s.planName} (${s.startDate} to ${s.endDate})`,
+    })),
 );
 
-const subscriptionOptions = computed(() =>
-  activeSubscriptions.value.map(s => ({
-    value: s.id,
-    label: `${s.planName} (${s.startDate} to ${s.endDate})`,
-  })),
-);
+function formatDuration(durationType: string, durationValue: number): string {
+  const labels: Record<string, [string, string]> = {
+    daily: ["Day", "Days"],
+    weekly: ["Week", "Weeks"],
+    monthly: ["Month", "Months"],
+    yearly: ["Year", "Years"],
+  };
+  const [singular, plural] = labels[durationType] ?? ["Unit", "Units"];
+  return `${durationValue} ${durationValue === 1 ? singular : plural}`;
+}
+
+function paymentStatusColor(status: string): string {
+  if (status === "paid") return "green";
+  if (status === "partial") return "yellow";
+  return "red";
+}
+
+function paymentStatusLabel(status: string): string {
+  if (status === "paid") return "Paid";
+  if (status === "partial") return "Partial";
+  return "Unpaid";
+}
+
+function renewSubscription(sub: Subscription) {
+  assignForm.planId = String(sub.planId);
+  assignForm.startDate = sub.endDate;
+  showAssignModal.value = true;
+}
 
 async function toggleStatus() {
   if (!member.value) return;
@@ -236,9 +287,9 @@ async function recordPayment() {
 }
 
 function openPaymentModal() {
-  // Auto-select subscription if there's only one active
-  if (activeSubscriptions.value.length === 1) {
-    paymentForm.subscriptionId = String(activeSubscriptions.value[0].id);
+  const unpaid = subscriptions.value.filter(s => s.paymentStatus !== "paid");
+  if (unpaid.length === 1) {
+    paymentForm.subscriptionId = String(unpaid[0].id);
   } else {
     paymentForm.subscriptionId = "";
   }

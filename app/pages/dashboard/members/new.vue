@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 max-w-lg">
-    <h1 class="text-xl font-bold text-gray-900 mb-6">Add Member</h1>
+    <h1 class="text-xl font-bold text-slate-800 mb-6">Add Member</h1>
 
     <div v-if="error" class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
       {{ error }}
@@ -11,11 +11,11 @@
       <AppInput v-model="form.phone" label="Phone" type="tel" placeholder="+91 98765 43210" />
       <AppInput v-model="form.email" label="Email" type="email" placeholder="member@example.com" />
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
         <textarea
           v-model="form.notes"
           rows="3"
-          class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
           placeholder="Optional notes"
         />
       </div>

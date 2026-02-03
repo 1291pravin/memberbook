@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 space-y-4">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-gray-900">Payments</h1>
+      <h1 class="text-xl font-bold text-slate-800">Payments</h1>
       <NuxtLink to="/dashboard/payments/pending">
         <AppButton variant="secondary">Pending</AppButton>
       </NuxtLink>
@@ -15,11 +15,11 @@
       <AppCard v-for="p in payments" :key="p.id">
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-medium text-gray-900 text-sm">{{ p.memberName }}</p>
-            <p class="text-xs text-gray-500">{{ p.date }} &middot; {{ p.method }}</p>
-            <p v-if="p.notes" class="text-xs text-gray-400 mt-1">{{ p.notes }}</p>
+            <p class="font-medium text-slate-800 text-sm">{{ p.memberName }}</p>
+            <p class="text-xs text-slate-500">{{ p.date }} &middot; {{ p.method }}</p>
+            <p v-if="p.notes" class="text-xs text-slate-400 mt-1">{{ p.notes }}</p>
           </div>
-          <p class="font-semibold text-gray-900">{{ formatCurrency(p.amount) }}</p>
+          <p class="font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
         </div>
       </AppCard>
     </div>

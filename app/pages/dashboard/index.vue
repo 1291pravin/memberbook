@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 space-y-6">
-    <h1 class="text-xl font-bold text-gray-900">Dashboard</h1>
+    <h1 class="text-xl font-bold text-slate-800">Dashboard</h1>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -33,7 +33,7 @@
               v-for="p in (['daily', 'weekly', 'monthly'] as const)"
               :key="p"
               class="px-3 py-1 text-xs font-medium rounded-md transition-colors"
-              :class="revenuePeriod === p ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+              :class="revenuePeriod === p ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
               @click="revenuePeriod = p"
             >
               {{ p.charAt(0).toUpperCase() + p.slice(1) }}
@@ -47,7 +47,7 @@
               empty-message="No revenue data yet. Record your first payment to see trends."
             />
             <template #fallback>
-              <div class="h-[200px] bg-gray-50 animate-pulse rounded" />
+              <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
             </template>
           </ClientOnly>
         </div>
@@ -63,7 +63,7 @@
             empty-message="No members yet. Add your first member to track growth."
           />
           <template #fallback>
-            <div class="h-[200px] bg-gray-50 animate-pulse rounded" />
+            <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
           </template>
         </ClientOnly>
       </AppCard>
@@ -78,7 +78,7 @@
             empty-message="No payments this month. Collect your first payment to see breakdown."
           />
           <template #fallback>
-            <div class="h-[200px] bg-gray-50 animate-pulse rounded" />
+            <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
           </template>
         </ClientOnly>
       </AppCard>
@@ -93,7 +93,7 @@
             empty-message="No subscriptions yet. Add a member to see status breakdown."
           />
           <template #fallback>
-            <div class="h-[200px] bg-gray-50 animate-pulse rounded" />
+            <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
           </template>
         </ClientOnly>
       </AppCard>
@@ -108,7 +108,7 @@
             empty-message="No active subscriptions yet. Create a plan and add members."
           />
           <template #fallback>
-            <div class="h-[200px] bg-gray-50 animate-pulse rounded" />
+            <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
           </template>
         </ClientOnly>
       </AppCard>
@@ -116,7 +116,7 @@
       <!-- Inquiry Funnel -->
       <AppCard title="Inquiry Conversion">
         <div class="space-y-2">
-          <div v-if="inquiryFunnelData" class="text-center text-sm text-gray-600 mb-2">
+          <div v-if="inquiryFunnelData" class="text-center text-sm text-slate-600 mb-2">
             Conversion Rate: <span class="font-semibold text-green-600">{{ inquiryFunnelData.conversionRate }}%</span>
           </div>
           <ClientOnly>
@@ -127,7 +127,7 @@
               empty-message="No inquiries yet. Add your first inquiry to track conversions."
             />
             <template #fallback>
-              <div class="h-[200px] bg-gray-50 animate-pulse rounded" />
+              <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
             </template>
           </ClientOnly>
         </div>
@@ -137,10 +137,10 @@
     <!-- Expiring Soon -->
     <AppCard v-if="expiring.length > 0" title="Expiring This Week">
       <div class="space-y-2">
-        <div v-for="item in expiring" :key="item.memberId" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+        <div v-for="item in expiring" :key="item.memberId" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
-            <p class="text-sm font-medium text-gray-900">{{ item.memberName }}</p>
-            <p class="text-xs text-gray-500">{{ item.planName }} &mdash; expires {{ item.endDate }}</p>
+            <p class="text-sm font-medium text-slate-800">{{ item.memberName }}</p>
+            <p class="text-xs text-slate-500">{{ item.planName }} &mdash; expires {{ item.endDate }}</p>
           </div>
           <div class="flex items-center gap-2">
             <a
@@ -160,12 +160,12 @@
     <!-- Recent Payments -->
     <AppCard v-if="recentPayments.length > 0" title="Recent Payments">
       <div class="space-y-2">
-        <div v-for="p in recentPayments" :key="p.id" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+        <div v-for="p in recentPayments" :key="p.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
-            <p class="text-sm font-medium text-gray-900">{{ p.memberName }}</p>
-            <p class="text-xs text-gray-500">{{ p.date }}</p>
+            <p class="text-sm font-medium text-slate-800">{{ p.memberName }}</p>
+            <p class="text-xs text-slate-500">{{ p.date }}</p>
           </div>
-          <p class="text-sm font-semibold text-gray-900">{{ formatCurrency(p.amount) }}</p>
+          <p class="text-sm font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
         </div>
       </div>
     </AppCard>

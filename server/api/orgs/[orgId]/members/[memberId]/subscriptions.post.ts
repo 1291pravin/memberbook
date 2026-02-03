@@ -22,17 +22,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Plan not found" });
   }
 
-  const start = new Date(startDate);
-  const end = new Date(start);
-  end.setDate(end.getDate() + plan.durationDays);
+  const endDate = calculateEndDate(startDate, plan.durationType, plan.durationValue);
 
   const result = await db.insert(schema.memberSubscriptions).values({
     orgId: access.orgId,
     memberId,
     planId: plan.id,
     startDate,
-    endDate: end.toISOString().split("T")[0],
+    endDate,
     amount: plan.price,
+    autoRenew: true,
+    paymentStatus: "unpaid",
   }).returning();
 
   await invalidateCache(access.orgId, "subscriptions");

@@ -1,7 +1,7 @@
 <template>
   <div class="relative" :style="{ height: height + 'px' }">
     <Doughnut v-if="hasData" :data="chartData" :options="chartOptions" />
-    <div v-else class="flex items-center justify-center h-full text-gray-400 text-sm">
+    <div v-else class="flex items-center justify-center h-full text-slate-400 text-sm">
       {{ emptyMessage }}
     </div>
   </div>

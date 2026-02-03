@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-gray-900">Subscription Plans</h1>
+      <h1 class="text-xl font-bold text-slate-800">Subscription Plans</h1>
       <AppButton @click="showForm = true">Add Plan</AppButton>
     </div>
 
@@ -17,9 +17,9 @@
       <AppCard v-for="plan in plans" :key="plan.id">
         <div class="flex items-start justify-between">
           <div>
-            <h3 class="font-semibold text-gray-900">{{ plan.name }}</h3>
+            <h3 class="font-semibold text-slate-800">{{ plan.name }}</h3>
             <p class="text-2xl font-bold text-primary-600 mt-1">{{ formatCurrency(plan.price) }}</p>
-            <p class="text-sm text-gray-500 mt-1">{{ plan.durationDays }} days</p>
+            <p class="text-sm text-slate-500 mt-1">{{ formatDuration(plan.durationType, plan.durationValue) }}</p>
           </div>
           <AppBadge :color="plan.active ? 'green' : 'gray'">
             {{ plan.active ? "Active" : "Inactive" }}
@@ -43,7 +43,15 @@
       <form class="space-y-4" @submit.prevent="savePlan">
         <AppInput v-model="form.name" label="Plan Name" placeholder="e.g. Monthly" required />
         <AppInput v-model="form.price" label="Price (in Rupees)" type="number" placeholder="500" required />
-        <AppInput v-model="form.durationDays" label="Duration (days)" type="number" placeholder="30" required />
+        <div class="grid grid-cols-2 gap-3">
+          <AppInput v-model="form.durationValue" label="Duration" type="number" placeholder="1" min="1" required />
+          <AppSelect
+            v-model="form.durationType"
+            label="Period"
+            :options="durationTypeOptions"
+            required
+          />
+        </div>
         <div class="flex gap-2 justify-end">
           <AppButton variant="secondary" @click="closeForm">Cancel</AppButton>
           <AppButton type="submit" :loading="saving">Save</AppButton>
@@ -63,14 +71,22 @@ interface Plan {
   id: number;
   name: string;
   price: number;
-  durationDays: number;
+  durationType: string;
+  durationValue: number;
   active: boolean;
 }
+
+const durationTypeOptions = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+];
 
 const showForm = ref(false);
 const saving = ref(false);
 const editingPlan = ref<Plan | null>(null);
-const form = reactive({ name: "", price: "", durationDays: "" });
+const form = reactive({ name: "", price: "", durationValue: "1", durationType: "monthly" });
 
 const { data: plansData, refresh: refreshPlans, status: plansStatus } = await useFetch<{ plans: Plan[] }>(
   () => `/api/orgs/${orgId.value}/plans`,
@@ -78,11 +94,23 @@ const { data: plansData, refresh: refreshPlans, status: plansStatus } = await us
 const plans = computed(() => plansData.value?.plans ?? []);
 const loading = computed(() => plansStatus.value === "pending");
 
+function formatDuration(durationType: string, durationValue: number): string {
+  const labels: Record<string, [string, string]> = {
+    daily: ["Day", "Days"],
+    weekly: ["Week", "Weeks"],
+    monthly: ["Month", "Months"],
+    yearly: ["Year", "Years"],
+  };
+  const [singular, plural] = labels[durationType] ?? ["Unit", "Units"];
+  return `${durationValue} ${durationValue === 1 ? singular : plural}`;
+}
+
 function editPlan(plan: Plan) {
   editingPlan.value = plan;
   form.name = plan.name;
   form.price = String(plan.price / 100);
-  form.durationDays = String(plan.durationDays);
+  form.durationValue = String(plan.durationValue);
+  form.durationType = plan.durationType;
   showForm.value = true;
 }
 
@@ -91,7 +119,8 @@ function closeForm() {
   editingPlan.value = null;
   form.name = "";
   form.price = "";
-  form.durationDays = "";
+  form.durationValue = "1";
+  form.durationType = "monthly";
 }
 
 async function savePlan() {
@@ -99,7 +128,8 @@ async function savePlan() {
   const payload = {
     name: form.name,
     price: parseCurrencyToInt(Number(form.price)),
-    durationDays: Number(form.durationDays),
+    durationType: form.durationType,
+    durationValue: Number(form.durationValue),
   };
 
   if (editingPlan.value) {

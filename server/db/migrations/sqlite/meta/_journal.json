@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1769677403800,
-      "tag": "0000_strong_butterfly",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1738408380000,
-      "tag": "0001_add_org_invites",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1738490000000,
-      "tag": "0002_add_org_membership_unique",
+      "when": 1770124687644,
+      "tag": "0000_black_whiplash",
       "breakpoints": true
     }
   ]

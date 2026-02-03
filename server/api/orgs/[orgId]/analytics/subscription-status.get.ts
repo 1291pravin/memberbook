@@ -1,9 +1,17 @@
-import { eq, and, between, gt, sql } from "drizzle-orm";
+import { eq, and, between, gt, sql, lt } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
   const access = event.context.access;
   const orgId = access.orgId;
 
+  // Fetch org's grace period
+  const [org] = await db
+    .select({ gracePeriodDays: schema.organizations.gracePeriodDays })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.id, orgId))
+    .limit(1);
+
+  const gracePeriodDays = org?.gracePeriodDays ?? 0;
   const today = new Date().toISOString().split("T")[0];
   const weekLater = new Date();
   weekLater.setDate(weekLater.getDate() + 7);
@@ -33,6 +41,27 @@ export default cachedEventHandler(async (event) => {
       ),
     );
 
+  // Grace period: endDate passed but within grace window, still status=active
+  let graceCount = 0;
+  if (gracePeriodDays > 0) {
+    const graceCutoff = new Date();
+    graceCutoff.setDate(graceCutoff.getDate() - gracePeriodDays);
+    const graceCutoffStr = graceCutoff.toISOString().split("T")[0];
+
+    const [graceResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.memberSubscriptions)
+      .where(
+        and(
+          eq(schema.memberSubscriptions.orgId, orgId),
+          eq(schema.memberSubscriptions.status, "active"),
+          lt(schema.memberSubscriptions.endDate, today),
+          gt(schema.memberSubscriptions.endDate, graceCutoffStr),
+        ),
+      );
+    graceCount = graceResult.count;
+  }
+
   // Expired
   const [expiredResult] = await db
     .select({ count: sql<number>`count(*)` })
@@ -45,11 +74,12 @@ export default cachedEventHandler(async (event) => {
     );
 
   return {
-    active: activeResult.count,
+    active: activeResult.count + graceCount,
     expiring: expiringResult.count,
+    gracePeriod: graceCount,
     expired: expiredResult.count,
   };
 }, {
-  maxAge: 300, // 5 minutes - fresher data
+  maxAge: 300,
   getKey: (event) => orgCacheKey(event, "analytics-subscription-status"),
 });
