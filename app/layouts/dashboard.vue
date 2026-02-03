@@ -3,7 +3,7 @@
     <!-- Desktop Sidebar -->
     <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-gray-200 lg:bg-white">
       <div class="p-4 border-b border-gray-100">
-        <NuxtLink to="/dashboard" class="text-xl font-bold text-indigo-600">MemberBook</NuxtLink>
+        <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-600">MemberBook</NuxtLink>
         <p v-if="currentOrg" class="text-xs text-gray-500 mt-1">{{ currentOrg.name }}</p>
       </div>
       <nav class="flex-1 p-3 space-y-1">
@@ -12,7 +12,7 @@
           :key="item.to"
           :to="item.to"
           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-          :class="isActive(item.to) ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'"
+          :class="isActive(item.to) ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50'"
         >
           <component :is="item.icon" class="w-5 h-5" />
           {{ item.label }}
@@ -32,7 +32,7 @@
     <div class="flex-1 pb-20 lg:pb-0">
       <!-- Mobile Header -->
       <header class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <NuxtLink to="/dashboard" class="text-lg font-bold text-indigo-600">MemberBook</NuxtLink>
+        <NuxtLink to="/dashboard" class="text-lg font-bold text-primary-600">MemberBook</NuxtLink>
         <div class="flex items-center gap-2">
           <p v-if="currentOrg" class="text-xs text-gray-500">{{ currentOrg.name }}</p>
           <div class="relative">
@@ -59,7 +59,7 @@
                 Settings
               </NuxtLink>
               <button
-                class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                class="flex items-center gap-2 w-full px-4 py-2 text-sm text-danger-600 hover:bg-gray-50"
                 @click="logout"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@
         :key="item.to"
         :to="item.to"
         class="flex flex-col items-center gap-0.5 px-2 py-1 text-xs"
-        :class="isActive(item.to) ? 'text-indigo-600' : 'text-gray-500'"
+        :class="isActive(item.to) ? 'text-primary-600' : 'text-gray-500'"
       >
         <component :is="item.icon" class="w-5 h-5" />
         {{ item.label }}

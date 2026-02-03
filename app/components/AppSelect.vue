@@ -8,7 +8,7 @@
       :value="modelValue"
       :required="required"
       :disabled="disabled"
-      class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 sm:text-sm"
+      class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 sm:text-sm"
       @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
     >
       <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
@@ -16,7 +16,7 @@
         {{ opt.label }}
       </option>
     </select>
-    <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
+    <p v-if="error" class="mt-1 text-sm text-danger-600">{{ error }}</p>
   </div>
 </template>
 

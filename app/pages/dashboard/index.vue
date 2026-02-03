@@ -151,7 +151,7 @@
             >
               Remind
             </a>
-            <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="text-indigo-600 text-xs font-medium">View</NuxtLink>
+            <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="text-primary-600 text-xs font-medium">View</NuxtLink>
           </div>
         </div>
       </div>

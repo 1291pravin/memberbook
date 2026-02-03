@@ -2,7 +2,7 @@
   <div class="p-4 space-y-4">
     <div class="flex items-center justify-between">
       <div>
-        <NuxtLink to="/dashboard/payments" class="text-sm text-indigo-600 hover:text-indigo-500">&larr; All Payments</NuxtLink>
+        <NuxtLink to="/dashboard/payments" class="text-sm text-primary-600 hover:text-primary-500">&larr; All Payments</NuxtLink>
         <h1 class="text-xl font-bold text-gray-900 mt-1">Pending Payments</h1>
       </div>
     </div>

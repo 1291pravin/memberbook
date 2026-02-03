@@ -39,7 +39,7 @@
         :to="`/dashboard/members/${member.id}`"
         class="block"
       >
-        <AppCard class="hover:border-indigo-200 transition-colors">
+        <AppCard class="hover:border-primary-200 transition-colors">
           <div class="flex items-center justify-between">
             <div>
               <p class="font-medium text-gray-900">{{ member.name }}</p>

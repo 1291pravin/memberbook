@@ -76,7 +76,7 @@
         Already have an account?
         <NuxtLink
           :to="route.query.redirect ? `/login?redirect=${encodeURIComponent(route.query.redirect as string)}` : '/login'"
-          class="text-indigo-600 hover:text-indigo-500 font-medium"
+          class="text-primary-600 hover:text-primary-500 font-medium"
           >Sign in</NuxtLink
         >
       </p>

@@ -18,7 +18,7 @@
         <div class="flex items-start justify-between">
           <div>
             <h3 class="font-semibold text-gray-900">{{ plan.name }}</h3>
-            <p class="text-2xl font-bold text-indigo-600 mt-1">{{ formatCurrency(plan.price) }}</p>
+            <p class="text-2xl font-bold text-primary-600 mt-1">{{ formatCurrency(plan.price) }}</p>
             <p class="text-sm text-gray-500 mt-1">{{ plan.durationDays }} days</p>
           </div>
           <AppBadge :color="plan.active ? 'green' : 'gray'">

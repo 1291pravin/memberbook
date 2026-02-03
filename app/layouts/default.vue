@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50">
     <header class="bg-white border-b border-gray-200">
       <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <NuxtLink to="/" class="text-xl font-bold text-indigo-600">MemberBook</NuxtLink>
+        <NuxtLink to="/" class="text-xl font-bold text-primary-600">MemberBook</NuxtLink>
         <nav class="flex items-center gap-4">
           <template v-if="loggedIn">
             <NuxtLink to="/dashboard" class="text-sm text-gray-600 hover:text-gray-900">Dashboard</NuxtLink>

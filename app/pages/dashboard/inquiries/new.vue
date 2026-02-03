@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 max-w-lg">
-    <NuxtLink to="/dashboard/inquiries" class="text-sm text-indigo-600 hover:text-indigo-500">&larr; Inquiries</NuxtLink>
+    <NuxtLink to="/dashboard/inquiries" class="text-sm text-primary-600 hover:text-primary-500">&larr; Inquiries</NuxtLink>
     <h1 class="text-xl font-bold text-gray-900 mt-2 mb-6">New Inquiry</h1>
 
     <div v-if="error" class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -18,7 +18,7 @@
         <textarea
           v-model="form.notes"
           rows="3"
-          class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+          class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
           placeholder="Optional notes"
         />
       </div>

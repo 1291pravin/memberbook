@@ -12,7 +12,7 @@
         v-for="s in statuses"
         :key="s.value"
         class="whitespace-nowrap rounded-full px-3 py-1 text-sm font-medium transition-colors"
-        :class="statusFilter === s.value ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        :class="statusFilter === s.value ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
         @click="statusFilter = s.value"
       >
         {{ s.label }}

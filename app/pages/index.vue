@@ -5,7 +5,7 @@
       <div class="max-w-3xl mx-auto">
         <h1 class="text-4xl font-bold text-gray-900 sm:text-5xl">
           Manage your members,
-          <span class="text-indigo-600">effortlessly</span>
+          <span class="text-primary-600">effortlessly</span>
         </h1>
         <p class="mt-4 text-lg text-gray-600 max-w-xl mx-auto">
           Simple subscription and member management for gyms, libraries, tuition centers, and more. No spreadsheets. No WhatsApp chaos.
@@ -27,8 +27,8 @@
         <h2 class="text-2xl font-bold text-center text-gray-900 mb-12">Everything you need</h2>
         <div class="grid md:grid-cols-3 gap-8">
           <div v-for="feature in features" :key="feature.title" class="text-center">
-            <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <span class="text-indigo-600 text-xl">{{ feature.emoji }}</span>
+            <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <span class="text-primary-600 text-xl">{{ feature.emoji }}</span>
             </div>
             <h3 class="font-semibold text-gray-900">{{ feature.title }}</h3>
             <p class="text-sm text-gray-500 mt-2">{{ feature.desc }}</p>

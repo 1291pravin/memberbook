@@ -70,7 +70,7 @@
         Don't have an account?
         <NuxtLink
           :to="route.query.redirect ? `/register?redirect=${encodeURIComponent(route.query.redirect as string)}` : '/register'"
-          class="text-indigo-600 hover:text-indigo-500 font-medium"
+          class="text-primary-600 hover:text-primary-500 font-medium"
           >Sign up</NuxtLink
         >
       </p>
