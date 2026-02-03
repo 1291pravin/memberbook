@@ -49,6 +49,19 @@
       </div>
     </AppCard>
 
+    <!-- Cache Management (owner only) -->
+    <AppCard v-if="isOwner" title="Cache">
+      <p class="text-sm text-gray-500 mb-3">
+        Data like dashboard stats and analytics are cached for up to 10 minutes. Clear the cache if you need to see the latest data immediately.
+      </p>
+      <div class="flex items-center gap-3">
+        <AppButton size="sm" variant="secondary" :loading="clearingCache" @click="clearCache">
+          Clear Cache
+        </AppButton>
+        <p v-if="cacheCleared" class="text-sm text-green-600">{{ cacheCleared }}</p>
+      </div>
+    </AppCard>
+
     <!-- Invite Modal -->
     <AppModal :open="showInviteModal" title="Staff Invitations" size="lg" @close="showInviteModal = false">
       <div class="space-y-4">
@@ -204,6 +217,26 @@ const copySuccess = ref("");
 const copyError = ref("");
 
 const isOwner = computed(() => currentOrg.value?.role === "owner");
+
+const clearingCache = ref(false);
+const cacheCleared = ref("");
+
+async function clearCache() {
+  clearingCache.value = true;
+  cacheCleared.value = "";
+  try {
+    const result = await $fetch<{ cleared: number }>(`/api/orgs/${orgId.value}/cache`, {
+      method: "DELETE",
+    });
+    cacheCleared.value = `Cleared ${result.cleared} cached ${result.cleared === 1 ? "entry" : "entries"}`;
+    setTimeout(() => { cacheCleared.value = ""; }, 5000);
+  } catch {
+    cacheCleared.value = "Failed to clear cache";
+    setTimeout(() => { cacheCleared.value = ""; }, 5000);
+  } finally {
+    clearingCache.value = false;
+  }
+}
 
 const { data: staffData, refresh: refreshStaff } = await useFetch<{ staff: StaffMember[] }>(
   () => `/api/orgs/${orgId.value}/staff`,
