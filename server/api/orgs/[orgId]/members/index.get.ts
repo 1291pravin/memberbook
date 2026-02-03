@@ -1,11 +1,29 @@
-import { eq, and, like, or } from "drizzle-orm";
+import { eq, and, like, or, sql, lt, between } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
   const access = event.context.access;
   const query = getQuery(event);
   const search = query.search as string | undefined;
   const status = query.status as string | undefined;
+  const subscription = query.subscription as string | undefined;
 
+  const today = new Date().toISOString().split("T")[0];
+  const weekLater = new Date();
+  weekLater.setDate(weekLater.getDate() + 7);
+  const weekStr = weekLater.toISOString().split("T")[0];
+
+  // Subquery: latest subscription per member
+  const latestSub = db
+    .select({
+      memberId: schema.memberSubscriptions.memberId,
+      maxId: sql<number>`MAX(${schema.memberSubscriptions.id})`.as("max_id"),
+    })
+    .from(schema.memberSubscriptions)
+    .where(eq(schema.memberSubscriptions.orgId, access.orgId))
+    .groupBy(schema.memberSubscriptions.memberId)
+    .as("latest_sub");
+
+  // Base query: members left-joined with their latest subscription + plan
   const conditions = [eq(schema.members.orgId, access.orgId)];
 
   if (status && status !== "all") {
@@ -21,9 +39,33 @@ export default cachedEventHandler(async (event) => {
     );
   }
 
+  // Subscription filter conditions on the joined subscription
+  if (subscription === "expired") {
+    conditions.push(lt(schema.memberSubscriptions.endDate, today));
+  } else if (subscription === "expiring") {
+    conditions.push(between(schema.memberSubscriptions.endDate, today, weekStr));
+  } else if (subscription === "no-subscription") {
+    conditions.push(sql`${latestSub.maxId} IS NULL`);
+  }
+
   const memberList = await db
-    .select()
+    .select({
+      id: schema.members.id,
+      orgId: schema.members.orgId,
+      name: schema.members.name,
+      phone: schema.members.phone,
+      email: schema.members.email,
+      status: schema.members.status,
+      notes: schema.members.notes,
+      createdAt: schema.members.createdAt,
+      subscriptionEndDate: schema.memberSubscriptions.endDate,
+      subscriptionStatus: schema.memberSubscriptions.status,
+      planName: schema.subscriptionPlans.name,
+    })
     .from(schema.members)
+    .leftJoin(latestSub, eq(schema.members.id, latestSub.memberId))
+    .leftJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
+    .leftJoin(schema.subscriptionPlans, eq(schema.memberSubscriptions.planId, schema.subscriptionPlans.id))
     .where(and(...conditions))
     .orderBy(schema.members.name);
 

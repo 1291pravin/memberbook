@@ -114,7 +114,7 @@
                     </span>
                   </div>
                   <p class="text-xs text-slate-500 mt-1">
-                    Created {{ formatDate(invite.createdAt) }}
+                    Created {{ formatDateTime(invite.createdAt) }}
                   </p>
                 </div>
               </div>
@@ -170,13 +170,13 @@
                 </AppBadge>
               </div>
               <p class="text-xs text-slate-500">
-                Created {{ formatDate(invite.createdAt) }}
+                Created {{ formatDateTime(invite.createdAt) }}
               </p>
               <p v-if="invite.acceptedAt && invite.acceptedBy" class="text-xs text-slate-600 mt-1">
-                Accepted by {{ invite.acceptedBy.name }} on {{ formatDate(invite.acceptedAt) }}
+                Accepted by {{ invite.acceptedBy.name }} on {{ formatDateTime(invite.acceptedAt) }}
               </p>
               <p v-if="invite.revokedAt" class="text-xs text-slate-600 mt-1">
-                Revoked on {{ formatDate(invite.revokedAt) }}
+                Revoked on {{ formatDateTime(invite.revokedAt) }}
               </p>
             </div>
           </div>
@@ -358,16 +358,7 @@ async function revokeInvite(inviteId: number) {
   }
 }
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+const { formatDateTime } = useFormatDate();
 
 function formatExpiry(dateStr: string): string {
   const expiry = new Date(dateStr);

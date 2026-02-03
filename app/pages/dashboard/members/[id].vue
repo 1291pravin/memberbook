@@ -31,7 +31,7 @@
           <div>
             <p class="font-medium text-slate-800 text-sm">{{ sub.planName }}</p>
             <p class="text-sm text-slate-600">{{ formatDuration(sub.durationType, sub.durationValue) }}</p>
-            <p class="text-xs text-slate-400">{{ sub.startDate }} &mdash; {{ sub.endDate }}</p>
+            <p class="text-xs text-slate-400">{{ formatDate(sub.startDate) }} &mdash; {{ formatDate(sub.endDate) }}</p>
           </div>
           <div class="text-right space-y-1">
             <p class="text-sm font-semibold">{{ formatCurrency(sub.amount) }}</p>
@@ -46,21 +46,39 @@
             <p v-if="sub.totalPaid > 0 && sub.paymentStatus !== 'paid'" class="text-xs text-slate-500">
               Paid: {{ formatCurrency(sub.totalPaid) }} / {{ formatCurrency(sub.amount) }}
             </p>
-            <AppButton
-              v-if="sub.status === 'expired'"
-              size="sm"
-              variant="ghost"
-              class="mt-1"
-              @click="renewSubscription(sub)"
-            >
-              Renew
-            </AppButton>
+            <div class="flex items-center gap-1 justify-end mt-1">
+              <AppButton
+                v-if="sub.paymentStatus === 'partial'"
+                size="sm"
+                variant="ghost"
+                @click="openInlinePayment(sub)"
+              >
+                Pay Remaining ({{ formatCurrency(sub.amount - sub.totalPaid) }})
+              </AppButton>
+              <AppButton
+                v-if="sub.paymentStatus === 'unpaid'"
+                size="sm"
+                variant="ghost"
+                @click="openInlinePayment(sub)"
+              >
+                Record Payment
+              </AppButton>
+              <AppButton
+                v-if="sub.status === 'expired' && sub.id === latestSubscriptionId"
+                size="sm"
+                variant="ghost"
+                @click="renewSubscription(sub)"
+              >
+                Renew
+              </AppButton>
+            </div>
           </div>
         </div>
         <div v-if="subscriptions.length === 0" class="text-sm text-slate-500 py-2">No subscriptions</div>
       </div>
       <div class="mt-3">
-        <AppButton size="sm" @click="showAssignModal = true">Assign Plan</AppButton>
+        <AppButton v-if="hasActiveSubscription" size="sm" variant="secondary" @click="openChangePlan">Change Plan</AppButton>
+        <AppButton v-else size="sm" @click="isChangingPlan = false; showAssignModal = true">Assign Plan</AppButton>
       </div>
     </AppCard>
 
@@ -70,20 +88,20 @@
         <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
             <p class="text-sm font-medium text-slate-800">{{ formatCurrency(payment.amount) }}</p>
-            <p class="text-xs text-slate-500">{{ payment.date }} &middot; {{ payment.method }}</p>
+            <p class="text-xs text-slate-500">{{ formatDate(payment.date) }} &middot; {{ payment.method }}</p>
           </div>
           <p v-if="payment.notes" class="text-xs text-slate-500 max-w-[200px] truncate">{{ payment.notes }}</p>
         </div>
         <div v-if="payments.length === 0" class="text-sm text-slate-500 py-2">No payments recorded</div>
       </div>
-      <div class="mt-3">
-        <AppButton size="sm" @click="openPaymentModal">Record Payment</AppButton>
-      </div>
     </AppCard>
 
     <!-- Assign Plan Modal -->
-    <AppModal :open="showAssignModal" title="Assign Subscription" @close="showAssignModal = false">
+    <AppModal :open="showAssignModal" :title="isChangingPlan ? 'Change Plan' : 'Assign Subscription'" @close="showAssignModal = false">
       <form class="space-y-4" @submit.prevent="assignPlan">
+        <p v-if="isChangingPlan" class="text-sm text-slate-600">
+          The current active plan will be cancelled and replaced with the new one.
+        </p>
         <AppSelect
           v-model="assignForm.planId"
           label="Plan"
@@ -92,9 +110,26 @@
           required
         />
         <AppInput v-model="assignForm.startDate" label="Start Date" type="date" required />
+
+        <!-- Inline Payment -->
+        <div class="border-t border-slate-200 pt-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input v-model="assignForm.recordPayment" type="checkbox" class="rounded border-slate-300 text-primary-600 focus:ring-primary-500" />
+            <span class="text-sm font-medium text-slate-700">Record payment now</span>
+          </label>
+          <div v-if="assignForm.recordPayment" class="mt-3 space-y-3 pl-6">
+            <AppInput v-model="assignForm.paymentAmount" label="Amount (Rupees)" type="number" required />
+            <AppSelect
+              v-model="assignForm.paymentMethod"
+              label="Payment Method"
+              :options="paymentMethods"
+            />
+          </div>
+        </div>
+
         <div class="flex gap-2 justify-end">
           <AppButton variant="secondary" @click="showAssignModal = false">Cancel</AppButton>
-          <AppButton type="submit" :loading="assigning">Assign</AppButton>
+          <AppButton type="submit" :loading="assigning">{{ isChangingPlan ? 'Change' : 'Assign' }}</AppButton>
         </div>
       </form>
     </AppModal>
@@ -102,13 +137,6 @@
     <!-- Record Payment Modal -->
     <AppModal :open="showPaymentModal" title="Record Payment" @close="showPaymentModal = false">
       <form class="space-y-4" @submit.prevent="recordPayment">
-        <AppSelect
-          v-if="unpaidSubscriptionOptions.length > 0"
-          v-model="paymentForm.subscriptionId"
-          label="For Subscription"
-          :options="unpaidSubscriptionOptions"
-          placeholder="Select subscription (optional)"
-        />
         <AppInput v-model="paymentForm.amount" label="Amount (Rupees)" type="number" required />
         <AppInput v-model="paymentForm.date" label="Date" type="date" required />
         <AppSelect
@@ -132,6 +160,7 @@ definePageMeta({ layout: "dashboard", middleware: "org-required" });
 const route = useRoute();
 const { orgId } = useOrg();
 const { formatCurrency, parseCurrencyToInt } = useFormatCurrency();
+const { formatDate } = useFormatDate();
 
 const memberId = route.params.id;
 
@@ -178,9 +207,10 @@ const showAssignModal = ref(false);
 const showPaymentModal = ref(false);
 const assigning = ref(false);
 const recordingPayment = ref(false);
+const isChangingPlan = ref(false);
 
 const today = new Date().toISOString().split("T")[0];
-const assignForm = reactive({ planId: "", startDate: today });
+const assignForm = reactive({ planId: "", startDate: today, recordPayment: false, paymentAmount: "", paymentMethod: "cash" });
 const paymentForm = reactive({ amount: "", date: today, method: "cash", notes: "", subscriptionId: "" });
 
 const paymentMethods = [
@@ -195,6 +225,16 @@ const { data: memberData, refresh: refreshMember } = await useFetch<{ member: Me
 );
 const member = computed(() => memberData.value?.member ?? null);
 const subscriptions = computed(() => memberData.value?.subscriptions ?? []);
+const latestSubscriptionId = computed(() => {
+  const subs = subscriptions.value;
+  if (subs.length === 0) return null;
+  return subs.reduce((latest, sub) =>
+    sub.endDate > latest.endDate ? sub : latest,
+  ).id;
+});
+const hasActiveSubscription = computed(() =>
+  subscriptions.value.some(s => s.status === "active" && s.endDate >= today),
+);
 const payments = computed(() => memberData.value?.payments ?? []);
 
 const { data: plansData } = await useFetch<{ plans: Plan[] }>(
@@ -206,14 +246,12 @@ const planOptions = computed(() =>
   plans.value.filter(p => p.active).map(p => ({ value: p.id, label: p.name })),
 );
 
-const unpaidSubscriptionOptions = computed(() =>
-  subscriptions.value
-    .filter(s => s.paymentStatus !== "paid")
-    .map(s => ({
-      value: s.id,
-      label: `${s.planName} (${s.startDate} to ${s.endDate})`,
-    })),
-);
+watch(() => assignForm.planId, (planId) => {
+  const plan = plans.value.find(p => p.id === Number(planId));
+  if (plan) {
+    assignForm.paymentAmount = String(plan.price / 100);
+  }
+});
 
 function formatDuration(durationType: string, durationValue: number): string {
   const labels: Record<string, [string, string]> = {
@@ -238,9 +276,25 @@ function paymentStatusLabel(status: string): string {
   return "Unpaid";
 }
 
+function resetPaymentFields() {
+  assignForm.recordPayment = false;
+  assignForm.paymentAmount = "";
+  assignForm.paymentMethod = "cash";
+}
+
 function renewSubscription(sub: Subscription) {
   assignForm.planId = String(sub.planId);
   assignForm.startDate = sub.endDate;
+  isChangingPlan.value = false;
+  resetPaymentFields();
+  showAssignModal.value = true;
+}
+
+function openChangePlan() {
+  assignForm.planId = "";
+  assignForm.startDate = today;
+  isChangingPlan.value = true;
+  resetPaymentFields();
   showAssignModal.value = true;
 }
 
@@ -256,11 +310,27 @@ async function toggleStatus() {
 
 async function assignPlan() {
   assigning.value = true;
+  const body: Record<string, unknown> = {
+    planId: Number(assignForm.planId),
+    startDate: assignForm.startDate,
+    changePlan: isChangingPlan.value,
+  };
+  if (assignForm.recordPayment && assignForm.paymentAmount) {
+    body.payment = {
+      amount: parseCurrencyToInt(Number(assignForm.paymentAmount)),
+      date: assignForm.startDate,
+      method: assignForm.paymentMethod,
+    };
+  }
   await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/subscriptions`, {
     method: "POST",
-    body: { planId: Number(assignForm.planId), startDate: assignForm.startDate },
+    body,
   });
   showAssignModal.value = false;
+  isChangingPlan.value = false;
+  assignForm.recordPayment = false;
+  assignForm.paymentAmount = "";
+  assignForm.paymentMethod = "cash";
   assigning.value = false;
   await refreshMember();
 }
@@ -286,13 +356,13 @@ async function recordPayment() {
   await refreshMember();
 }
 
-function openPaymentModal() {
-  const unpaid = subscriptions.value.filter(s => s.paymentStatus !== "paid");
-  if (unpaid.length === 1) {
-    paymentForm.subscriptionId = String(unpaid[0].id);
-  } else {
-    paymentForm.subscriptionId = "";
-  }
+function openInlinePayment(sub: Subscription) {
+  paymentForm.subscriptionId = String(sub.id);
+  const remainingPaise = sub.amount - sub.totalPaid;
+  paymentForm.amount = String(remainingPaise / 100);
+  paymentForm.date = today;
+  paymentForm.method = "cash";
+  paymentForm.notes = "";
   showPaymentModal.value = true;
 }
 </script>

@@ -62,14 +62,17 @@ export default cachedEventHandler(async (event) => {
     graceCount = graceResult.count;
   }
 
-  // Expired
+  // Expired: DB status is 'expired' OR endDate has passed (status still 'active' in DB)
+  const graceCutoffForExpired = gracePeriodDays > 0
+    ? (() => { const d = new Date(); d.setDate(d.getDate() - gracePeriodDays); return d.toISOString().split("T")[0]; })()
+    : today;
   const [expiredResult] = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.memberSubscriptions)
     .where(
       and(
         eq(schema.memberSubscriptions.orgId, orgId),
-        eq(schema.memberSubscriptions.status, "expired"),
+        sql`(${schema.memberSubscriptions.status} = 'expired' OR (${schema.memberSubscriptions.status} = 'active' AND ${schema.memberSubscriptions.endDate} < ${graceCutoffForExpired}))`,
       ),
     );
 

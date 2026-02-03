@@ -17,9 +17,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const hashedPassword = await hashPassword(password);
-
-  const valid = await verifyPassword(hashedPassword, password);
+  const valid = await verifyPassword(user.passwordHash, password);
   if (!valid) {
     throw createError({
       statusCode: 401,

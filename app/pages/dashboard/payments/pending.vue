@@ -17,7 +17,7 @@
           <div>
             <p class="font-medium text-slate-800 text-sm">{{ item.member_name }}</p>
             <p class="text-xs text-slate-500">{{ item.plan_name }} &middot; Due: {{ formatCurrency(item.pending_amount) }}</p>
-            <p class="text-xs text-slate-400">{{ item.start_date }} &mdash; {{ item.end_date }}</p>
+            <p class="text-xs text-slate-400">{{ formatDate(item.start_date) }} &mdash; {{ formatDate(item.end_date) }}</p>
           </div>
           <div class="flex items-center gap-2">
             <a
@@ -46,6 +46,7 @@ definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const { orgId } = useOrg();
 const { formatCurrency } = useFormatCurrency();
+const { formatDate } = useFormatDate();
 const { getWhatsAppLink, getPaymentReminderMessage } = useWhatsApp();
 
 interface PendingItem {

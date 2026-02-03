@@ -45,8 +45,10 @@ export default cachedEventHandler(async (event) => {
 
   const paidMap = new Map(subPayments.map(p => [p.subscriptionId, p.totalPaid]));
 
+  const today = new Date().toISOString().split("T")[0];
   const subscriptionsWithPaid = subscriptions.map(s => ({
     ...s,
+    status: s.status === "active" && s.endDate < today ? "expired" : s.status,
     totalPaid: paidMap.get(s.id) ?? 0,
   }));
 

@@ -19,7 +19,7 @@ export default cachedEventHandler(async (event) => {
     .from(schema.members)
     .where(and(eq(schema.members.orgId, orgId), eq(schema.members.status, "active")));
 
-  // Expiring soon count (next 7 days)
+  // Expiring soon count (next 7 days, latest subscription per member only)
   const [expiringResult] = await db
     .select({ count: sql<number>`count(*)` })
     .from(schema.memberSubscriptions)
@@ -28,6 +28,11 @@ export default cachedEventHandler(async (event) => {
         eq(schema.memberSubscriptions.orgId, orgId),
         eq(schema.memberSubscriptions.status, "active"),
         between(schema.memberSubscriptions.endDate, today, weekStr),
+        sql`${schema.memberSubscriptions.id} = (
+          SELECT MAX(ms2.id) FROM member_subscriptions ms2
+          WHERE ms2.member_id = ${schema.memberSubscriptions.memberId}
+            AND ms2.org_id = ${schema.memberSubscriptions.orgId}
+        )`,
       ),
     );
 

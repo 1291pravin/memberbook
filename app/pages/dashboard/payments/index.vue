@@ -16,7 +16,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="font-medium text-slate-800 text-sm">{{ p.memberName }}</p>
-            <p class="text-xs text-slate-500">{{ p.date }} &middot; {{ p.method }}</p>
+            <p class="text-xs text-slate-500">{{ formatDate(p.date) }} &middot; {{ p.method }}</p>
             <p v-if="p.notes" class="text-xs text-slate-400 mt-1">{{ p.notes }}</p>
           </div>
           <p class="font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
@@ -31,6 +31,7 @@ definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const { orgId } = useOrg();
 const { formatCurrency } = useFormatCurrency();
+const { formatDate } = useFormatDate();
 
 interface PaymentRow {
   id: number;

@@ -1,5 +1,12 @@
 import { eq, and, between, sql } from "drizzle-orm";
 
+// Only consider the latest subscription per member (highest ID = most recent)
+const latestSubFilter = sql`${schema.memberSubscriptions.id} = (
+  SELECT MAX(ms2.id) FROM member_subscriptions ms2
+  WHERE ms2.member_id = ${schema.memberSubscriptions.memberId}
+    AND ms2.org_id = ${schema.memberSubscriptions.orgId}
+)`;
+
 export default cachedEventHandler(async (event) => {
   const access = event.context.access;
 
@@ -16,7 +23,7 @@ export default cachedEventHandler(async (event) => {
   weekLater.setDate(weekLater.getDate() + 7);
   const weekStr = weekLater.toISOString().split("T")[0];
 
-  // Subscriptions expiring in next 7 days
+  // Subscriptions expiring in next 7 days (latest per member only)
   const expiring = await db
     .select({
       memberId: schema.members.id,
@@ -35,6 +42,7 @@ export default cachedEventHandler(async (event) => {
         eq(schema.memberSubscriptions.orgId, access.orgId),
         eq(schema.memberSubscriptions.status, "active"),
         between(schema.memberSubscriptions.endDate, today, weekStr),
+        latestSubFilter,
       ),
     )
     .orderBy(schema.memberSubscriptions.endDate);
@@ -64,6 +72,7 @@ export default cachedEventHandler(async (event) => {
           eq(schema.memberSubscriptions.orgId, access.orgId),
           eq(schema.memberSubscriptions.status, "active"),
           between(schema.memberSubscriptions.endDate, graceCutoffStr, today),
+          latestSubFilter,
         ),
       )
       .orderBy(schema.memberSubscriptions.endDate);

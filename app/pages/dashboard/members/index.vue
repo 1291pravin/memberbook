@@ -7,24 +7,33 @@
       </NuxtLink>
     </div>
 
-    <div class="flex gap-2 items-center">
-      <AppSearchBar v-model="search" placeholder="Search by name or phone..." class="flex-1" />
+    <div class="flex flex-wrap gap-2 items-center">
+      <AppSearchBar v-model="search" placeholder="Search by name or phone..." class="flex-1 min-w-[180px]" />
       <select
         v-model="statusFilter"
         class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
       >
-        <option value="all">All</option>
+        <option value="all">All Status</option>
         <option value="active">Active</option>
         <option value="inactive">Inactive</option>
+      </select>
+      <select
+        v-model="subscriptionFilter"
+        class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      >
+        <option value="all">All Subscriptions</option>
+        <option value="expiring">Expiring Soon</option>
+        <option value="expired">Expired</option>
+        <option value="no-subscription">No Subscription</option>
       </select>
     </div>
 
     <div v-if="filteredMembers.length === 0 && !loading">
       <AppEmptyState
-        :title="search ? 'No members found' : 'No members yet'"
-        :description="search ? 'Try a different search term.' : 'Add your first member to get started.'"
+        :title="hasFilters ? 'No members found' : 'No members yet'"
+        :description="hasFilters ? 'Try adjusting your filters.' : 'Add your first member to get started.'"
       >
-        <template v-if="!search" #action>
+        <template v-if="!hasFilters" #action>
           <NuxtLink to="/dashboard/members/new">
             <AppButton>Add Member</AppButton>
           </NuxtLink>
@@ -41,13 +50,24 @@
       >
         <AppCard class="hover:border-primary-200 transition-colors">
           <div class="flex items-center justify-between">
-            <div>
+            <div class="min-w-0 flex-1">
               <p class="font-medium text-slate-800">{{ member.name }}</p>
               <p v-if="member.phone" class="text-sm text-slate-500">{{ member.phone }}</p>
+              <p v-if="member.planName" class="text-sm text-slate-500 mt-0.5">
+                {{ member.planName }}
+                <span v-if="member.subscriptionEndDate" class="text-slate-400">
+                  &middot; ends {{ formatDate(member.subscriptionEndDate) }}
+                </span>
+              </p>
             </div>
-            <AppBadge :color="member.status === 'active' ? 'green' : 'gray'">
-              {{ member.status }}
-            </AppBadge>
+            <div class="flex flex-col items-end gap-1 ml-2 shrink-0">
+              <AppBadge :color="member.status === 'active' ? 'green' : 'gray'">
+                {{ member.status }}
+              </AppBadge>
+              <AppBadge v-if="member.subscriptionEndDate" :color="subscriptionBadgeColor(member)">
+                {{ subscriptionLabel(member) }}
+              </AppBadge>
+            </div>
           </div>
         </AppCard>
       </NuxtLink>
@@ -66,15 +86,22 @@ interface Member {
   phone: string | null;
   email: string | null;
   status: string;
+  subscriptionEndDate: string | null;
+  subscriptionStatus: string | null;
+  planName: string | null;
 }
 
 const search = ref("");
 const statusFilter = ref("all");
+const subscriptionFilter = ref("all");
+
+const hasFilters = computed(() => search.value || statusFilter.value !== "all" || subscriptionFilter.value !== "all");
 
 const query = computed(() => {
   const params: Record<string, string> = {};
   if (search.value) params.search = search.value;
   if (statusFilter.value !== "all") params.status = statusFilter.value;
+  if (subscriptionFilter.value !== "all") params.subscription = subscriptionFilter.value;
   return params;
 });
 
@@ -84,4 +111,32 @@ const { data: membersData, status: membersStatus } = await useFetch<{ members: M
 );
 const filteredMembers = computed(() => membersData.value?.members ?? []);
 const loading = computed(() => membersStatus.value === "pending");
+
+const { formatDate } = useFormatDate();
+
+function isExpired(member: Member): boolean {
+  if (!member.subscriptionEndDate) return false;
+  return member.subscriptionEndDate < new Date().toISOString().split("T")[0];
+}
+
+function isExpiringSoon(member: Member): boolean {
+  if (!member.subscriptionEndDate) return false;
+  const today = new Date().toISOString().split("T")[0];
+  const weekLater = new Date();
+  weekLater.setDate(weekLater.getDate() + 7);
+  const weekStr = weekLater.toISOString().split("T")[0];
+  return member.subscriptionEndDate >= today && member.subscriptionEndDate <= weekStr;
+}
+
+function subscriptionBadgeColor(member: Member): "green" | "red" | "yellow" | "gray" {
+  if (isExpired(member)) return "red";
+  if (isExpiringSoon(member)) return "yellow";
+  return "green";
+}
+
+function subscriptionLabel(member: Member): string {
+  if (isExpired(member)) return "expired";
+  if (isExpiringSoon(member)) return "expiring soon";
+  return "active";
+}
 </script>

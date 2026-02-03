@@ -59,10 +59,7 @@ describe("Auth API", async () => {
       expect(body.user.email).toBe(user.email);
     });
 
-    // Note: login.post.ts has a bug where verifyPassword compares
-    // the newly hashed password against itself instead of the stored hash.
-    // This test documents the current (buggy) behavior.
-    it.skip("returns 401 for wrong password", async () => {
+    it("returns 401 for wrong password", async () => {
       const res = await rawFetch("/api/auth/login", {
         method: "POST",
         body: { email: user.email, password: "wrongpassword" },
