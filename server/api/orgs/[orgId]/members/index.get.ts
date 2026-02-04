@@ -6,6 +6,7 @@ export default cachedEventHandler(async (event) => {
   const search = query.search as string | undefined;
   const status = query.status as string | undefined;
   const subscription = query.subscription as string | undefined;
+  const payment = query.payment as string | undefined;
 
   const today = new Date().toISOString().split("T")[0];
   const weekLater = new Date();
@@ -48,6 +49,20 @@ export default cachedEventHandler(async (event) => {
     conditions.push(sql`${latestSub.maxId} IS NULL`);
   }
 
+  // Payment status filter on the latest subscription
+  if (payment === "unpaid") {
+    conditions.push(eq(schema.memberSubscriptions.paymentStatus, "unpaid"));
+  } else if (payment === "partial") {
+    conditions.push(eq(schema.memberSubscriptions.paymentStatus, "partial"));
+  } else if (payment === "unpaid-or-partial") {
+    conditions.push(
+      or(
+        eq(schema.memberSubscriptions.paymentStatus, "unpaid"),
+        eq(schema.memberSubscriptions.paymentStatus, "partial"),
+      )!,
+    );
+  }
+
   const memberList = await db
     .select({
       id: schema.members.id,
@@ -60,6 +75,7 @@ export default cachedEventHandler(async (event) => {
       createdAt: schema.members.createdAt,
       subscriptionEndDate: schema.memberSubscriptions.endDate,
       subscriptionStatus: schema.memberSubscriptions.status,
+      paymentStatus: schema.memberSubscriptions.paymentStatus,
       planName: schema.subscriptionPlans.name,
     })
     .from(schema.members)

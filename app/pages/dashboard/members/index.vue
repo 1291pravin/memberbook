@@ -26,6 +26,15 @@
         <option value="expired">Expired</option>
         <option value="no-subscription">No Subscription</option>
       </select>
+      <select
+        v-model="paymentFilter"
+        class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      >
+        <option value="all">All Payments</option>
+        <option value="unpaid-or-partial">Unpaid / Partial</option>
+        <option value="unpaid">Unpaid</option>
+        <option value="partial">Partially Paid</option>
+      </select>
     </div>
 
     <div v-if="filteredMembers.length === 0 && !loading">
@@ -67,6 +76,9 @@
               <AppBadge v-if="member.subscriptionEndDate" :color="subscriptionBadgeColor(member)">
                 {{ subscriptionLabel(member) }}
               </AppBadge>
+              <AppBadge v-if="member.paymentStatus && member.paymentStatus !== 'paid'" :color="member.paymentStatus === 'unpaid' ? 'red' : 'yellow'">
+                {{ member.paymentStatus === 'unpaid' ? 'unpaid' : 'partial' }}
+              </AppBadge>
             </div>
           </div>
         </AppCard>
@@ -88,20 +100,23 @@ interface Member {
   status: string;
   subscriptionEndDate: string | null;
   subscriptionStatus: string | null;
+  paymentStatus: string | null;
   planName: string | null;
 }
 
 const search = ref("");
 const statusFilter = ref("all");
 const subscriptionFilter = ref("all");
+const paymentFilter = ref("all");
 
-const hasFilters = computed(() => search.value || statusFilter.value !== "all" || subscriptionFilter.value !== "all");
+const hasFilters = computed(() => search.value || statusFilter.value !== "all" || subscriptionFilter.value !== "all" || paymentFilter.value !== "all");
 
 const query = computed(() => {
   const params: Record<string, string> = {};
   if (search.value) params.search = search.value;
   if (statusFilter.value !== "all") params.status = statusFilter.value;
   if (subscriptionFilter.value !== "all") params.subscription = subscriptionFilter.value;
+  if (paymentFilter.value !== "all") params.payment = paymentFilter.value;
   return params;
 });
 
