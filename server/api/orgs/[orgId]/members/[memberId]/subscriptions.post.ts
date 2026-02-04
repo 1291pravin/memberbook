@@ -36,7 +36,8 @@ export default defineEventHandler(async (event) => {
     );
   const activeSubscription = activeSubs.find(s => s.endDate >= today);
 
-  if (activeSubscription && !changePlan) {
+  // Allow renewal if the new subscription starts after the active one ends
+  if (activeSubscription && !changePlan && startDate <= activeSubscription.endDate) {
     throw createError({ statusCode: 409, statusMessage: "Member already has an active subscription. Use change plan instead." });
   }
 

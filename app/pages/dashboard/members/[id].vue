@@ -64,7 +64,7 @@
                 Record Payment
               </AppButton>
               <AppButton
-                v-if="sub.status === 'expired' && sub.id === latestSubscriptionId"
+                v-if="sub.id === latestSubscriptionId"
                 size="sm"
                 variant="ghost"
                 @click="renewSubscription(sub)"
@@ -284,7 +284,13 @@ function resetPaymentFields() {
 
 function renewSubscription(sub: Subscription) {
   assignForm.planId = String(sub.planId);
-  assignForm.startDate = sub.endDate;
+  // Start the new subscription the day after the current one ends
+  const nextDay = new Date(sub.endDate + "T00:00:00");
+  nextDay.setDate(nextDay.getDate() + 1);
+  const y = nextDay.getFullYear();
+  const m = String(nextDay.getMonth() + 1).padStart(2, "0");
+  const d = String(nextDay.getDate()).padStart(2, "0");
+  assignForm.startDate = `${y}-${m}-${d}`;
   isChangingPlan.value = false;
   resetPaymentFields();
   showAssignModal.value = true;
