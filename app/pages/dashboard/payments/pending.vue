@@ -63,7 +63,7 @@ interface PendingItem {
 }
 
 const { data: pendingData } = await useFetch<{ pending: PendingItem[] }>(
-  () => `/api/orgs/${orgId.value}/payments/pending`,
+  `/api/orgs/${orgId.value}/payments/pending`,
 );
 const pending = computed(() => pendingData.value?.pending ?? []);
 </script>

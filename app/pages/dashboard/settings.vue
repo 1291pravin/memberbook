@@ -257,12 +257,12 @@ async function clearCache() {
 }
 
 const { data: staffData, refresh: refreshStaff } = await useFetch<{ staff: StaffMember[] }>(
-  () => `/api/orgs/${orgId.value}/staff`,
+  `/api/orgs/${orgId.value}/staff`,
 );
 const staff = computed(() => staffData.value?.staff ?? []);
 
 const { data: invitesData, refresh: refreshInvites } = await useFetch<{ invites: Invite[] }>(
-  () => `/api/orgs/${orgId.value}/invites`,
+  `/api/orgs/${orgId.value}/invites`,
   { immediate: false },
 );
 

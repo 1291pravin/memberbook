@@ -43,7 +43,7 @@ interface PaymentRow {
 }
 
 const { data: paymentsData } = await useFetch<{ payments: PaymentRow[] }>(
-  () => `/api/orgs/${orgId.value}/payments`,
+  `/api/orgs/${orgId.value}/payments`,
 );
 const payments = computed(() => paymentsData.value?.payments ?? []);
 </script>

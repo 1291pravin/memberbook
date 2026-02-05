@@ -89,7 +89,7 @@ const query = computed(() => {
 });
 
 const { data: inquiriesData, refresh: refreshInquiries } = await useFetch<{ inquiries: Inquiry[] }>(
-  () => `/api/orgs/${orgId.value}/inquiries`,
+  `/api/orgs/${orgId.value}/inquiries`,
   { query },
 );
 const inquiries = computed(() => inquiriesData.value?.inquiries ?? []);

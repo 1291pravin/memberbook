@@ -89,7 +89,7 @@ const editingPlan = ref<Plan | null>(null);
 const form = reactive({ name: "", price: "", durationValue: "1", durationType: "monthly" });
 
 const { data: plansData, refresh: refreshPlans, status: plansStatus } = await useFetch<{ plans: Plan[] }>(
-  () => `/api/orgs/${orgId.value}/plans`,
+  `/api/orgs/${orgId.value}/plans`,
 );
 const plans = computed(() => plansData.value?.plans ?? []);
 const loading = computed(() => plansStatus.value === "pending");

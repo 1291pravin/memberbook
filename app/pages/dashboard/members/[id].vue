@@ -10,6 +10,12 @@
       </AppBadge>
     </div>
 
+    <!-- Error Banner -->
+    <div v-if="errorMessage" class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
+      <p class="text-sm text-red-700">{{ errorMessage }}</p>
+      <button class="text-red-500 hover:text-red-700 text-sm font-medium" @click="errorMessage = ''">Dismiss</button>
+    </div>
+
     <!-- Member Info -->
     <AppCard v-if="member" title="Contact">
       <div class="space-y-2 text-sm">
@@ -209,6 +215,7 @@ const showPaymentModal = ref(false);
 const assigning = ref(false);
 const recordingPayment = ref(false);
 const isChangingPlan = ref(false);
+const errorMessage = ref("");
 
 const today = new Date().toISOString().split("T")[0];
 const assignForm = reactive({ planId: "", startDate: today, recordPayment: false, paymentAmount: "", paymentMethod: "cash" });
@@ -222,7 +229,8 @@ const paymentMethods = [
 ];
 
 const { data: memberData, refresh: refreshMember } = await useFetch<{ member: MemberDetail; subscriptions: Subscription[]; payments: Payment[] }>(
-  () => `/api/orgs/${orgId.value}/members/${memberId}?_v=${cacheVersion.value}`,
+  `/api/orgs/${orgId.value}/members/${memberId}`,
+  { query: { _v: cacheVersion } },
 );
 const member = computed(() => memberData.value?.member ?? null);
 const subscriptions = computed(() => memberData.value?.subscriptions ?? []);
@@ -239,7 +247,7 @@ const hasActiveSubscription = computed(() =>
 const payments = computed(() => memberData.value?.payments ?? []);
 
 const { data: plansData } = await useFetch<{ plans: Plan[] }>(
-  () => `/api/orgs/${orgId.value}/plans`,
+  `/api/orgs/${orgId.value}/plans`,
 );
 const plans = computed(() => plansData.value?.plans ?? []);
 
@@ -289,13 +297,8 @@ function renewSubscription(sub: Subscription) {
   nextTick(() => {
     assignForm.planId = String(sub.planId);
   });
-  // Start the new subscription the day after the current one ends
-  const nextDay = new Date(sub.endDate + "T00:00:00");
-  nextDay.setDate(nextDay.getDate() + 1);
-  const y = nextDay.getFullYear();
-  const m = String(nextDay.getMonth() + 1).padStart(2, "0");
-  const d = String(nextDay.getDate()).padStart(2, "0");
-  assignForm.startDate = `${y}-${m}-${d}`;
+  // Start the new subscription on the end date of the current one
+  assignForm.startDate = sub.endDate;
   isChangingPlan.value = false;
   resetPaymentFields();
   // Explicitly set payment amount for the renewed plan
@@ -324,65 +327,85 @@ function openChangePlan() {
 
 async function toggleStatus() {
   if (!member.value) return;
-  const newStatus = member.value.status === "active" ? "inactive" : "active";
-  await $fetch(`/api/orgs/${orgId.value}/members/${memberId}`, {
-    method: "PUT",
-    body: { status: newStatus },
-  });
-  cacheVersion.value = Date.now();
-  await refreshMember();
+  try {
+    errorMessage.value = "";
+    const newStatus = member.value.status === "active" ? "inactive" : "active";
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}`, {
+      method: "PUT",
+      body: { status: newStatus },
+    });
+    cacheVersion.value = Date.now();
+    await refreshMember();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to update status";
+  }
 }
 
 async function assignPlan() {
   assigning.value = true;
-  const body: Record<string, unknown> = {
-    planId: Number(assignForm.planId),
-    startDate: assignForm.startDate,
-    changePlan: isChangingPlan.value,
-  };
-  if (assignForm.recordPayment && assignForm.paymentAmount) {
-    body.payment = {
-      amount: parseCurrencyToInt(Number(assignForm.paymentAmount)),
-      date: assignForm.startDate,
-      method: assignForm.paymentMethod,
+  errorMessage.value = "";
+  try {
+    const body: Record<string, unknown> = {
+      planId: Number(assignForm.planId),
+      startDate: assignForm.startDate,
+      changePlan: isChangingPlan.value,
     };
+    if (assignForm.recordPayment && assignForm.paymentAmount) {
+      body.payment = {
+        amount: parseCurrencyToInt(Number(assignForm.paymentAmount)),
+        date: assignForm.startDate,
+        method: assignForm.paymentMethod,
+      };
+    }
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/subscriptions`, {
+      method: "POST",
+      body,
+    });
+    showAssignModal.value = false;
+    isChangingPlan.value = false;
+    assignForm.planId = "";
+    assignForm.startDate = today;
+    assignForm.recordPayment = false;
+    assignForm.paymentAmount = "";
+    assignForm.paymentMethod = "cash";
+    cacheVersion.value = Date.now();
+    await refreshMember();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to assign plan";
+  } finally {
+    assigning.value = false;
   }
-  await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/subscriptions`, {
-    method: "POST",
-    body,
-  });
-  showAssignModal.value = false;
-  isChangingPlan.value = false;
-  assignForm.planId = "";
-  assignForm.startDate = today;
-  assignForm.recordPayment = false;
-  assignForm.paymentAmount = "";
-  assignForm.paymentMethod = "cash";
-  assigning.value = false;
-  cacheVersion.value = Date.now();
-  await refreshMember();
 }
 
 async function recordPayment() {
   recordingPayment.value = true;
-  await $fetch(`/api/orgs/${orgId.value}/payments`, {
-    method: "POST",
-    body: {
-      memberId: Number(memberId),
-      amount: parseCurrencyToInt(Number(paymentForm.amount)),
-      date: paymentForm.date,
-      method: paymentForm.method,
-      notes: paymentForm.notes || null,
-      subscriptionId: paymentForm.subscriptionId ? Number(paymentForm.subscriptionId) : null,
-    },
-  });
-  showPaymentModal.value = false;
-  recordingPayment.value = false;
-  paymentForm.amount = "";
-  paymentForm.notes = "";
-  paymentForm.subscriptionId = "";
-  cacheVersion.value = Date.now();
-  await refreshMember();
+  errorMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/payments`, {
+      method: "POST",
+      body: {
+        memberId: Number(memberId),
+        amount: parseCurrencyToInt(Number(paymentForm.amount)),
+        date: paymentForm.date,
+        method: paymentForm.method,
+        notes: paymentForm.notes || null,
+        subscriptionId: paymentForm.subscriptionId ? Number(paymentForm.subscriptionId) : null,
+      },
+    });
+    showPaymentModal.value = false;
+    paymentForm.amount = "";
+    paymentForm.notes = "";
+    paymentForm.subscriptionId = "";
+    cacheVersion.value = Date.now();
+    await refreshMember();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to record payment";
+  } finally {
+    recordingPayment.value = false;
+  }
 }
 
 function openInlinePayment(sub: Subscription) {

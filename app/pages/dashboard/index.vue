@@ -199,10 +199,10 @@ interface ExpiringItem {
 
 // Fetch dashboard data
 const { data: dashData } = await useFetch<DashboardData>(
-  () => `/api/orgs/${orgId.value}/dashboard`,
+  `/api/orgs/${orgId.value}/dashboard`,
 );
 const { data: expiringData } = await useFetch<{ expiring: ExpiringItem[] }>(
-  () => `/api/orgs/${orgId.value}/members/expiring`,
+  `/api/orgs/${orgId.value}/members/expiring`,
 );
 
 const stats = computed(() => dashData.value?.stats ?? { activeMembers: 0, expiringSoon: 0, pendingPayments: 0, monthRevenue: 0 });
@@ -214,28 +214,28 @@ const revenuePeriod = ref<"daily" | "weekly" | "monthly">("daily");
 
 // Fetch analytics data
 const { data: revenueTrendData } = await useFetch<{ data: Array<{ date: string; revenue: number }> }>(
-  () => `/api/orgs/${orgId.value}/analytics/revenue-trend?period=${revenuePeriod.value}`,
-  { watch: [revenuePeriod] },
+  `/api/orgs/${orgId.value}/analytics/revenue-trend`,
+  { query: { period: revenuePeriod }, watch: [revenuePeriod] },
 );
 
 const { data: memberGrowthData } = await useFetch<{ data: Array<{ month: string; count: number }> }>(
-  () => `/api/orgs/${orgId.value}/analytics/member-growth`,
+  `/api/orgs/${orgId.value}/analytics/member-growth`,
 );
 
 const { data: paymentMethodsData } = await useFetch<{ data: Array<{ method: string; total: number; count: number }> }>(
-  () => `/api/orgs/${orgId.value}/analytics/payment-methods`,
+  `/api/orgs/${orgId.value}/analytics/payment-methods`,
 );
 
 const { data: subscriptionStatusData } = await useFetch<{ active: number; expiring: number; expired: number }>(
-  () => `/api/orgs/${orgId.value}/analytics/subscription-status`,
+  `/api/orgs/${orgId.value}/analytics/subscription-status`,
 );
 
 const { data: planPopularityData } = await useFetch<{ data: Array<{ planId: number; planName: string; activeCount: number }> }>(
-  () => `/api/orgs/${orgId.value}/analytics/plan-popularity`,
+  `/api/orgs/${orgId.value}/analytics/plan-popularity`,
 );
 
 const { data: inquiryFunnelData } = await useFetch<{ total: number; new: number; contacted: number; converted: number; lost: number; conversionRate: number }>(
-  () => `/api/orgs/${orgId.value}/analytics/inquiry-funnel`,
+  `/api/orgs/${orgId.value}/analytics/inquiry-funnel`,
 );
 
 // Revenue Trend Chart
