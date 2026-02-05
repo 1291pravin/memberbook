@@ -1,7 +1,16 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
   const access = event.context.access;
+  const { page, limit, offset } = parsePagination(event, 30);
+
+  // Count query for pagination
+  const [{ total }] = await db
+    .select({ total: count() })
+    .from(schema.payments)
+    .where(eq(schema.payments.orgId, access.orgId));
+
+  // Data query with pagination
   const paymentList = await db
     .select({
       id: schema.payments.id,
@@ -16,9 +25,12 @@ export default cachedEventHandler(async (event) => {
     .from(schema.payments)
     .innerJoin(schema.members, eq(schema.payments.memberId, schema.members.id))
     .where(eq(schema.payments.orgId, access.orgId))
-    .orderBy(desc(schema.payments.date));
+    .orderBy(desc(schema.payments.date))
+    .limit(limit)
+    .offset(offset);
 
-  return { payments: paymentList };
+  const { pagination } = buildPaginatedResponse(paymentList, total, { page, limit, offset });
+  return { payments: paymentList, pagination };
 }, {
   maxAge: 3600,
   getKey: (event) => orgCacheKey(event, "payments"),

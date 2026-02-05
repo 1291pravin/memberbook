@@ -93,6 +93,14 @@
         </AppCard>
       </NuxtLink>
     </div>
+
+    <AppPagination
+      :page="pagination.page"
+      :total-pages="pagination.totalPages"
+      :total="pagination.total"
+      :limit="pagination.limit"
+      @update:page="pagination.goToPage"
+    />
   </div>
 </template>
 
@@ -113,30 +121,49 @@ interface Member {
   planName: string | null;
 }
 
+interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 const search = ref("");
 const statusFilter = ref("all");
 const subscriptionFilter = ref("all");
 const paymentFilter = ref("all");
 const sortBy = ref("newest");
 
+const pagination = usePagination(20);
+
 const hasFilters = computed(() => search.value || statusFilter.value !== "all" || subscriptionFilter.value !== "all" || paymentFilter.value !== "all" || sortBy.value !== "newest");
 
+// Reset page when filters change
+watch([search, statusFilter, subscriptionFilter, paymentFilter, sortBy], () => {
+  pagination.resetPage();
+});
+
 const query = computed(() => {
-  const params: Record<string, string> = {};
+  const params: Record<string, string | number> = {};
   if (search.value) params.search = search.value;
   if (statusFilter.value !== "all") params.status = statusFilter.value;
   if (subscriptionFilter.value !== "all") params.subscription = subscriptionFilter.value;
   if (paymentFilter.value !== "all") params.payment = paymentFilter.value;
   if (sortBy.value !== "newest") params.sort = sortBy.value;
+  params.page = pagination._page.value;
   return params;
 });
 
-const { data: membersData, status: membersStatus } = await useFetch<{ members: Member[] }>(
+const { data: membersData, status: membersStatus } = await useFetch<{ members: Member[]; pagination: PaginationMeta }>(
   `/api/orgs/${orgId.value}/members`,
   { query },
 );
 const filteredMembers = computed(() => membersData.value?.members ?? []);
 const loading = computed(() => membersStatus.value === "pending");
+
+watch(membersData, (val) => {
+  pagination.updateFromResponse(val?.pagination);
+}, { immediate: true });
 
 const { formatDate } = useFormatDate();
 

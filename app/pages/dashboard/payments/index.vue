@@ -23,6 +23,14 @@
         </div>
       </AppCard>
     </div>
+
+    <AppPagination
+      :page="pagination.page"
+      :total-pages="pagination.totalPages"
+      :total="pagination.total"
+      :limit="pagination.limit"
+      @update:page="pagination.goToPage"
+    />
   </div>
 </template>
 
@@ -42,8 +50,26 @@ interface PaymentRow {
   memberName: string;
 }
 
-const { data: paymentsData } = await useFetch<{ payments: PaymentRow[] }>(
+interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+const pagination = usePagination(30);
+
+const query = computed(() => {
+  return { page: pagination._page.value };
+});
+
+const { data: paymentsData } = await useFetch<{ payments: PaymentRow[]; pagination: PaginationMeta }>(
   `/api/orgs/${orgId.value}/payments`,
+  { query },
 );
 const payments = computed(() => paymentsData.value?.payments ?? []);
+
+watch(paymentsData, (val) => {
+  pagination.updateFromResponse(val?.pagination);
+}, { immediate: true });
 </script>

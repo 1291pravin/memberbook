@@ -1,4 +1,4 @@
-import { eq, and, like, or, sql, lt, between, desc, asc } from "drizzle-orm";
+import { eq, and, like, or, sql, lt, between, desc, asc, count } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
   const access = event.context.access;
@@ -8,6 +8,7 @@ export default cachedEventHandler(async (event) => {
   const subscription = query.subscription as string | undefined;
   const payment = query.payment as string | undefined;
   const sort = (query.sort as string) || "newest";
+  const { page, limit, offset } = parsePagination(event, 20);
 
   const today = new Date().toISOString().split("T")[0];
   const weekLater = new Date();
@@ -64,6 +65,17 @@ export default cachedEventHandler(async (event) => {
     );
   }
 
+  const whereClause = and(...conditions);
+
+  // Count query for pagination
+  const [{ total }] = await db
+    .select({ total: count() })
+    .from(schema.members)
+    .leftJoin(latestSub, eq(schema.members.id, latestSub.memberId))
+    .leftJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
+    .where(whereClause);
+
+  // Data query with pagination
   const memberList = await db
     .select({
       id: schema.members.id,
@@ -83,15 +95,18 @@ export default cachedEventHandler(async (event) => {
     .leftJoin(latestSub, eq(schema.members.id, latestSub.memberId))
     .leftJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
     .leftJoin(schema.subscriptionPlans, eq(schema.memberSubscriptions.planId, schema.subscriptionPlans.id))
-    .where(and(...conditions))
+    .where(whereClause)
     .orderBy(
       sort === "name-asc" ? asc(schema.members.name)
         : sort === "name-desc" ? desc(schema.members.name)
           : sort === "oldest" ? asc(schema.members.createdAt)
             : desc(schema.members.createdAt),
-    );
+    )
+    .limit(limit)
+    .offset(offset);
 
-  return { members: memberList };
+  const { pagination } = buildPaginatedResponse(memberList, total, { page, limit, offset });
+  return { members: memberList, pagination };
 }, {
   maxAge: 3600,
   getKey: (event) => orgCacheKey(event, "members"),
