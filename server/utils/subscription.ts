@@ -1,22 +1,27 @@
 export function calculateEndDate(startDate: string, durationType: string, durationValue: number): string {
-  const date = new Date(startDate + "T00:00:00");
+  // Parse as UTC to avoid timezone shifts on Cloudflare Workers
+  const [y, m, d] = startDate.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
 
   switch (durationType) {
     case "daily":
-      date.setDate(date.getDate() + durationValue);
+      date.setUTCDate(date.getUTCDate() + durationValue);
       break;
     case "weekly":
-      date.setDate(date.getDate() + durationValue * 7);
+      date.setUTCDate(date.getUTCDate() + durationValue * 7);
       break;
     case "monthly":
-      date.setMonth(date.getMonth() + durationValue);
+      date.setUTCMonth(date.getUTCMonth() + durationValue);
       break;
     case "yearly":
-      date.setFullYear(date.getFullYear() + durationValue);
+      date.setUTCFullYear(date.getUTCFullYear() + durationValue);
       break;
   }
 
-  return date.toISOString().split("T")[0];
+  const ey = date.getUTCFullYear();
+  const em = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const ed = String(date.getUTCDate()).padStart(2, "0");
+  return `${ey}-${em}-${ed}`;
 }
 
 export function formatDuration(durationType: string, durationValue: number): string {

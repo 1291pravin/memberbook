@@ -35,6 +35,15 @@
         <option value="unpaid">Unpaid</option>
         <option value="partial">Partially Paid</option>
       </select>
+      <select
+        v-model="sortBy"
+        class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      >
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="name-asc">Name A-Z</option>
+        <option value="name-desc">Name Z-A</option>
+      </select>
     </div>
 
     <div v-if="filteredMembers.length === 0 && !loading">
@@ -108,8 +117,9 @@ const search = ref("");
 const statusFilter = ref("all");
 const subscriptionFilter = ref("all");
 const paymentFilter = ref("all");
+const sortBy = ref("newest");
 
-const hasFilters = computed(() => search.value || statusFilter.value !== "all" || subscriptionFilter.value !== "all" || paymentFilter.value !== "all");
+const hasFilters = computed(() => search.value || statusFilter.value !== "all" || subscriptionFilter.value !== "all" || paymentFilter.value !== "all" || sortBy.value !== "newest");
 
 const query = computed(() => {
   const params: Record<string, string> = {};
@@ -117,11 +127,12 @@ const query = computed(() => {
   if (statusFilter.value !== "all") params.status = statusFilter.value;
   if (subscriptionFilter.value !== "all") params.subscription = subscriptionFilter.value;
   if (paymentFilter.value !== "all") params.payment = paymentFilter.value;
+  if (sortBy.value !== "newest") params.sort = sortBy.value;
   return params;
 });
 
 const { data: membersData, status: membersStatus } = await useFetch<{ members: Member[] }>(
-  () => `/api/orgs/${orgId.value}/members`,
+  `/api/orgs/${orgId.value}/members`,
   { query },
 );
 const filteredMembers = computed(() => membersData.value?.members ?? []);

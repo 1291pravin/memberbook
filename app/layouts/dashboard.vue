@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-slate-50 lg:flex">
     <!-- Desktop Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-slate-800">
+    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-slate-800 lg:fixed lg:inset-y-0">
       <div class="p-4 border-b border-slate-700">
         <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300">MemberBook</NuxtLink>
         <p v-if="currentOrg" class="text-xs text-slate-500 mt-1">{{ currentOrg.name }}</p>
@@ -29,7 +29,7 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 pb-20 lg:pb-0">
+    <div class="flex-1 pb-20 lg:pb-0 lg:ml-64">
       <!-- Mobile Header -->
       <header class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <NuxtLink to="/dashboard" class="text-lg font-bold text-primary-600">MemberBook</NuxtLink>
@@ -138,6 +138,6 @@ function isActive(to: string) {
 async function logout() {
   await $fetch("/api/auth/logout", { method: "POST" });
   await clear();
-  navigateTo("/login");
+  navigateTo("/");
 }
 </script>

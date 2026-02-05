@@ -1,4 +1,4 @@
-import { eq, and, like, or, sql, lt, between } from "drizzle-orm";
+import { eq, and, like, or, sql, lt, between, desc, asc } from "drizzle-orm";
 
 export default cachedEventHandler(async (event) => {
   const access = event.context.access;
@@ -7,6 +7,7 @@ export default cachedEventHandler(async (event) => {
   const status = query.status as string | undefined;
   const subscription = query.subscription as string | undefined;
   const payment = query.payment as string | undefined;
+  const sort = (query.sort as string) || "newest";
 
   const today = new Date().toISOString().split("T")[0];
   const weekLater = new Date();
@@ -83,7 +84,12 @@ export default cachedEventHandler(async (event) => {
     .leftJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
     .leftJoin(schema.subscriptionPlans, eq(schema.memberSubscriptions.planId, schema.subscriptionPlans.id))
     .where(and(...conditions))
-    .orderBy(schema.members.name);
+    .orderBy(
+      sort === "name-asc" ? asc(schema.members.name)
+        : sort === "name-desc" ? desc(schema.members.name)
+          : sort === "oldest" ? asc(schema.members.createdAt)
+            : desc(schema.members.createdAt),
+    );
 
   return { members: memberList };
 }, {

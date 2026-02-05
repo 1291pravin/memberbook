@@ -78,7 +78,7 @@
       </div>
       <div class="mt-3">
         <AppButton v-if="hasActiveSubscription" size="sm" variant="secondary" @click="openChangePlan">Change Plan</AppButton>
-        <AppButton v-else size="sm" @click="isChangingPlan = false; showAssignModal = true">Assign Plan</AppButton>
+        <AppButton v-else size="sm" @click="openAssignPlan">Assign Plan</AppButton>
       </div>
     </AppCard>
 
@@ -163,6 +163,7 @@ const { formatCurrency, parseCurrencyToInt } = useFormatCurrency();
 const { formatDate } = useFormatDate();
 
 const memberId = route.params.id;
+const cacheVersion = ref(Date.now());
 
 interface MemberDetail {
   id: number;
@@ -221,7 +222,7 @@ const paymentMethods = [
 ];
 
 const { data: memberData, refresh: refreshMember } = await useFetch<{ member: MemberDetail; subscriptions: Subscription[]; payments: Payment[] }>(
-  () => `/api/orgs/${orgId.value}/members/${memberId}`,
+  () => `/api/orgs/${orgId.value}/members/${memberId}?_v=${cacheVersion.value}`,
 );
 const member = computed(() => memberData.value?.member ?? null);
 const subscriptions = computed(() => memberData.value?.subscriptions ?? []);
@@ -283,7 +284,11 @@ function resetPaymentFields() {
 }
 
 function renewSubscription(sub: Subscription) {
-  assignForm.planId = String(sub.planId);
+  // Reset planId first so the watcher fires even for the same plan
+  assignForm.planId = "";
+  nextTick(() => {
+    assignForm.planId = String(sub.planId);
+  });
   // Start the new subscription the day after the current one ends
   const nextDay = new Date(sub.endDate + "T00:00:00");
   nextDay.setDate(nextDay.getDate() + 1);
@@ -291,6 +296,19 @@ function renewSubscription(sub: Subscription) {
   const m = String(nextDay.getMonth() + 1).padStart(2, "0");
   const d = String(nextDay.getDate()).padStart(2, "0");
   assignForm.startDate = `${y}-${m}-${d}`;
+  isChangingPlan.value = false;
+  resetPaymentFields();
+  // Explicitly set payment amount for the renewed plan
+  const plan = plans.value.find(p => p.id === sub.planId);
+  if (plan) {
+    assignForm.paymentAmount = String(plan.price / 100);
+  }
+  showAssignModal.value = true;
+}
+
+function openAssignPlan() {
+  assignForm.planId = "";
+  assignForm.startDate = today;
   isChangingPlan.value = false;
   resetPaymentFields();
   showAssignModal.value = true;
@@ -311,6 +329,7 @@ async function toggleStatus() {
     method: "PUT",
     body: { status: newStatus },
   });
+  cacheVersion.value = Date.now();
   await refreshMember();
 }
 
@@ -334,10 +353,13 @@ async function assignPlan() {
   });
   showAssignModal.value = false;
   isChangingPlan.value = false;
+  assignForm.planId = "";
+  assignForm.startDate = today;
   assignForm.recordPayment = false;
   assignForm.paymentAmount = "";
   assignForm.paymentMethod = "cash";
   assigning.value = false;
+  cacheVersion.value = Date.now();
   await refreshMember();
 }
 
@@ -359,6 +381,7 @@ async function recordPayment() {
   paymentForm.amount = "";
   paymentForm.notes = "";
   paymentForm.subscriptionId = "";
+  cacheVersion.value = Date.now();
   await refreshMember();
 }
 
