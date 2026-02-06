@@ -25,7 +25,16 @@
             {{ plan.active ? "Active" : "Inactive" }}
           </AppBadge>
         </div>
-        <div class="mt-3 flex gap-2">
+        <NuxtLink
+          :to="`/dashboard/members?planId=${plan.id}`"
+          class="mt-2 inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
+        >
+          <span>{{ plan.memberCount }} {{ plan.memberCount === 1 ? 'member' : 'members' }}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+          </svg>
+        </NuxtLink>
+        <div class="mt-2 flex gap-2">
           <AppButton size="sm" variant="ghost" @click="editPlan(plan)">Edit</AppButton>
           <AppButton
             size="sm"
@@ -74,6 +83,7 @@ interface Plan {
   durationType: string;
   durationValue: number;
   active: boolean;
+  memberCount: number;
 }
 
 const durationTypeOptions = [

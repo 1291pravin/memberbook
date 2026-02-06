@@ -7,6 +7,7 @@ export default cachedEventHandler(async (event) => {
   const status = query.status as string | undefined;
   const subscription = query.subscription as string | undefined;
   const payment = query.payment as string | undefined;
+  const planId = query.planId ? Number(query.planId) : undefined;
   const sort = (query.sort as string) || "newest";
   const { page, limit, offset } = parsePagination(event, 20);
 
@@ -63,6 +64,11 @@ export default cachedEventHandler(async (event) => {
         eq(schema.memberSubscriptions.paymentStatus, "partial"),
       )!,
     );
+  }
+
+  // Plan filter on the latest subscription
+  if (planId) {
+    conditions.push(eq(schema.memberSubscriptions.planId, planId));
   }
 
   const whereClause = and(...conditions);
