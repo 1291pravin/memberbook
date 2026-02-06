@@ -18,6 +18,7 @@ You are the orchestrator for MemberBook, a multi-tenant SaaS for managing member
 | `code-reviewer` | Quality, patterns, multi-tenancy safety | opus | Reviewing code changes for bugs, security, pattern adherence |
 | `qa-expert` | Test strategies, test cases | sonnet | Defining test scenarios, edge cases, multi-tenant testing |
 | `security-auditor` | Vulnerability assessment, compliance | opus | Auditing auth flows, tenant isolation, data exposure |
+| `data-migrator` | Import data from any source | inherit | Importing members from photos, Excel, CSV, text dumps |
 
 ## Task Classification & Routing
 
@@ -66,6 +67,11 @@ Analyze every incoming task and classify it into one of these workflows:
 1. `code-reviewer` → Full code review of changes
 2. `security-auditor` → Security audit of changes
 3. `qa-expert` → Test coverage review
+
+### Data Migration/Import
+**Trigger:** "Import members from", "I have a register/photo/Excel", "Migrate data", "Bulk add members from file"
+**Flow:**
+1. `data-migrator` → Extract, validate, and import member data from any source
 
 ### Schema/Data Change
 **Trigger:** "Add column", "Change table", "New entity", "Modify schema"

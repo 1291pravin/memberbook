@@ -2,9 +2,12 @@
   <div class="p-4 space-y-4">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">Payments</h1>
-      <NuxtLink to="/dashboard/payments/pending">
-        <AppButton variant="secondary">Pending</AppButton>
-      </NuxtLink>
+      <div class="flex gap-2">
+        <AppButton variant="secondary" @click="exportPayments">Export</AppButton>
+        <NuxtLink to="/dashboard/payments/pending">
+          <AppButton variant="secondary">Pending</AppButton>
+        </NuxtLink>
+      </div>
     </div>
 
     <div v-if="payments.length === 0">
@@ -25,9 +28,9 @@
     </div>
 
     <AppPagination
-      :page="pagination.page"
-      :total-pages="pagination.totalPages"
-      :total="pagination.total"
+      :page="pagination.page.value"
+      :total-pages="pagination.totalPages.value"
+      :total="pagination.total.value"
       :limit="pagination.limit"
       @update:page="pagination.goToPage"
     />
@@ -40,6 +43,10 @@ definePageMeta({ layout: "dashboard", middleware: "org-required" });
 const { orgId } = useOrg();
 const { formatCurrency } = useFormatCurrency();
 const { formatDate } = useFormatDate();
+
+function exportPayments() {
+  window.location.href = `/api/orgs/${orgId.value}/payments/export`;
+}
 
 interface PaymentRow {
   id: number;

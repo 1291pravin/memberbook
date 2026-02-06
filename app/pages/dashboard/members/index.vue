@@ -2,10 +2,20 @@
   <div class="p-4 space-y-4">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">Members</h1>
-      <NuxtLink to="/dashboard/members/new">
-        <AppButton>Add Member</AppButton>
-      </NuxtLink>
+      <div class="flex gap-2">
+        <AppButton variant="secondary" @click="showImport = true">Import</AppButton>
+        <AppButton variant="secondary" @click="exportMembers">Export</AppButton>
+        <NuxtLink to="/dashboard/members/new">
+          <AppButton>Add Member</AppButton>
+        </NuxtLink>
+      </div>
     </div>
+
+    <CsvImportModal
+      :open="showImport"
+      @close="showImport = false"
+      @imported="onImported"
+    />
 
     <div class="flex flex-wrap gap-2 items-center">
       <AppSearchBar v-model="search" placeholder="Search by name or phone..." class="flex-1 min-w-[180px]" />
@@ -95,9 +105,9 @@
     </div>
 
     <AppPagination
-      :page="pagination.page"
-      :total-pages="pagination.totalPages"
-      :total="pagination.total"
+      :page="pagination.page.value"
+      :total-pages="pagination.totalPages.value"
+      :total="pagination.total.value"
       :limit="pagination.limit"
       @update:page="pagination.goToPage"
     />
@@ -126,6 +136,16 @@ interface PaginationMeta {
   limit: number;
   total: number;
   totalPages: number;
+}
+
+const showImport = ref(false);
+
+function exportMembers() {
+  window.location.href = `/api/orgs/${orgId.value}/members/export`;
+}
+
+function onImported() {
+  refreshNuxtData();
 }
 
 const search = ref("");
