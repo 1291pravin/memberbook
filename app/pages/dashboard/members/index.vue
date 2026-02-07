@@ -18,6 +18,22 @@
     />
 
     <div class="space-y-2">
+      <div class="flex gap-2">
+        <button
+          class="rounded-full px-4 py-1.5 text-sm font-medium transition-colors"
+          :class="quickFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+          @click="quickFilter = 'all'"
+        >
+          All Members
+        </button>
+        <button
+          class="rounded-full px-4 py-1.5 text-sm font-medium transition-colors"
+          :class="quickFilter === 'action-required' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'"
+          @click="quickFilter = 'action-required'"
+        >
+          Action Required
+        </button>
+      </div>
       <div class="flex gap-2 items-center">
         <AppSearchBar v-model="search" placeholder="Search by name or phone..." class="flex-1 min-w-0" />
         <button
@@ -46,7 +62,7 @@
           <option value="name-desc">Name Z-A</option>
         </select>
       </div>
-      <div v-if="showFilters" class="flex flex-wrap gap-2 items-center rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <div v-if="showFilters && quickFilter === 'all'" class="flex flex-wrap gap-2 items-center rounded-lg border border-slate-200 bg-slate-50 p-3">
         <select
           v-model="planFilter"
           class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
@@ -94,8 +110,8 @@
 
     <div v-if="filteredMembers.length === 0 && !loading">
       <AppEmptyState
-        :title="hasFilters ? 'No members found' : 'No members yet'"
-        :description="hasFilters ? 'Try adjusting your filters.' : 'Add your first member to get started.'"
+        :title="quickFilter === 'action-required' ? 'All caught up!' : hasFilters ? 'No members found' : 'No members yet'"
+        :description="quickFilter === 'action-required' ? 'No members need attention right now.' : hasFilters ? 'Try adjusting your filters.' : 'Add your first member to get started.'"
       >
         <template v-if="!hasFilters" #action>
           <NuxtLink to="/dashboard/members/new">
@@ -190,11 +206,23 @@ const route = useRoute();
 const initialPlanId = (route.query.planId as string) || "all";
 
 const search = ref("");
+const quickFilter = ref("all");
 const statusFilter = ref("all");
 const subscriptionFilter = ref("all");
 const paymentFilter = ref("all");
 const planFilter = ref(initialPlanId);
 const sortBy = ref("newest");
+
+// When "Action Required" is active, clear individual filters; when switching back, reset
+watch(quickFilter, (val) => {
+  if (val === "action-required") {
+    statusFilter.value = "all";
+    subscriptionFilter.value = "all";
+    paymentFilter.value = "all";
+    planFilter.value = "all";
+    showFilters.value = false;
+  }
+});
 
 // Auto-open filters panel if a filter is pre-set via URL
 if (initialPlanId !== "all") {
@@ -219,7 +247,7 @@ const activeFilterCount = computed(() => {
   return c;
 });
 
-const hasFilters = computed(() => search.value || activeFilterCount.value > 0 || sortBy.value !== "newest");
+const hasFilters = computed(() => search.value || activeFilterCount.value > 0 || quickFilter.value !== "all" || sortBy.value !== "newest");
 
 function clearFilters() {
   statusFilter.value = "all";
@@ -228,18 +256,29 @@ function clearFilters() {
   planFilter.value = "all";
 }
 
+// When individual filters are set, switch back to "All Members"
+watch([statusFilter, subscriptionFilter, paymentFilter, planFilter], () => {
+  if (activeFilterCount.value > 0) {
+    quickFilter.value = "all";
+  }
+});
+
 // Reset page when filters change
-watch([search, statusFilter, subscriptionFilter, paymentFilter, planFilter, sortBy], () => {
+watch([search, quickFilter, statusFilter, subscriptionFilter, paymentFilter, planFilter, sortBy], () => {
   pagination.resetPage();
 });
 
 const query = computed(() => {
   const params: Record<string, string | number> = {};
   if (search.value) params.search = search.value;
-  if (statusFilter.value !== "all") params.status = statusFilter.value;
-  if (subscriptionFilter.value !== "all") params.subscription = subscriptionFilter.value;
-  if (paymentFilter.value !== "all") params.payment = paymentFilter.value;
-  if (planFilter.value !== "all") params.planId = planFilter.value;
+  if (quickFilter.value === "action-required") {
+    params.actionRequired = "true";
+  } else {
+    if (statusFilter.value !== "all") params.status = statusFilter.value;
+    if (subscriptionFilter.value !== "all") params.subscription = subscriptionFilter.value;
+    if (paymentFilter.value !== "all") params.payment = paymentFilter.value;
+    if (planFilter.value !== "all") params.planId = planFilter.value;
+  }
   if (sortBy.value !== "newest") params.sort = sortBy.value;
   params.page = pagination._page.value;
   return params;

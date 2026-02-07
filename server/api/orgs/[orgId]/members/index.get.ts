@@ -43,27 +43,41 @@ export default cachedEventHandler(async (event) => {
     );
   }
 
-  // Subscription filter conditions on the joined subscription
-  if (subscription === "expired") {
-    conditions.push(lt(schema.memberSubscriptions.endDate, today));
-  } else if (subscription === "expiring") {
-    conditions.push(between(schema.memberSubscriptions.endDate, today, weekStr));
-  } else if (subscription === "no-subscription") {
-    conditions.push(sql`${latestSub.maxId} IS NULL`);
-  }
-
-  // Payment status filter on the latest subscription
-  if (payment === "unpaid") {
-    conditions.push(eq(schema.memberSubscriptions.paymentStatus, "unpaid"));
-  } else if (payment === "partial") {
-    conditions.push(eq(schema.memberSubscriptions.paymentStatus, "partial"));
-  } else if (payment === "unpaid-or-partial") {
+  // "Action Required" combined filter: expired, expiring soon, no subscription, or unpaid/partial
+  const actionRequired = query.actionRequired as string | undefined;
+  if (actionRequired === "true") {
     conditions.push(
       or(
+        lt(schema.memberSubscriptions.endDate, today),
+        between(schema.memberSubscriptions.endDate, today, weekStr),
+        sql`${latestSub.maxId} IS NULL`,
         eq(schema.memberSubscriptions.paymentStatus, "unpaid"),
         eq(schema.memberSubscriptions.paymentStatus, "partial"),
       )!,
     );
+  } else {
+    // Subscription filter conditions on the joined subscription
+    if (subscription === "expired") {
+      conditions.push(lt(schema.memberSubscriptions.endDate, today));
+    } else if (subscription === "expiring") {
+      conditions.push(between(schema.memberSubscriptions.endDate, today, weekStr));
+    } else if (subscription === "no-subscription") {
+      conditions.push(sql`${latestSub.maxId} IS NULL`);
+    }
+
+    // Payment status filter on the latest subscription
+    if (payment === "unpaid") {
+      conditions.push(eq(schema.memberSubscriptions.paymentStatus, "unpaid"));
+    } else if (payment === "partial") {
+      conditions.push(eq(schema.memberSubscriptions.paymentStatus, "partial"));
+    } else if (payment === "unpaid-or-partial") {
+      conditions.push(
+        or(
+          eq(schema.memberSubscriptions.paymentStatus, "unpaid"),
+          eq(schema.memberSubscriptions.paymentStatus, "partial"),
+        )!,
+      );
+    }
   }
 
   // Plan filter on the latest subscription
