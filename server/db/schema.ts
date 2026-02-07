@@ -90,6 +90,21 @@ export const inquiries = sqliteTable("inquiries", {
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+export const checkIns = sqliteTable("check_ins", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  memberId: integer("member_id").notNull().references(() => members.id),
+  checkedInBy: integer("checked_in_by").notNull().references(() => users.id),
+  checkedInAt: text("checked_in_at").notNull().$defaultFn(() => new Date().toISOString()),
+  checkedOutAt: text("checked_out_at"),
+  checkedOutBy: integer("checked_out_by").references(() => users.id),
+  durationMinutes: integer("duration_minutes"),
+  autoCheckedOut: integer("auto_checked_out", { mode: "boolean" }).notNull().default(false),
+  subscriptionStatus: text("subscription_status").notNull(), // active, expired, inactive, none
+  notes: text("notes"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
 export const orgInvites = sqliteTable("org_invites", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   orgId: integer("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),

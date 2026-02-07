@@ -26,6 +26,7 @@ const INVALIDATION_MAP: Record<string, string[]> = {
   inquiries: ["inquiries"],
   staff: ["staff"],
   invites: ["invites"],
+  checkIns: ["check-ins"],
   org: ["org", "dashboard"],
 };
 

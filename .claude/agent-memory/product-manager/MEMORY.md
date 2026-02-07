@@ -119,3 +119,27 @@
 - Pagination implemented correctly (server + client)
 - Caching strategy in place (10min TTL, manual cache clear)
 - Git history shows steady progress (30+ commits)
+
+## PRDs Written
+
+### Check-In/Checkout Feature (2026-02-08)
+**Status:** Draft PRD completed
+**File:** `check-in-checkout-feature-prd.md` (in agent memory)
+**Scope:** Manual check-in/checkout system for all three verticals (gym, library, tuition)
+**Key Decisions:**
+- Warn but allow check-in for expired/inactive subscriptions
+- Auto-checkout after 24 hours to prevent stale data
+- Staff-operated (not self-service in MVP)
+- Full check-in + checkout tracking with duration calculation
+- No QR codes, RFID, or barcode scanning in MVP (Phase 3)
+
+**Implementation Estimate:** 10-12 days
+**Target Verticals:** All (gym, library, tuition center)
+**Gap Addressed:** Attendance tracking (#7 in V1 gaps list)
+
+**Next Steps:**
+- Review with fullstack-developer for technical feasibility
+- Estimate database migration effort
+- Confirm auto-checkout job implementation on Cloudflare Workers
+- Design UI mockups with ui-ux-expert
+- Plan beta rollout to 3-5 pilot organizations

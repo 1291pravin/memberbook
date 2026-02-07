@@ -129,6 +129,46 @@
       </div>
     </AppCard>
 
+    <!-- Recent Check-Ins -->
+    <AppCard title="Recent Check-Ins">
+      <div class="space-y-3">
+        <div v-for="ci in recentCheckIns" :key="ci.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+          <div>
+            <p class="text-sm text-slate-800">{{ formatCheckInDateTime(ci.checkedInAt) }}</p>
+            <p v-if="ci.checkedOutAt" class="text-xs text-slate-500">
+              Duration: {{ ci.durationMinutes != null ? formatCheckInDuration(ci.durationMinutes) : '—' }}
+            </p>
+            <p v-else class="text-xs text-green-600 font-medium">Currently checked in</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <AppBadge :color="(ci.subscriptionStatus === 'active' ? 'green' : ci.subscriptionStatus === 'expired' ? 'red' : 'yellow') as 'green' | 'red' | 'yellow'" class="text-xs">
+              {{ ci.subscriptionStatus }}
+            </AppBadge>
+            <AppBadge v-if="ci.autoCheckedOut" color="yellow" class="text-xs">auto</AppBadge>
+          </div>
+        </div>
+        <div v-if="recentCheckIns.length === 0" class="text-sm text-slate-500 py-2">No check-ins</div>
+      </div>
+      <div class="mt-3 flex items-center justify-between">
+        <AppButton
+          v-if="!isCurrentlyCheckedIn"
+          size="sm"
+          :loading="checkingIn"
+          @click="quickCheckIn"
+        >
+          Check In
+        </AppButton>
+        <span v-else class="text-xs text-green-600 font-medium">Currently checked in</span>
+        <NuxtLink
+          v-if="checkInTotal > 5"
+          to="`/dashboard/check-ins/history?search=${encodeURIComponent(member?.name || '')}`"
+          class="text-xs text-primary-600 hover:text-primary-500"
+        >
+          View All ({{ checkInTotal }})
+        </NuxtLink>
+      </div>
+    </AppCard>
+
     <!-- Assign Plan Modal -->
     <AppModal :open="showAssignModal" :title="isChangingPlan ? 'Change Plan' : 'Assign Subscription'" @close="showAssignModal = false">
       <form class="space-y-4" @submit.prevent="assignPlan">
@@ -313,6 +353,55 @@ function sendPaymentReminder() {
   const remaining = latestSubscription.value.amount - latestSubscription.value.totalPaid;
   const msg = getPaymentReminderMessage(member.value.name, formatCurrency(remaining));
   openWhatsApp(msg);
+}
+
+// Check-ins
+interface CheckInRecord {
+  id: number;
+  checkedInAt: string;
+  checkedOutAt: string | null;
+  durationMinutes: number | null;
+  autoCheckedOut: boolean;
+  subscriptionStatus: string;
+  notes: string | null;
+}
+const checkingIn = ref(false);
+const { data: checkInsData, refresh: refreshCheckIns } = await useFetch<{ checkIns: CheckInRecord[]; pagination: { total: number } }>(
+  `/api/orgs/${orgId.value}/members/${memberId}/check-ins`,
+  { query: { limit: 5, _v: cacheVersion } },
+);
+const recentCheckIns = computed(() => checkInsData.value?.checkIns ?? []);
+const checkInTotal = computed(() => checkInsData.value?.pagination?.total ?? 0);
+const isCurrentlyCheckedIn = computed(() => recentCheckIns.value.some(ci => !ci.checkedOutAt));
+
+function formatCheckInDateTime(iso: string): string {
+  const d = new Date(iso);
+  return `${formatDate(iso)} ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+}
+
+function formatCheckInDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`;
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hrs}h ${mins}m`;
+}
+
+async function quickCheckIn() {
+  checkingIn.value = true;
+  errorMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/check-ins`, {
+      method: "POST",
+      body: { memberId: Number(memberId) },
+    });
+    cacheVersion.value = Date.now();
+    await refreshCheckIns();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to check in";
+  } finally {
+    checkingIn.value = false;
+  }
 }
 
 const { data: plansData } = await useFetch<{ plans: Plan[] }>(
