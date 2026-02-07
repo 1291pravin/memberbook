@@ -4,7 +4,7 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <AppStatCard label="Active Members" :value="stats.activeMembers" />
+      <AppStatCard :label="`Active ${t.members}`" :value="stats.activeMembers" />
       <AppStatCard label="Expiring Soon" :value="stats.expiringSoon" />
       <AppStatCard label="Pending Payments" :value="stats.pendingPayments" />
       <AppStatCard label="This Month" :value="formatCurrency(stats.monthRevenue)" />
@@ -13,7 +13,7 @@
     <!-- Quick Actions -->
     <div class="flex gap-2 flex-wrap">
       <NuxtLink to="/dashboard/members/new">
-        <AppButton size="sm">Add Member</AppButton>
+        <AppButton size="sm">{{ t.addMember }}</AppButton>
       </NuxtLink>
       <NuxtLink to="/dashboard/inquiries/new">
         <AppButton size="sm" variant="secondary">New Inquiry</AppButton>
@@ -54,13 +54,13 @@
       </AppCard>
 
       <!-- Member Growth -->
-      <AppCard title="Member Growth">
+      <AppCard :title="`${t.member} Growth`">
         <ClientOnly>
           <ChartLine
             :chart-data="memberGrowthChartData"
             :chart-options="memberGrowthChartOptions"
             :height="200"
-            empty-message="No members yet. Add your first member to track growth."
+            :empty-message="`No ${t.membersLower} yet. Add your first ${t.memberLower} to track growth.`"
           />
           <template #fallback>
             <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
@@ -90,7 +90,7 @@
             :chart-data="subscriptionStatusChartData"
             :chart-options="subscriptionStatusChartOptions"
             :height="200"
-            empty-message="No subscriptions yet. Add a member to see status breakdown."
+            :empty-message="`No subscriptions yet. Add a ${t.memberLower} to see status breakdown.`"
           />
           <template #fallback>
             <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
@@ -105,7 +105,7 @@
             :chart-data="planPopularityChartData"
             :chart-options="planPopularityChartOptions"
             :height="200"
-            empty-message="No active subscriptions yet. Create a plan and add members."
+            :empty-message="`No active subscriptions yet. Create a plan and add ${t.membersLower}.`"
           />
           <template #fallback>
             <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
@@ -180,6 +180,7 @@ definePageMeta({ layout: "dashboard", middleware: "org-required" });
 const { formatCurrency } = useFormatCurrency();
 const { formatDate } = useFormatDate();
 const { orgId } = useOrg();
+const t = useTerminology();
 const { getWhatsAppLink, getReminderMessage } = useWhatsApp();
 const { colors, baseOptions, formatRevenueLabel, formatDateLabel, formatMonthLabel } = useCharts();
 
@@ -290,7 +291,7 @@ const memberGrowthChartData = computed(() => {
     labels: data.map(d => formatMonthLabel(d.month)),
     datasets: [
       {
-        label: "New Members",
+        label: `New ${t.value.members}`,
         data: data.map(d => d.count),
         borderColor: colors.green,
         backgroundColor: colors.greenAlpha,
@@ -322,7 +323,7 @@ const memberGrowthChartOptions = computed(() => ({
     tooltip: {
       ...baseOptions.plugins?.tooltip,
       callbacks: {
-        label: (context: TooltipItem<"line">) => `New Members: ${context.parsed.y}`,
+        label: (context: TooltipItem<"line">) => `New ${t.value.members}: ${context.parsed.y}`,
       },
     },
   },

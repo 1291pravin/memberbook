@@ -1,9 +1,9 @@
 <template>
-  <AppModal :open="open" title="Import Members" size="lg" @close="handleClose">
+  <AppModal :open="open" :title="t.importMembers" size="lg" @close="handleClose">
     <!-- Step 1: Select File -->
     <div v-if="step === 'select'">
       <p class="text-sm text-slate-600 mb-3">
-        Upload a CSV file with member data. Required column: <strong>name</strong>.
+        Upload a CSV file with {{ t.memberLower }} data. Required column: <strong>name</strong>.
         Optional: phone, email, status, notes, plan, startDate, amountPaid, paymentMethod.
       </p>
 
@@ -76,7 +76,7 @@
       <div class="mt-4 flex justify-end gap-2">
         <AppButton variant="secondary" @click="handleClose">Cancel</AppButton>
         <AppButton :disabled="validCount === 0 || importing" @click="doImport">
-          {{ importing ? 'Importing...' : `Import ${validCount} Members` }}
+          {{ importing ? 'Importing...' : `Import ${validCount} ${t.members}` }}
         </AppButton>
       </div>
     </div>
@@ -114,6 +114,7 @@ const emit = defineEmits<{
 }>();
 
 const { orgId } = useOrg();
+const t = useTerminology();
 const { api } = useApi();
 const { parseCsv } = useCsvParser();
 

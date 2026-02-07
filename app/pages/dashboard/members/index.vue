@@ -1,12 +1,12 @@
 <template>
   <div class="p-4 space-y-4">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Members</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ t.members }}</h1>
       <div class="flex gap-2">
         <AppButton variant="secondary" @click="showImport = true">Import</AppButton>
         <AppButton variant="secondary" @click="exportMembers">Export</AppButton>
         <NuxtLink to="/dashboard/members/new">
-          <AppButton>Add Member</AppButton>
+          <AppButton>{{ t.addMember }}</AppButton>
         </NuxtLink>
       </div>
     </div>
@@ -24,7 +24,7 @@
           :class="quickFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
           @click="quickFilter = 'all'"
         >
-          All Members
+          All {{ t.members }}
         </button>
         <button
           class="rounded-full px-4 py-1.5 text-sm font-medium transition-colors"
@@ -110,12 +110,12 @@
 
     <div v-if="filteredMembers.length === 0 && !loading">
       <AppEmptyState
-        :title="quickFilter === 'action-required' ? 'All caught up!' : hasFilters ? 'No members found' : 'No members yet'"
-        :description="quickFilter === 'action-required' ? 'No members need attention right now.' : hasFilters ? 'Try adjusting your filters.' : 'Add your first member to get started.'"
+        :title="quickFilter === 'action-required' ? 'All caught up!' : hasFilters ? `No ${t.membersLower} found` : t.noMembers"
+        :description="quickFilter === 'action-required' ? `No ${t.membersLower} need attention right now.` : hasFilters ? 'Try adjusting your filters.' : `Add your first ${t.memberLower} to get started.`"
       >
         <template v-if="!hasFilters" #action>
           <NuxtLink to="/dashboard/members/new">
-            <AppButton>Add Member</AppButton>
+            <AppButton>{{ t.addMember }}</AppButton>
           </NuxtLink>
         </template>
       </AppEmptyState>
@@ -170,6 +170,7 @@
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const { orgId } = useOrg();
+const t = useTerminology();
 
 interface Member {
   id: number;

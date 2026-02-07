@@ -2,7 +2,7 @@
   <div class="p-4 space-y-6 max-w-2xl">
     <div class="flex items-center justify-between">
       <div>
-        <NuxtLink to="/dashboard/members" class="text-sm text-primary-600 hover:text-primary-500">&larr; Members</NuxtLink>
+        <NuxtLink to="/dashboard/members" class="text-sm text-primary-600 hover:text-primary-500">&larr; {{ t.members }}</NuxtLink>
         <h1 class="text-xl font-bold text-slate-800 mt-1">{{ member?.name }}</h1>
       </div>
       <AppBadge v-if="member" :color="member.status === 'active' ? 'green' : 'gray'">
@@ -192,6 +192,7 @@ definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const route = useRoute();
 const { orgId } = useOrg();
+const t = useTerminology();
 const { formatCurrency, parseCurrencyToInt } = useFormatCurrency();
 const { formatDate } = useFormatDate();
 const { getWhatsAppLink, getReminderMessage, getPaymentReminderMessage } = useWhatsApp();

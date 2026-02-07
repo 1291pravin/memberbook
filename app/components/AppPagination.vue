@@ -1,10 +1,10 @@
 <template>
-  <div v-if="totalPages > 1" class="flex flex-col items-center gap-2 pt-2 pb-4">
+  <div v-if="total > 0" class="flex flex-col items-center gap-2 pt-2 pb-4">
     <p class="text-xs text-slate-500">
       Showing {{ rangeStart }}-{{ rangeEnd }} of {{ total }}
     </p>
 
-    <div class="flex items-center gap-1">
+    <div v-if="totalPages > 1" class="flex items-center gap-1">
       <!-- Prev button -->
       <button
         :disabled="page <= 1"
