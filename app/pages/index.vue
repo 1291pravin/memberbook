@@ -50,7 +50,14 @@
 
     <!-- Footer -->
     <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
-      MemberBook &mdash; Simple member management for small businesses.
+      <div class="mb-3">
+        MemberBook &mdash; Simple member management for small businesses.
+      </div>
+      <div class="flex gap-4 justify-center">
+        <NuxtLink to="/privacy" class="hover:text-primary-600">Privacy Policy</NuxtLink>
+        <span>&middot;</span>
+        <NuxtLink to="/terms" class="hover:text-primary-600">Terms of Service</NuxtLink>
+      </div>
     </footer>
   </div>
 </template>
