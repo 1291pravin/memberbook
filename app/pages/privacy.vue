@@ -140,10 +140,19 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default" });
 
+const config = useRuntimeConfig();
+const appUrl = config.public.appUrl || "https://memberbook.app";
 const lastUpdated = "February 8, 2026";
 
 useSeoMeta({
   title: "Privacy Policy - MemberBook",
-  description: "Privacy Policy for MemberBook membership management service",
+  description: "Privacy Policy for MemberBook membership management service. Learn how we collect, use, and protect your data.",
+  robots: "index, follow",
+});
+
+useHead({
+  link: [
+    { rel: "canonical", href: `${appUrl}/privacy` },
+  ],
 });
 </script>

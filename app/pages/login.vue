@@ -81,6 +81,11 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default", middleware: "guest" });
 
+// Prevent indexing of login page
+useSeoMeta({
+  robots: "noindex, nofollow",
+});
+
 const { fetch: refreshSession, session } = useUserSession();
 
 const form = reactive({ email: "", password: "" });

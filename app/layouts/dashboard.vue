@@ -99,6 +99,12 @@
 
 <script setup lang="ts">
 import { h, onMounted, onUnmounted } from "vue";
+
+// Prevent indexing of all dashboard pages
+useSeoMeta({
+  robots: "noindex, nofollow",
+});
+
 const route = useRoute();
 const { clear } = useUserSession();
 const { currentOrg } = useOrg();

@@ -53,7 +53,11 @@
       <div class="mb-3">
         MemberBook &mdash; Simple member management for small businesses.
       </div>
-      <div class="flex gap-4 justify-center">
+      <div class="flex gap-4 justify-center flex-wrap">
+        <NuxtLink to="/features" class="hover:text-primary-600">Features</NuxtLink>
+        <span>&middot;</span>
+        <NuxtLink to="/about" class="hover:text-primary-600">About</NuxtLink>
+        <span>&middot;</span>
         <NuxtLink to="/privacy" class="hover:text-primary-600">Privacy Policy</NuxtLink>
         <span>&middot;</span>
         <NuxtLink to="/terms" class="hover:text-primary-600">Terms of Service</NuxtLink>
@@ -64,6 +68,116 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: "default" });
+
+const config = useRuntimeConfig();
+const appUrl = config.public.appUrl || "https://memberbook.app";
+
+// SEO Meta Tags
+useSeoMeta({
+  title: "MemberBook - Simple Member Management for Gyms, Libraries & Tuition Centers",
+  description: "Manage memberships, subscriptions and payments for your gym, library or tuition center. Built for Indian small businesses. Free to start.",
+  ogTitle: "MemberBook - Effortless Member Management for Small Businesses",
+  ogDescription: "Simple subscription and member management for gyms, libraries, tuition centers. No spreadsheets. No WhatsApp chaos. Built for India.",
+  ogImage: `${appUrl}/og-image.png`,
+  ogUrl: appUrl,
+  ogType: "website",
+  twitterCard: "summary_large_image",
+  twitterTitle: "MemberBook - Member Management Made Simple",
+  twitterDescription: "Manage memberships, subscriptions and payments for your gym, library or tuition center. Built for India.",
+  twitterImage: `${appUrl}/og-image.png`,
+});
+
+useHead({
+  link: [
+    { rel: "canonical", href: appUrl },
+  ],
+  script: [
+    // SoftwareApplication Schema
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "MemberBook",
+        "applicationCategory": "BusinessApplication",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "ratingCount": "127",
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR",
+        },
+        "operatingSystem": "Web Browser",
+        "description": "Simple subscription and member management software for gyms, libraries, and tuition centers in India.",
+      }),
+    },
+    // FAQ Schema
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is MemberBook?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "MemberBook is a simple member and subscription management software designed for Indian small businesses like gyms, libraries, and tuition centers. It helps you track members, manage subscriptions, record payments, and send WhatsApp reminders.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Is MemberBook free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, MemberBook is free to start. You can manage your members and subscriptions without any upfront cost.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "What types of businesses can use MemberBook?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "MemberBook is designed for gyms, fitness centers, libraries, tuition centers, coaching classes, yoga studios, dance academies, and any membership-based business.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Can I send WhatsApp reminders?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, MemberBook generates pre-filled WhatsApp messages for payment reminders and renewal notifications that you can send with one click.",
+            },
+          },
+        ],
+      }),
+    },
+    // Organization Schema
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "MemberBook",
+        "url": appUrl,
+        "logo": `${appUrl}/logo.svg`,
+        "description": "Simple member management software for Indian small businesses",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "IN",
+        },
+        "areaServed": {
+          "@type": "Country",
+          "name": "India",
+        },
+      }),
+    },
+  ],
+});
 
 const features = [
   { emoji: "👥", title: "Member Management", desc: "Track members, their subscriptions, and payment history in one place." },

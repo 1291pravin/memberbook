@@ -33,6 +33,11 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default", middleware: "auth" });
 
+// Prevent indexing of onboarding page
+useSeoMeta({
+  robots: "noindex, nofollow",
+});
+
 const { fetch: refreshSession } = useUserSession();
 
 const form = reactive({ name: "", type: "" });

@@ -165,10 +165,19 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default" });
 
+const config = useRuntimeConfig();
+const appUrl = config.public.appUrl || "https://memberbook.app";
 const lastUpdated = "February 8, 2026";
 
 useSeoMeta({
   title: "Terms of Service - MemberBook",
-  description: "Terms of Service for MemberBook membership management service",
+  description: "Terms of Service for MemberBook membership management service. Read our user agreement and service policies.",
+  robots: "index, follow",
+});
+
+useHead({
+  link: [
+    { rel: "canonical", href: `${appUrl}/terms` },
+  ],
 });
 </script>

@@ -1,2 +1,11 @@
 User-Agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard/
+Disallow: /onboarding
+Disallow: /login
+Disallow: /register
+Disallow: /invite/
+Disallow: /api/
+Disallow: /auth/
+
+Sitemap: https://memberbook.app/sitemap.xml
