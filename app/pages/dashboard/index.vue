@@ -7,7 +7,18 @@
       <AppStatCard :label="`Active ${t.members}`" :value="stats.activeMembers" />
       <AppStatCard label="Expiring Soon" :value="stats.expiringSoon" />
       <AppStatCard label="Pending Payments" :value="stats.pendingPayments" />
-      <AppStatCard label="This Month" :value="formatCurrency(stats.monthRevenue)" />
+      <AppStatCard label="This Month Revenue" :value="formatCurrency(stats.monthRevenue)" />
+    </div>
+
+    <!-- Financial Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <AppStatCard label="This Month Expenses" :value="formatCurrency(stats.monthExpenses)" />
+      <AppStatCard
+        label="Net Profit"
+        :value="formatCurrency(stats.monthProfit)"
+        :class="stats.monthProfit >= 0 ? 'text-green-600' : 'text-red-600'"
+      />
+      <AppStatCard label="Profit Margin" :value="profitMarginPercent" />
     </div>
 
     <!-- Quick Actions -->
@@ -45,6 +56,49 @@
               :chart-options="revenueChartOptions"
               :height="200"
               empty-message="No revenue data yet. Record your first payment to see trends."
+            />
+            <template #fallback>
+              <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
+            </template>
+          </ClientOnly>
+        </div>
+      </AppCard>
+
+      <!-- Expense Breakdown -->
+      <AppCard title="Expense Breakdown">
+        <ClientOnly>
+          <ChartDoughnut
+            :chart-data="expenseBreakdownChartData"
+            :chart-options="expenseBreakdownChartOptions"
+            :height="200"
+            empty-message="No expenses this month. Add your first expense to see breakdown."
+          />
+          <template #fallback>
+            <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
+          </template>
+        </ClientOnly>
+      </AppCard>
+
+      <!-- Profit Trend -->
+      <AppCard title="Profit Trend" class="lg:col-span-2">
+        <div class="space-y-4">
+          <div class="flex gap-2 justify-center">
+            <button
+              v-for="p in (['daily', 'weekly', 'monthly'] as const)"
+              :key="p"
+              class="px-3 py-1 text-xs font-medium rounded-md transition-colors"
+              :class="profitPeriod === p ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+              @click="profitPeriod = p"
+            >
+              {{ p.charAt(0).toUpperCase() + p.slice(1) }}
+            </button>
+          </div>
+          <ClientOnly>
+            <ChartLine
+              :chart-data="profitTrendChartData"
+              :chart-options="profitTrendChartOptions"
+              :height="200"
+              empty-message="No financial data yet. Add revenue and expenses to track profit."
             />
             <template #fallback>
               <div class="h-[200px] bg-slate-50 animate-pulse rounded" />
@@ -185,7 +239,14 @@ const { getWhatsAppLink, getReminderMessage } = useWhatsApp();
 const { colors, baseOptions, formatRevenueLabel, formatDateLabel, formatMonthLabel } = useCharts();
 
 interface DashboardData {
-  stats: { activeMembers: number; expiringSoon: number; monthRevenue: number; pendingPayments: number };
+  stats: {
+    activeMembers: number;
+    expiringSoon: number;
+    monthRevenue: number;
+    monthExpenses: number;
+    monthProfit: number;
+    pendingPayments: number;
+  };
   recentPayments: Array<{ id: number; amount: number; date: string; memberName: string }>;
 }
 
@@ -206,18 +267,47 @@ const { data: expiringData } = await useFetch<{ expiring: ExpiringItem[] }>(
   `/api/orgs/${orgId.value}/members/expiring`,
 );
 
-const stats = computed(() => dashData.value?.stats ?? { activeMembers: 0, expiringSoon: 0, pendingPayments: 0, monthRevenue: 0 });
+const stats = computed(
+  () =>
+    dashData.value?.stats ?? {
+      activeMembers: 0,
+      expiringSoon: 0,
+      pendingPayments: 0,
+      monthRevenue: 0,
+      monthExpenses: 0,
+      monthProfit: 0,
+    }
+);
 const recentPayments = computed(() => dashData.value?.recentPayments ?? []);
 const expiring = computed(() => expiringData.value?.expiring ?? []);
 
-// Revenue trend period
+// Profit margin calculation
+const profitMarginPercent = computed(() => {
+  if (stats.value.monthRevenue === 0) return "0%";
+  const margin = (stats.value.monthProfit / stats.value.monthRevenue) * 100;
+  return `${margin.toFixed(1)}%`;
+});
+
+// Trend period refs
 const revenuePeriod = ref<"daily" | "weekly" | "monthly">("daily");
+const profitPeriod = ref<"daily" | "weekly" | "monthly">("daily");
 
 // Fetch analytics data
 const { data: revenueTrendData } = await useFetch<{ data: Array<{ date: string; revenue: number }> }>(
   `/api/orgs/${orgId.value}/analytics/revenue-trend`,
   { query: { period: revenuePeriod }, watch: [revenuePeriod] },
 );
+
+const { data: expenseBreakdownData } = await useFetch<{
+  data: Array<{ categoryId: number; categoryName: string; categoryColor: string; total: number; count: number }>;
+}>(`/api/orgs/${orgId.value}/analytics/expense-breakdown`);
+
+const { data: profitTrendData } = await useFetch<{
+  data: Array<{ date: string; revenue: number; expenses: number; profit: number }>;
+}>(`/api/orgs/${orgId.value}/analytics/profit`, {
+  query: { period: profitPeriod },
+  watch: [profitPeriod],
+});
 
 const { data: memberGrowthData } = await useFetch<{ data: Array<{ month: string; count: number }> }>(
   `/api/orgs/${orgId.value}/analytics/member-growth`,
@@ -279,6 +369,106 @@ const revenueChartOptions = computed(() => ({
       ...baseOptions.plugins?.tooltip,
       callbacks: {
         label: (context: TooltipItem<"line">) => `Revenue: ${formatCurrency(context.parsed.y as number)}`,
+      },
+    },
+  },
+}));
+
+// Expense Breakdown Chart
+const expenseBreakdownChartData = computed(() => {
+  const data = expenseBreakdownData.value?.data ?? [];
+  const colorMap: Record<string, string> = {
+    blue: colors.blue,
+    purple: colors.purple,
+    green: colors.green,
+    orange: colors.orange,
+    pink: colors.pink,
+    yellow: colors.yellow,
+    red: colors.red,
+    indigo: colors.indigo,
+    cyan: colors.cyan,
+    slate: colors.gray,
+  };
+
+  return {
+    labels: data.map((d) => d.categoryName),
+    datasets: [
+      {
+        data: data.map((d) => d.total),
+        backgroundColor: data.map((d) => colorMap[d.categoryColor] || colors.gray),
+      },
+    ],
+  };
+});
+
+const expenseBreakdownChartOptions = computed(() => ({
+  ...baseOptions,
+  plugins: {
+    ...baseOptions.plugins,
+    tooltip: {
+      ...baseOptions.plugins?.tooltip,
+      callbacks: {
+        label: (context: TooltipItem<"doughnut">) => {
+          const total = context.dataset.data.reduce((a: number, b) => a + (b as number), 0);
+          const value = context.parsed as number;
+          const percentage = ((value / total) * 100).toFixed(1);
+          return `${formatCurrency(value)} (${percentage}%)`;
+        },
+      },
+    },
+  },
+}));
+
+// Profit Trend Chart
+const profitTrendChartData = computed(() => {
+  const data = profitTrendData.value?.data ?? [];
+  return {
+    labels: data.map((d) => formatDateLabel(d.date, profitPeriod.value)),
+    datasets: [
+      {
+        label: "Profit",
+        data: data.map((d) => d.profit),
+        borderColor: colors.green,
+        backgroundColor: colors.greenAlpha,
+        fill: true,
+        borderWidth: 2,
+        tension: 0.3,
+        segment: {
+          borderColor: (ctx: { p0: { parsed: { y: number } } }) =>
+            ctx.p0.parsed.y < 0 ? colors.red : colors.green,
+          backgroundColor: (ctx: { p0: { parsed: { y: number } } }) =>
+            ctx.p0.parsed.y < 0 ? "rgba(239, 68, 68, 0.1)" : colors.greenAlpha,
+        },
+      },
+    ],
+  };
+});
+
+const profitTrendChartOptions = computed(() => ({
+  ...baseOptions,
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { color: "#6B7280", font: { size: 11 } },
+    },
+    y: {
+      grid: { color: "rgba(0, 0, 0, 0.05)" },
+      ticks: {
+        color: "#6B7280",
+        font: { size: 11 },
+        callback: (value: number | string) => formatRevenueLabel(Number(value)),
+      },
+    },
+  },
+  plugins: {
+    ...baseOptions.plugins,
+    tooltip: {
+      ...baseOptions.plugins?.tooltip,
+      callbacks: {
+        label: (context: TooltipItem<"line">) => {
+          const label = context.dataset.label || "";
+          return `${label}: ${formatCurrency(context.parsed.y as number)}`;
+        },
       },
     },
   },

@@ -24,7 +24,7 @@
               <AppBadge :color="subStatusColor(m.subscriptionStatus)">
                 {{ m.subscriptionStatus || 'no plan' }}
               </AppBadge>
-              <AppButton size="sm" :loading="checkingInId === m.id" @click="checkIn(m.id)">
+              <AppButton size="sm" @click="openSeatSelector(m)">
                 Check In
               </AppButton>
             </div>
@@ -63,9 +63,14 @@
           class="flex items-center justify-between py-3 border-b border-slate-100 last:border-0"
         >
           <div>
-            <NuxtLink :to="`/dashboard/members/${ci.memberId}`" class="text-sm font-medium text-primary-600 hover:text-primary-500">
-              {{ ci.memberName }}
-            </NuxtLink>
+            <div class="flex items-center gap-2">
+              <NuxtLink :to="`/dashboard/members/${ci.memberId}`" class="text-sm font-medium text-primary-600 hover:text-primary-500">
+                {{ ci.memberName }}
+              </NuxtLink>
+              <span v-if="ci.seatNumber" class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                🪑 {{ ci.seatNumber }}
+              </span>
+            </div>
             <p class="text-xs text-slate-500">{{ ci.memberPhone || 'No phone' }}</p>
             <p class="text-xs text-slate-400">Checked in {{ formatDateTime(ci.checkedInAt) }}</p>
             <p class="text-xs font-medium text-slate-600">{{ liveDuration(ci.checkedInAt) }}</p>
@@ -93,15 +98,133 @@
         View Check-In History &rarr;
       </NuxtLink>
     </div>
+
+    <!-- Seat Selection Modal -->
+    <AppModal :open="showSeatModal" :title="`Check In: ${selectedMember?.name}`" @close="closeSeatModal">
+      <div v-if="selectedMember" class="space-y-4">
+        <!-- Member Info -->
+        <div class="bg-slate-50 rounded-lg p-3">
+          <p class="text-sm font-medium text-slate-800">{{ selectedMember.name }}</p>
+          <p class="text-xs text-slate-500">{{ selectedMember.phone || 'No phone' }}</p>
+          <div class="mt-2">
+            <AppBadge :color="subStatusColor(selectedMember.subscriptionStatus)">
+              {{ selectedMember.subscriptionStatus || 'no plan' }}
+            </AppBadge>
+          </div>
+        </div>
+
+        <!-- Default Seat Info -->
+        <div v-if="memberDefaultSeat" class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p class="text-xs font-medium text-blue-800 mb-1">Default Seat Assigned</p>
+          <p class="text-sm text-blue-700">
+            Seat {{ memberDefaultSeat.seatNumber }}
+            <span v-if="memberDefaultSeat.seatLabel" class="text-xs">({{ memberDefaultSeat.seatLabel }})</span>
+          </p>
+          <p class="text-xs text-blue-600 mt-1">
+            This seat will be used if you don't select a different one
+          </p>
+        </div>
+
+        <!-- Seat Selection -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-medium text-slate-700">Select a Seat (Optional)</h3>
+            <button
+              v-if="selectedSeatId"
+              class="text-xs text-slate-500 hover:text-slate-700"
+              @click="selectedSeatId = null"
+            >
+              Clear Selection
+            </button>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="loadingSeats" class="text-center py-8">
+            <p class="text-sm text-slate-500">Loading available seats...</p>
+          </div>
+
+          <!-- Empty State -->
+          <div v-else-if="availableSeats.length === 0" class="text-center py-8">
+            <p class="text-sm text-slate-500">No seats available</p>
+          </div>
+
+          <!-- Seat Grid -->
+          <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-96 overflow-y-auto">
+            <div
+              v-for="seat in availableSeats"
+              :key="seat.id"
+              :class="[
+                'relative rounded-lg border p-3 cursor-pointer transition-all',
+                selectedSeatId === seat.id
+                  ? 'border-primary-500 bg-primary-50 shadow-md'
+                  : seat.isOccupied
+                    ? 'border-slate-200 bg-slate-100 opacity-50 cursor-not-allowed'
+                    : 'border-slate-200 bg-white hover:border-primary-300 hover:shadow-sm',
+              ]"
+              @click="selectSeat(seat)"
+            >
+              <!-- Selected Indicator -->
+              <div
+                v-if="selectedSeatId === seat.id"
+                class="absolute top-1 right-1 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center"
+              >
+                <span class="text-white text-xs">✓</span>
+              </div>
+
+              <!-- Seat Number -->
+              <div class="text-lg font-bold text-slate-800 mb-1">
+                {{ seat.seatNumber }}
+              </div>
+
+              <!-- Seat Label -->
+              <div v-if="seat.seatLabel" class="text-xs text-slate-500 mb-1">
+                {{ seat.seatLabel }}
+              </div>
+
+              <!-- Status -->
+              <div class="text-xs" :class="seat.isOccupied ? 'text-red-600' : 'text-green-600'">
+                {{ seat.isOccupied ? 'Occupied' : 'Vacant' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3 pt-4 border-t border-slate-200">
+          <AppButton
+            variant="secondary"
+            class="flex-1"
+            @click="closeSeatModal"
+          >
+            Cancel
+          </AppButton>
+          <AppButton
+            variant="primary"
+            class="flex-1"
+            :loading="checkingInId === selectedMember.id"
+            @click="confirmCheckIn"
+          >
+            {{ selectedSeatId ? 'Check In with Seat' : 'Check In (No Seat)' }}
+          </AppButton>
+        </div>
+      </div>
+    </AppModal>
   </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
+const route = useRoute();
 const { orgId, currentOrg } = useOrg();
 const { formatDate } = useFormatDate();
 const isOwner = computed(() => currentOrg.value?.role === "owner");
+
+// Check for pre-selected seat from query params
+const preSelectedSeatId = computed(() => {
+  const seatId = route.query.seatId;
+  return seatId ? Number(seatId) : null;
+});
 
 interface SearchMember {
   id: number;
@@ -121,6 +244,24 @@ interface CheckIn {
   autoCheckedOut: boolean;
   subscriptionStatus: string;
   notes: string | null;
+  seatId: number | null;
+  seatNumber: string | null;
+}
+
+interface Seat {
+  id: number;
+  seatNumber: string;
+  seatLabel?: string | null;
+  timePreference?: string | null;
+  genderPreference?: string | null;
+  isOccupied: boolean;
+  currentOccupant?: {
+    checkInId: number;
+    memberId: number;
+    memberName: string;
+    memberGender?: string | null;
+    checkedInAt: string;
+  } | null;
 }
 
 const memberSearch = ref("");
@@ -132,6 +273,14 @@ const autoCheckingOut = ref(false);
 const warningMessage = ref("");
 const errorMessage = ref("");
 const cacheVersion = ref(Date.now());
+
+// Seat selection state
+const showSeatModal = ref(false);
+const selectedMember = ref<SearchMember | null>(null);
+const selectedSeatId = ref<number | null>(null);
+const availableSeats = ref<Seat[]>([]);
+const loadingSeats = ref(false);
+const memberDefaultSeat = ref<Seat | null>(null);
 
 // Debounced member search
 let searchTimeout: ReturnType<typeof setTimeout>;
@@ -199,14 +348,85 @@ function subStatusColor(status: string | null): BadgeColor {
   return "yellow";
 }
 
-async function checkIn(mId: number) {
-  checkingInId.value = mId;
+// Open seat selector modal
+async function openSeatSelector(member: SearchMember) {
+  selectedMember.value = member;
+  selectedSeatId.value = preSelectedSeatId.value;
+  memberDefaultSeat.value = null;
+  showSeatModal.value = true;
+
+  // Fetch available seats
+  loadingSeats.value = true;
+  try {
+    const data = await $fetch<{ seats: Seat[] }>(
+      `/api/orgs/${orgId.value}/seats`,
+      { query: { status: "all" } }
+    );
+    availableSeats.value = data.seats;
+
+    // Fetch member's default seat assignment
+    try {
+      const response = await $fetch<{ assignment: { seatId: number; seat: { seatNumber: string; seatLabel?: string | null } } | null }>(
+        `/api/orgs/${orgId.value}/members/${member.id}/seat-assignment`
+      );
+      if (response.assignment && response.assignment.seatId) {
+        // Find the seat in available seats
+        const defaultSeat = availableSeats.value.find(s => s.id === response.assignment!.seatId);
+        if (defaultSeat) {
+          memberDefaultSeat.value = defaultSeat;
+        }
+      }
+    } catch {
+      // No default seat or error fetching - that's okay
+    }
+
+    // If no pre-selected seat from query and no selection made yet, auto-select default
+    if (!preSelectedSeatId.value && !selectedSeatId.value && memberDefaultSeat.value) {
+      selectedSeatId.value = memberDefaultSeat.value.id;
+    }
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to load seats";
+  } finally {
+    loadingSeats.value = false;
+  }
+}
+
+// Close seat modal
+function closeSeatModal() {
+  showSeatModal.value = false;
+  selectedMember.value = null;
+  selectedSeatId.value = null;
+  availableSeats.value = [];
+  memberDefaultSeat.value = null;
+}
+
+// Select a seat
+function selectSeat(seat: Seat) {
+  if (seat.isOccupied) {
+    return; // Can't select occupied seats
+  }
+  selectedSeatId.value = seat.id;
+}
+
+// Confirm check-in with selected seat
+async function confirmCheckIn() {
+  if (!selectedMember.value) return;
+
+  checkingInId.value = selectedMember.value.id;
   errorMessage.value = "";
   warningMessage.value = "";
+
   try {
     const data = await $fetch<{ checkIn: CheckIn; warning: string }>(
       `/api/orgs/${orgId.value}/check-ins`,
-      { method: "POST", body: { memberId: mId } },
+      {
+        method: "POST",
+        body: {
+          memberId: selectedMember.value.id,
+          seatId: selectedSeatId.value || undefined
+        }
+      },
     );
     if (data.warning) {
       warningMessage.value = data.warning;
@@ -215,6 +435,7 @@ async function checkIn(mId: number) {
     searchResults.value = [];
     cacheVersion.value = Date.now();
     await refreshActive();
+    closeSeatModal();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
     errorMessage.value = e.data?.statusMessage || e.message || "Failed to check in";

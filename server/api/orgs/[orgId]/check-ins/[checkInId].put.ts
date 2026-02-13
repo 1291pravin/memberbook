@@ -37,5 +37,6 @@ export default defineEventHandler(async (event) => {
     .returning();
 
   await invalidateCache(access.orgId, "checkIns");
+  await invalidateCache(access.orgId, "seats");
   return { checkIn: result[0] };
 });

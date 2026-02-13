@@ -57,6 +57,44 @@
       </div>
     </AppCard>
 
+    <!-- Seat Assignment -->
+    <AppCard title="Seat Assignment">
+      <div v-if="seatAssignment" class="space-y-2 text-sm">
+        <p>
+          <span class="text-slate-500">Assigned Seat:</span>
+          <span class="ml-2 font-medium text-slate-800">{{ seatAssignment.seat.seatNumber }}</span>
+          <span v-if="seatAssignment.seat.seatLabel" class="ml-1 text-slate-600">({{ seatAssignment.seat.seatLabel }})</span>
+        </p>
+        <p v-if="seatAssignment.seat.timePreference">
+          <span class="text-slate-500">Time Preference:</span>
+          <span class="ml-2 text-slate-800 capitalize">{{ seatAssignment.seat.timePreference }}</span>
+        </p>
+        <p v-if="seatAssignment.assignedByName">
+          <span class="text-slate-500">Assigned By:</span>
+          <span class="ml-2 text-slate-800">{{ seatAssignment.assignedByName }}</span>
+        </p>
+        <p>
+          <span class="text-slate-500">Assigned On:</span>
+          <span class="ml-2 text-slate-800">{{ formatDate(seatAssignment.assignedAt) }}</span>
+        </p>
+        <p v-if="seatAssignment.notes" class="pt-2 border-t border-slate-100">
+          <span class="text-slate-500">Notes:</span>
+          <span class="ml-2 text-slate-800">{{ seatAssignment.notes }}</span>
+        </p>
+      </div>
+      <div v-else class="text-sm text-slate-500 py-2">
+        No default seat assigned
+      </div>
+      <div class="mt-3 flex gap-2">
+        <AppButton size="sm" variant="secondary" @click="openSeatAssignment">
+          {{ seatAssignment ? 'Change Seat' : 'Assign Seat' }}
+        </AppButton>
+        <AppButton v-if="seatAssignment" size="sm" variant="ghost" @click="removeSeatAssignment" :loading="removingSeat">
+          Remove
+        </AppButton>
+      </div>
+    </AppCard>
+
     <!-- Subscriptions -->
     <AppCard title="Subscriptions">
       <div class="space-y-3">
@@ -224,6 +262,35 @@
         </div>
       </form>
     </AppModal>
+
+    <!-- Assign Seat Modal -->
+    <AppModal :open="showSeatModal" title="Assign Seat" @close="showSeatModal = false">
+      <form class="space-y-4" @submit.prevent="assignSeat">
+        <AppSelect
+          v-model="seatForm.seatId"
+          label="Select Seat"
+          :options="availableSeatsOptions"
+          placeholder="Choose a seat"
+          required
+        />
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Notes (Optional)</label>
+          <textarea
+            v-model="seatForm.notes"
+            rows="2"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder="Any notes about this seat assignment"
+          />
+        </div>
+        <div v-if="seatError" class="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <p class="text-sm text-red-700">{{ seatError }}</p>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <AppButton variant="secondary" @click="showSeatModal = false">Cancel</AppButton>
+          <AppButton type="submit" :loading="assigningSeat">Assign</AppButton>
+        </div>
+      </form>
+    </AppModal>
   </div>
 </template>
 
@@ -296,6 +363,101 @@ const paymentMethods = [
   { value: "card", label: "Card" },
   { value: "bank_transfer", label: "Bank Transfer" },
 ];
+
+// Seat Assignment
+interface SeatAssignment {
+  id: number;
+  seatId: number;
+  assignedAt: string;
+  assignedByName: string;
+  notes: string | null;
+  seat: {
+    id: number;
+    seatNumber: string;
+    seatLabel?: string | null;
+    timePreference?: string | null;
+    genderPreference?: string | null;
+  };
+}
+
+interface LibrarySeat {
+  id: number;
+  seatNumber: string;
+  seatLabel?: string | null;
+  isOccupied: boolean;
+}
+
+const showSeatModal = ref(false);
+const assigningSeat = ref(false);
+const removingSeat = ref(false);
+const seatError = ref("");
+const seatForm = reactive({ seatId: "", notes: "" });
+
+const { data: seatAssignmentData, refresh: refreshSeatAssignment } = await useFetch<{ assignment: SeatAssignment | null }>(
+  `/api/orgs/${orgId.value}/members/${memberId}/seat-assignment`,
+  { query: { _v: cacheVersion } },
+);
+const seatAssignment = computed(() => seatAssignmentData.value?.assignment ?? null);
+
+const { data: availableSeatsData } = await useFetch<{ seats: LibrarySeat[] }>(
+  `/api/orgs/${orgId.value}/seats`,
+  { query: { status: "all" } },
+);
+const availableSeats = computed(() => availableSeatsData.value?.seats ?? []);
+const availableSeatsOptions = computed(() =>
+  availableSeats.value.map(s => ({
+    value: s.id,
+    label: `${s.seatNumber}${s.seatLabel ? ` (${s.seatLabel})` : ""}${s.isOccupied ? " - Occupied" : ""}`,
+  })),
+);
+
+function openSeatAssignment() {
+  seatForm.seatId = seatAssignment.value ? String(seatAssignment.value.seatId) : "";
+  seatForm.notes = seatAssignment.value?.notes || "";
+  seatError.value = "";
+  showSeatModal.value = true;
+}
+
+async function assignSeat() {
+  assigningSeat.value = true;
+  seatError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/seat-assignment`, {
+      method: "POST",
+      body: {
+        seatId: Number(seatForm.seatId),
+        notes: seatForm.notes || null,
+      },
+    });
+    showSeatModal.value = false;
+    cacheVersion.value = Date.now();
+    await refreshSeatAssignment();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    seatError.value = e.data?.statusMessage || e.message || "Failed to assign seat";
+  } finally {
+    assigningSeat.value = false;
+  }
+}
+
+async function removeSeatAssignment() {
+  if (!confirm("Are you sure you want to remove this seat assignment?")) return;
+
+  removingSeat.value = true;
+  errorMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/seat-assignment`, {
+      method: "DELETE",
+    });
+    cacheVersion.value = Date.now();
+    await refreshSeatAssignment();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to remove seat assignment";
+  } finally {
+    removingSeat.value = false;
+  }
+}
 
 const { data: memberData, refresh: refreshMember } = await useFetch<{ member: MemberDetail; subscriptions: Subscription[]; payments: Payment[] }>(
   `/api/orgs/${orgId.value}/members/${memberId}`,

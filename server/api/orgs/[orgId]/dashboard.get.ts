@@ -42,6 +42,15 @@ export default cachedEventHandler(async (event) => {
     .from(schema.payments)
     .where(and(eq(schema.payments.orgId, orgId), gte(schema.payments.date, monthStr)));
 
+  // This month expenses
+  const [expenseResult] = await db
+    .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
+    .from(schema.expenses)
+    .where(and(eq(schema.expenses.orgId, orgId), gte(schema.expenses.date, monthStr)));
+
+  // Calculate profit
+  const monthProfit = revenueResult.total - expenseResult.total;
+
   // Pending payments count (subscriptions with unpaid balance)
   const pendingRows = await db.all(sql`
     SELECT COUNT(*) as count FROM (
@@ -74,6 +83,8 @@ export default cachedEventHandler(async (event) => {
       activeMembers: activeResult.count,
       expiringSoon: expiringResult.count,
       monthRevenue: revenueResult.total,
+      monthExpenses: expenseResult.total,
+      monthProfit: monthProfit,
       pendingPayments: (pendingRows[0] as { count: number })?.count || 0,
     },
     recentPayments,

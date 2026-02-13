@@ -4,7 +4,7 @@ import { normalizePhone, validatePhone } from "~~/shared/utils/phone";
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const body = await readBody(event);
-  const { name, phone, email, notes, planId, startDate, payment } = body;
+  const { name, phone, email, gender, notes, planId, startDate, payment } = body;
 
   if (!name) {
     throw createError({ statusCode: 400, statusMessage: "Name is required" });
@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
     name: name.trim(),
     phone: normalizedPhone,
     email: email?.trim() || null,
+    gender: gender || null,
     notes: notes?.trim() || null,
   }).returning();
 

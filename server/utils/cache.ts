@@ -21,13 +21,17 @@ export function orgCacheKey(event: H3Event, resource: string): string {
 const INVALIDATION_MAP: Record<string, string[]> = {
   members: ["members", "members-expiring", "dashboard", "plans"],
   subscriptions: ["members", "members-expiring", "dashboard", "payments", "payments-pending", "plans"],
-  payments: ["payments", "payments-pending", "dashboard", "members"],
+  payments: ["payments", "payments-pending", "dashboard", "members", "analytics-revenue", "analytics-profit"],
   plans: ["plans"],
   inquiries: ["inquiries"],
   staff: ["staff"],
   invites: ["invites"],
-  checkIns: ["check-ins"],
+  checkIns: ["check-ins", "seats"],
+  seats: ["seats", "dashboard"],
+  seatAssignments: ["seats", "members"],
   org: ["org", "dashboard"],
+  expenses: ["expenses", "dashboard", "analytics-expense", "analytics-profit"],
+  expenseCategories: ["expense-categories", "expenses"],
 };
 
 /**

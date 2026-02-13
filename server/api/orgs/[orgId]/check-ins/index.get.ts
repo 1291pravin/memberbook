@@ -42,6 +42,8 @@ export default cachedEventHandler(async (event) => {
       autoCheckedOut: schema.checkIns.autoCheckedOut,
       subscriptionStatus: schema.checkIns.subscriptionStatus,
       notes: schema.checkIns.notes,
+      seatId: schema.checkIns.seatId,
+      seatNumber: schema.checkIns.seatNumber,
     })
     .from(schema.checkIns)
     .innerJoin(schema.members, eq(schema.checkIns.memberId, schema.members.id))

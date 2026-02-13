@@ -17,6 +17,15 @@
         @blur="validatePhoneField"
       />
       <AppInput v-model="form.email" label="Email" type="email" placeholder="member@example.com" />
+      <AppSelect
+        v-model="form.gender"
+        label="Gender (Optional)"
+        :options="[
+          { value: '', label: 'Prefer not to say' },
+          { value: 'male', label: 'Male' },
+          { value: 'female', label: 'Female' },
+        ]"
+      />
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
         <textarea
@@ -78,6 +87,7 @@ const form = reactive({
   name: "",
   phone: "",
   email: "",
+  gender: "",
   notes: "",
   planId: "",
   startDate: new Date().toISOString().split("T")[0],
@@ -142,6 +152,7 @@ async function handleSubmit() {
       name: form.name,
       phone: form.phone ? normalizePhone(form.phone) : "",
       email: form.email,
+      gender: form.gender || null,
       notes: form.notes,
     };
 

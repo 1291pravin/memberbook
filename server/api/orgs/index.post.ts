@@ -29,6 +29,22 @@ export default defineEventHandler(async (event) => {
     role: "owner",
   });
 
+  // Seed default expense categories for the organization
+  const { DEFAULT_EXPENSE_CATEGORIES } = await import("../../utils/expense-categories");
+  const defaultCategories = DEFAULT_EXPENSE_CATEGORIES[type] || DEFAULT_EXPENSE_CATEGORIES.other;
+
+  await db.insert(schema.expenseCategories).values(
+    defaultCategories.map((cat) => ({
+      orgId: org.id,
+      name: cat.name,
+      description: cat.description,
+      color: cat.color,
+      isSystem: true,
+      isActive: true,
+      displayOrder: cat.displayOrder,
+    }))
+  );
+
   await setUserSession(event, {
     user: { id: user.id, email: user.email, name: user.name },
     currentOrg: { orgId: org.id, name: org.name, slug: org.slug, type: org.type, role: "owner" },

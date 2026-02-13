@@ -64,6 +64,43 @@
       </form>
     </AppCard>
 
+    <!-- Expense Categories (owner only) -->
+    <AppCard v-if="isOwner" title="Expense Categories">
+      <p class="text-sm text-slate-500 mb-3">
+        Manage expense categories for tracking business expenses.
+      </p>
+      <div class="space-y-3 mb-4">
+        <div v-for="cat in categories" :key="cat.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-2">
+            <AppBadge :color="cat.color">{{ cat.name }}</AppBadge>
+            <span v-if="cat.isSystem" class="text-xs text-slate-400">(default)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <AppButton
+              v-if="!cat.isSystem"
+              size="sm"
+              variant="secondary"
+              @click="editCategory(cat)"
+            >
+              Edit
+            </AppButton>
+            <AppButton
+              v-if="!cat.isSystem"
+              size="sm"
+              variant="danger"
+              @click="toggleCategoryStatus(cat)"
+            >
+              {{ cat.isActive ? 'Deactivate' : 'Activate' }}
+            </AppButton>
+          </div>
+        </div>
+        <div v-if="categories.length === 0" class="text-sm text-slate-500">No categories yet.</div>
+      </div>
+      <AppButton size="sm" @click="showAddCategoryModal = true">
+        Add Category
+      </AppButton>
+    </AppCard>
+
     <!-- Cache Management (owner only) -->
     <AppCard v-if="isOwner" title="Cache">
       <p class="text-sm text-slate-500 mb-3">
@@ -76,6 +113,28 @@
         <p v-if="cacheCleared" class="text-sm text-green-600">{{ cacheCleared }}</p>
       </div>
     </AppCard>
+
+    <!-- Add/Edit Category Modal -->
+    <AppModal :open="showAddCategoryModal" :title="editingCategory ? 'Edit Category' : 'Add Category'" @close="closeCategoryModal">
+      <form class="space-y-4" @submit.prevent="saveCategory">
+        <AppInput v-model="categoryForm.name" label="Category Name" required />
+        <AppInput v-model="categoryForm.description" label="Description (Optional)" />
+        <AppSelect
+          v-model="categoryForm.color"
+          label="Color"
+          :options="colorOptions"
+        />
+        <div class="flex gap-2">
+          <AppButton type="submit" size="sm" :loading="savingCategory">
+            {{ editingCategory ? 'Update' : 'Add' }}
+          </AppButton>
+          <AppButton type="button" size="sm" variant="secondary" @click="closeCategoryModal">
+            Cancel
+          </AppButton>
+        </div>
+        <p v-if="categoryError" class="text-sm text-red-600">{{ categoryError }}</p>
+      </form>
+    </AppModal>
 
     <!-- Invite Modal -->
     <AppModal :open="showInviteModal" title="Staff Invitations" size="lg" @close="showInviteModal = false">
@@ -238,6 +297,93 @@ const isOwner = computed(() => currentOrg.value?.role === "owner");
 
 const clearingCache = ref(false);
 const cacheCleared = ref("");
+
+// Expense categories
+interface Category {
+  id: number;
+  name: string;
+  description: string | null;
+  color: string;
+  isActive: boolean;
+  isSystem: boolean;
+}
+
+const { data: categoriesData, refresh: refreshCategories } = await useFetch<{ categories: Category[] }>(
+  `/api/orgs/${orgId.value}/expense-categories`
+);
+const categories = computed(() => categoriesData.value?.categories ?? []);
+
+const showAddCategoryModal = ref(false);
+const editingCategory = ref<Category | null>(null);
+const categoryForm = reactive({ name: "", description: "", color: "blue" });
+const savingCategory = ref(false);
+const categoryError = ref("");
+
+const colorOptions = [
+  { value: "blue", label: "Blue" },
+  { value: "purple", label: "Purple" },
+  { value: "green", label: "Green" },
+  { value: "orange", label: "Orange" },
+  { value: "pink", label: "Pink" },
+  { value: "yellow", label: "Yellow" },
+  { value: "red", label: "Red" },
+  { value: "indigo", label: "Indigo" },
+  { value: "cyan", label: "Cyan" },
+  { value: "slate", label: "Slate" },
+];
+
+function editCategory(cat: Category) {
+  editingCategory.value = cat;
+  categoryForm.name = cat.name;
+  categoryForm.description = cat.description || "";
+  categoryForm.color = cat.color;
+  showAddCategoryModal.value = true;
+}
+
+function closeCategoryModal() {
+  showAddCategoryModal.value = false;
+  editingCategory.value = null;
+  categoryForm.name = "";
+  categoryForm.description = "";
+  categoryForm.color = "blue";
+  categoryError.value = "";
+}
+
+async function saveCategory() {
+  savingCategory.value = true;
+  categoryError.value = "";
+  try {
+    if (editingCategory.value) {
+      await $fetch(`/api/orgs/${orgId.value}/expense-categories/${editingCategory.value.id}`, {
+        method: "PUT",
+        body: categoryForm,
+      });
+    } else {
+      await $fetch(`/api/orgs/${orgId.value}/expense-categories`, {
+        method: "POST",
+        body: categoryForm,
+      });
+    }
+    await refreshCategories();
+    closeCategoryModal();
+  } catch (e: any) {
+    categoryError.value = e.data?.statusMessage || "Failed to save category";
+  } finally {
+    savingCategory.value = false;
+  }
+}
+
+async function toggleCategoryStatus(cat: Category) {
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/expense-categories/${cat.id}`, {
+      method: "PUT",
+      body: { isActive: !cat.isActive },
+    });
+    await refreshCategories();
+  } catch (e: any) {
+    alert(e.data?.statusMessage || "Failed to update category");
+  }
+}
 
 async function clearCache() {
   clearingCache.value = true;
