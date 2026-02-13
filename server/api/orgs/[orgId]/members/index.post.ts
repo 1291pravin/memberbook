@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   }).returning();
 
   const member = result[0];
-  await invalidateCache(access.orgId, "members");
+  await invalidateCache(access.orgId);
 
   // If planId provided, create subscription
   if (planId && startDate) {
@@ -73,10 +73,10 @@ export default defineEventHandler(async (event) => {
           notes: payment.notes || null,
           subscriptionId: subscription.id,
         });
-        await invalidateCache(access.orgId, "payments");
+        await invalidateCache(access.orgId);
       }
 
-      await invalidateCache(access.orgId, "subscriptions");
+      await invalidateCache(access.orgId);
     }
   }
 

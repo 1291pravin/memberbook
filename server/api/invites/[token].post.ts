@@ -111,8 +111,7 @@ export default defineEventHandler(async (event) => {
     currentOrg,
   });
 
-  await invalidateCache(invite.orgId, "staff");
-  await invalidateCache(invite.orgId, "invites");
+  await invalidateCache(invite.orgId);
 
   return {
     success: true,

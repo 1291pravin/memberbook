@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
     .set({ isActive: false })
     .where(eq(schema.expenseCategories.id, categoryId));
 
-  await invalidateCache(access.orgId, "expenseCategories");
+  await invalidateCache(access.orgId);
 
   return { success: true };
 });

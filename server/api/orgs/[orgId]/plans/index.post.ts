@@ -24,6 +24,6 @@ export default defineEventHandler(async (event) => {
     durationValue: Number(durationValue),
   }).returning();
 
-  await invalidateCache(access.orgId, "plans");
+  await invalidateCache(access.orgId);
   return { plan: result[0] };
 });

@@ -145,9 +145,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Invalidate caches
-  await invalidateCache(access.orgId, "members");
-  await invalidateCache(access.orgId, "subscriptions");
-  await invalidateCache(access.orgId, "payments");
+  await invalidateCache(access.orgId);
 
   // Filter out any undefined slots from skipped rows
   const finalResults = rows.map((_, i) => results[i] ?? { success: false, error: "Not processed" });

@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   // Hard delete
   await db.delete(schema.expenses).where(eq(schema.expenses.id, expenseId));
 
-  await invalidateCache(access.orgId, "expenses");
+  await invalidateCache(access.orgId);
 
   return { success: true };
 });

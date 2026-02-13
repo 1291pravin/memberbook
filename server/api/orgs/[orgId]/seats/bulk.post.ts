@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
     .returning();
 
   // Invalidate cache
-  await invalidateCache(access.orgId, "seats");
+  await invalidateCache(access.orgId);
 
   return { seats, count: seats.length };
 });

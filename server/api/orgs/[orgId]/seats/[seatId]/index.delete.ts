@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.librarySeats.id, Number(seatId)));
 
   // Invalidate cache
-  await invalidateCache(access.orgId, "seats");
+  await invalidateCache(access.orgId);
 
   return { success: true, message: "Seat deleted successfully" };
 });

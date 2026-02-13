@@ -83,6 +83,6 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  await invalidateCache(access.orgId, "payments");
+  await invalidateCache(access.orgId);
   return { payment: result[0] };
 });

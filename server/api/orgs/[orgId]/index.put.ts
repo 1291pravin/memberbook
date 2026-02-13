@@ -33,6 +33,6 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.organizations.id, access.orgId))
     .limit(1);
 
-  await invalidateCache(access.orgId, "org");
+  await invalidateCache(access.orgId);
   return { org: rows[0] };
 });

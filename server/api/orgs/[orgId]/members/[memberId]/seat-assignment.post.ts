@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Invalidate cache
-  await invalidateCache(access.orgId, "seatAssignments");
+  await invalidateCache(access.orgId);
 
   return assignment;
 });

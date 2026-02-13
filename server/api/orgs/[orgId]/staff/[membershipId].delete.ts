@@ -24,6 +24,6 @@ export default defineEventHandler(async (event) => {
     .delete(schema.orgMemberships)
     .where(and(eq(schema.orgMemberships.id, membershipId), eq(schema.orgMemberships.orgId, access.orgId)));
 
-  await invalidateCache(access.orgId, "staff");
+  await invalidateCache(access.orgId);
   return { success: true };
 });

@@ -81,9 +81,9 @@ export default defineEventHandler(async (event) => {
       notes: payment.notes || null,
       subscriptionId: subscription.id,
     });
-    await invalidateCache(access.orgId, "payments");
+    await invalidateCache(access.orgId);
   }
 
-  await invalidateCache(access.orgId, "subscriptions");
+  await invalidateCache(access.orgId);
   return { subscription };
 });

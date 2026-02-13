@@ -79,7 +79,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.expenses.id, expenseId))
     .returning();
 
-  await invalidateCache(access.orgId, "expenses");
+  await invalidateCache(access.orgId);
 
   return { expense: result[0] };
 });
