@@ -1,6 +1,20 @@
 export function useWhatsApp() {
   function getWhatsAppLink(phone: string, message: string): string {
-    const cleaned = phone.replace(/\D/g, "");
+    // Remove all non-digit characters
+    let cleaned = phone.replace(/\D/g, "");
+
+    // Handle Indian phone numbers
+    if (cleaned.length === 10) {
+      // 10-digit number, prepend country code
+      cleaned = "91" + cleaned;
+    } else if (cleaned.length === 12 && cleaned.startsWith("91")) {
+      // Already has country code, use as-is
+      cleaned = cleaned;
+    } else if (cleaned.length > 10 && !cleaned.startsWith("91")) {
+      // Has some other prefix, assume last 10 digits are the number
+      cleaned = "91" + cleaned.slice(-10);
+    }
+
     const encoded = encodeURIComponent(message);
     return `https://wa.me/${cleaned}?text=${encoded}`;
   }
