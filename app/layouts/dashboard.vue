@@ -93,7 +93,87 @@
         <component :is="item.icon" class="w-5 h-5" />
         {{ item.label }}
       </NuxtLink>
+
+      <!-- More Button -->
+      <button
+        class="relative flex flex-col items-center gap-0.5 px-2 py-1 text-xs"
+        :class="moreMenuOpen ? 'text-primary-600' : 'text-slate-500'"
+        @click="moreMenuOpen = !moreMenuOpen"
+      >
+        <span
+          v-if="moreMenuOpen"
+          class="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-primary-500 rounded-full"
+        />
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+        More
+      </button>
     </nav>
+
+    <!-- More Menu Bottom Sheet -->
+    <Transition
+      enter-active-class="transition-all duration-300 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-all duration-200 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="moreMenuOpen"
+        class="lg:hidden fixed inset-0 bg-black/40 z-50"
+        @click="moreMenuOpen = false"
+      >
+        <Transition
+          enter-active-class="transition-transform duration-300 ease-out"
+          enter-from-class="translate-y-full"
+          enter-to-class="translate-y-0"
+          leave-active-class="transition-transform duration-200 ease-in"
+          leave-from-class="translate-y-0"
+          leave-to-class="translate-y-full"
+        >
+          <div
+            v-if="moreMenuOpen"
+            class="absolute bottom-0 inset-x-0 bg-white rounded-t-2xl shadow-2xl"
+            @click.stop
+          >
+            <!-- Drag Handle -->
+            <div class="flex justify-center pt-3 pb-2">
+              <div class="w-10 h-1 bg-slate-300 rounded-full" />
+            </div>
+
+            <!-- Header -->
+            <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-slate-800">Menu</h3>
+              <button
+                class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100"
+                @click="moreMenuOpen = false"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Menu Items Grid -->
+            <div class="grid grid-cols-3 gap-3 p-4 pb-6">
+              <NuxtLink
+                v-for="item in moreNavItems"
+                :key="item.to"
+                :to="item.to"
+                class="flex flex-col items-center gap-2 p-3 rounded-xl transition-colors"
+                :class="isActive(item.to) ? 'bg-primary-50 text-primary-600' : 'text-slate-600 hover:bg-slate-50'"
+                @click="moreMenuOpen = false"
+              >
+                <component :is="item.icon" class="w-7 h-7" />
+                <span class="text-xs font-medium text-center">{{ item.label }}</span>
+              </NuxtLink>
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -110,6 +190,7 @@ const { clear } = useUserSession();
 const { currentOrg } = useOrg();
 const t = useTerminology();
 const mobileMenuOpen = ref(false);
+const moreMenuOpen = ref(false);
 
 function closeMobileMenu(e: MouseEvent) {
   if (!(e.target as HTMLElement).closest(".relative")) {
@@ -118,7 +199,10 @@ function closeMobileMenu(e: MouseEvent) {
 }
 onMounted(() => document.addEventListener("click", closeMobileMenu));
 onUnmounted(() => document.removeEventListener("click", closeMobileMenu));
-watch(() => route.path, () => { mobileMenuOpen.value = false; });
+watch(() => route.path, () => {
+  mobileMenuOpen.value = false;
+  moreMenuOpen.value = false;
+});
 
 function icon(d: string) {
   return () => h("svg", { class: "w-5 h-5", fill: "none", stroke: "currentColor", "stroke-width": "1.5", viewBox: "0 0 24 24" }, [
@@ -138,11 +222,20 @@ const navItems = computed(() => [
   { to: "/dashboard/settings", label: "Settings", icon: icon("M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z") },
 ]);
 
+// Core items always visible in bottom nav
 const mobileNavItems = computed(() => [
   navItems.value[0], // Dashboard
   navItems.value[1], // Members
   navItems.value[3], // Payments
+]);
+
+// Items in the "More" menu
+const moreNavItems = computed(() => [
+  navItems.value[2], // Plans
   navItems.value[4], // Expenses
+  navItems.value[5], // Check-Ins
+  navItems.value[6], // Seats
+  navItems.value[7], // Inquiries
   navItems.value[8], // Settings
 ]);
 
