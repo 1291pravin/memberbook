@@ -45,6 +45,16 @@ export default defineEventHandler(async (event) => {
     }))
   );
 
+  // Create onboarding progress record
+  await db.insert(schema.onboardingProgress).values({
+    orgId: org.id,
+    orgSetupCompleted: true,
+    staffOnboardingCompleted: false,
+    plansSetupCompleted: false,
+    businessSetupCompleted: type === 'library' ? false : true, // Auto-complete for non-libraries
+    dashboardTourCompleted: true, // Auto-complete since tour is not implemented yet
+  });
+
   await setUserSession(event, {
     user: { id: user.id, email: user.email, name: user.name },
     currentOrg: { orgId: org.id, name: org.name, slug: org.slug, type: org.type, role: "owner" },

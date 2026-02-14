@@ -57,6 +57,9 @@ export default defineEventHandler(async (event) => {
 
   await invalidateCache(access.orgId);
 
+  // Auto-complete onboarding step
+  await autoCompleteOnboardingStep(access.orgId, 'staffOnboardingCompleted');
+
   return {
     id: invite.id,
     token: invite.token,

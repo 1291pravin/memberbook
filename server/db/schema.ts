@@ -179,3 +179,18 @@ export const expenses = sqliteTable("expenses", {
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
+
+export const onboardingProgress = sqliteTable("onboarding_progress", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  orgSetupCompleted: integer("org_setup_completed", { mode: "boolean" }).notNull().default(true),
+  staffOnboardingCompleted: integer("staff_onboarding_completed", { mode: "boolean" }).notNull().default(false),
+  plansSetupCompleted: integer("plans_setup_completed", { mode: "boolean" }).notNull().default(false),
+  businessSetupCompleted: integer("business_setup_completed", { mode: "boolean" }).notNull().default(false),
+  dashboardTourCompleted: integer("dashboard_tour_completed", { mode: "boolean" }).notNull().default(false),
+  completedAt: text("completed_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => ({
+  orgIdUnique: uniqueIndex("onboarding_progress_org_unique").on(table.orgId),
+}));

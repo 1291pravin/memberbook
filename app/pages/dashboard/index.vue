@@ -1,5 +1,7 @@
 <template>
   <div class="p-4 space-y-6">
+    <OnboardingProgressWidget />
+
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">Dashboard</h1>
       <NuxtLink to="/dashboard/analytics" class="text-sm text-primary-600 hover:text-primary-700 font-medium">

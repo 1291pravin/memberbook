@@ -25,5 +25,9 @@ export default defineEventHandler(async (event) => {
   }).returning();
 
   await invalidateCache(access.orgId);
+
+  // Auto-complete onboarding step
+  await autoCompleteOnboardingStep(access.orgId, 'plansSetupCompleted');
+
   return { plan: result[0] };
 });

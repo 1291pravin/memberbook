@@ -60,7 +60,7 @@ async function handleCreate() {
       body: { name: form.name, type: form.type },
     });
     await refreshSession();
-    navigateTo("/dashboard");
+    navigateTo("/onboarding/wizard/staff");
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };
     error.value = err.data?.statusMessage || "Failed to create workspace";
