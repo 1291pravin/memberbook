@@ -12,7 +12,7 @@
       </div>
       <button
         @click="dismissWidget"
-        class="text-slate-400 hover:text-slate-600 transition-colors"
+        class="text-slate-600 hover:text-slate-600 transition-colors"
         aria-label="Dismiss"
       >
         ✕
@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <p class="text-xs text-slate-500 mt-3 text-center">
+    <p class="text-xs text-slate-600 mt-3 text-center">
       Completing these steps will help you get the most out of MemberBook
     </p>
   </AppCard>

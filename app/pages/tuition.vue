@@ -98,7 +98,7 @@
     <section class="py-16 px-4 text-center bg-slate-800 text-white">
       <div class="max-w-xl mx-auto">
         <h2 class="text-3xl font-bold mb-4">Ready to simplify your tuition center?</h2>
-        <p class="text-lg text-slate-300 mb-8">
+        <p class="text-lg text-slate-400 mb-8">
           Join coaching centers across India. Start managing students the smart way.
         </p>
         <NuxtLink to="/register">

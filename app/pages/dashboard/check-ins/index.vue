@@ -18,7 +18,7 @@
           >
             <div>
               <p class="text-sm font-medium text-slate-800">{{ m.name }}</p>
-              <p class="text-xs text-slate-500">{{ m.phone || 'No phone' }}</p>
+              <p class="text-xs text-slate-600">{{ m.phone || 'No phone' }}</p>
             </div>
             <div class="flex items-center gap-2">
               <AppBadge :color="subStatusColor(m.subscriptionStatus)">
@@ -30,7 +30,7 @@
             </div>
           </div>
         </div>
-        <p v-else-if="memberSearch && !searchLoading" class="text-sm text-slate-500">No members found</p>
+        <p v-else-if="memberSearch && !searchLoading" class="text-sm text-slate-600">No members found</p>
       </div>
 
       <!-- Warning Banner -->
@@ -71,8 +71,8 @@
                 🪑 {{ ci.seatNumber }}
               </span>
             </div>
-            <p class="text-xs text-slate-500">{{ ci.memberPhone || 'No phone' }}</p>
-            <p class="text-xs text-slate-400">Checked in {{ formatDateTime(ci.checkedInAt) }}</p>
+            <p class="text-xs text-slate-600">{{ ci.memberPhone || 'No phone' }}</p>
+            <p class="text-xs text-slate-600">Checked in {{ formatDateTime(ci.checkedInAt) }}</p>
             <p class="text-xs font-medium text-slate-600">{{ liveDuration(ci.checkedInAt) }}</p>
           </div>
           <div class="flex items-center gap-2">
@@ -105,7 +105,7 @@
         <!-- Member Info -->
         <div class="bg-slate-50 rounded-lg p-3">
           <p class="text-sm font-medium text-slate-800">{{ selectedMember.name }}</p>
-          <p class="text-xs text-slate-500">{{ selectedMember.phone || 'No phone' }}</p>
+          <p class="text-xs text-slate-600">{{ selectedMember.phone || 'No phone' }}</p>
           <div class="mt-2">
             <AppBadge :color="subStatusColor(selectedMember.subscriptionStatus)">
               {{ selectedMember.subscriptionStatus || 'no plan' }}
@@ -131,7 +131,7 @@
             <h3 class="text-sm font-medium text-slate-700">Select a Seat (Optional)</h3>
             <button
               v-if="selectedSeatId"
-              class="text-xs text-slate-500 hover:text-slate-700"
+              class="text-xs text-slate-600 hover:text-slate-700"
               @click="selectedSeatId = null"
             >
               Clear Selection
@@ -140,12 +140,12 @@
 
           <!-- Loading -->
           <div v-if="loadingSeats" class="text-center py-8">
-            <p class="text-sm text-slate-500">Loading available seats...</p>
+            <p class="text-sm text-slate-600">Loading available seats...</p>
           </div>
 
           <!-- Empty State -->
           <div v-else-if="availableSeats.length === 0" class="text-center py-8">
-            <p class="text-sm text-slate-500">No seats available</p>
+            <p class="text-sm text-slate-600">No seats available</p>
           </div>
 
           <!-- Seat Grid -->
@@ -177,7 +177,7 @@
               </div>
 
               <!-- Seat Label -->
-              <div v-if="seat.seatLabel" class="text-xs text-slate-500 mb-1">
+              <div v-if="seat.seatLabel" class="text-xs text-slate-600 mb-1">
                 {{ seat.seatLabel }}
               </div>
 

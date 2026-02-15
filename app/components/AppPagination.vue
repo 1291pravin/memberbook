@@ -1,6 +1,6 @@
 <template>
   <div v-if="total > 0" class="flex flex-col items-center gap-2 pt-2 pb-4">
-    <p class="text-xs text-slate-500">
+    <p class="text-xs text-slate-600">
       Showing {{ rangeStart }}-{{ rangeEnd }} of {{ total }}
     </p>
 
@@ -18,7 +18,7 @@
 
       <!-- Desktop: page numbers -->
       <template v-for="p in visiblePages" :key="p">
-        <span v-if="p === '...'" class="px-1 text-sm text-slate-400">...</span>
+        <span v-if="p === '...'" class="px-1 text-sm text-slate-600">...</span>
         <button
           v-else
           :class="[

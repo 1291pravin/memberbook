@@ -50,15 +50,15 @@
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
                 <AppBadge :color="exp.categoryColor">{{ exp.categoryName }}</AppBadge>
-                <span class="text-xs text-slate-500">{{ formatDate(exp.date) }}</span>
+                <span class="text-xs text-slate-600">{{ formatDate(exp.date) }}</span>
               </div>
               <p class="font-medium text-slate-800 text-sm">{{ exp.description }}</p>
               <div class="flex items-center gap-2 mt-1">
-                <p v-if="exp.vendorName" class="text-xs text-slate-500">{{ exp.vendorName }}</p>
-                <span v-if="exp.vendorName" class="text-xs text-slate-300">&middot;</span>
-                <p class="text-xs text-slate-500 capitalize">{{ exp.paymentMethod.replace('_', ' ') }}</p>
+                <p v-if="exp.vendorName" class="text-xs text-slate-600">{{ exp.vendorName }}</p>
+                <span v-if="exp.vendorName" class="text-xs text-slate-400">&middot;</span>
+                <p class="text-xs text-slate-600 capitalize">{{ exp.paymentMethod.replace('_', ' ') }}</p>
               </div>
-              <p v-if="exp.notes" class="text-xs text-slate-400 mt-1">{{ exp.notes }}</p>
+              <p v-if="exp.notes" class="text-xs text-slate-600 mt-1">{{ exp.notes }}</p>
             </div>
             <p class="font-semibold text-slate-800">{{ formatCurrency(exp.amount) }}</p>
           </div>

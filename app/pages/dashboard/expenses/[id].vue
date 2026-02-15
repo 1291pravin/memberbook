@@ -9,7 +9,7 @@
       {{ error }}
     </div>
 
-    <div v-if="!expense" class="text-sm text-slate-500">Loading...</div>
+    <div v-if="!expense" class="text-sm text-slate-600">Loading...</div>
 
     <form v-else class="space-y-4" @submit.prevent="handleSubmit">
       <AppSelect
@@ -61,13 +61,13 @@
         <textarea
           v-model="form.notes"
           rows="3"
-          class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
           placeholder="Additional details"
         />
       </div>
 
       <div class="border-t border-slate-200 pt-4">
-        <p class="text-xs text-slate-500">
+        <p class="text-xs text-slate-600">
           Created by {{ expense.createdByName }} on {{ formatDate(expense.createdAt) }}
         </p>
       </div>

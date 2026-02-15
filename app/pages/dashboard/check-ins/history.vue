@@ -23,7 +23,7 @@
             <NuxtLink :to="`/dashboard/members/${ci.memberId}`" class="text-sm font-medium text-primary-600 hover:text-primary-500">
               {{ ci.memberName }}
             </NuxtLink>
-            <p class="text-xs text-slate-500">{{ ci.memberPhone || 'No phone' }}</p>
+            <p class="text-xs text-slate-600">{{ ci.memberPhone || 'No phone' }}</p>
           </div>
           <div class="flex items-center gap-2">
             <AppBadge :color="subStatusColor(ci.subscriptionStatus)">
@@ -33,7 +33,7 @@
             <AppBadge v-if="!ci.checkedOutAt" color="green">active</AppBadge>
           </div>
         </div>
-        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
           <span>In: {{ formatDateTime(ci.checkedInAt) }}</span>
           <span v-if="ci.checkedOutAt">Out: {{ formatDateTime(ci.checkedOutAt) }}</span>
           <span v-if="ci.durationMinutes != null">Duration: {{ formatDuration(ci.durationMinutes) }}</span>

@@ -19,9 +19,9 @@
     <!-- Member Info -->
     <AppCard v-if="member" title="Contact">
       <div class="space-y-2 text-sm">
-        <p v-if="member.phone"><span class="text-slate-500">Phone:</span> <a :href="`tel:${member.phone}`" class="text-primary-600 hover:underline">{{ member.phone }}</a></p>
-        <p v-if="member.email"><span class="text-slate-500">Email:</span> {{ member.email }}</p>
-        <p v-if="member.notes"><span class="text-slate-500">Notes:</span> {{ member.notes }}</p>
+        <p v-if="member.phone"><span class="text-slate-600">Phone:</span> <a :href="`tel:${member.phone}`" class="text-primary-600 hover:underline">{{ member.phone }}</a></p>
+        <p v-if="member.email"><span class="text-slate-600">Email:</span> {{ member.email }}</p>
+        <p v-if="member.notes"><span class="text-slate-600">Notes:</span> {{ member.notes }}</p>
       </div>
       <div class="mt-3 flex flex-wrap gap-2">
         <AppButton size="sm" variant="ghost" @click="toggleStatus">
@@ -61,28 +61,28 @@
     <AppCard title="Seat Assignment">
       <div v-if="seatAssignment" class="space-y-2 text-sm">
         <p>
-          <span class="text-slate-500">Assigned Seat:</span>
+          <span class="text-slate-600">Assigned Seat:</span>
           <span class="ml-2 font-medium text-slate-800">{{ seatAssignment.seat.seatNumber }}</span>
           <span v-if="seatAssignment.seat.seatLabel" class="ml-1 text-slate-600">({{ seatAssignment.seat.seatLabel }})</span>
         </p>
         <p v-if="seatAssignment.seat.timePreference">
-          <span class="text-slate-500">Time Preference:</span>
+          <span class="text-slate-600">Time Preference:</span>
           <span class="ml-2 text-slate-800 capitalize">{{ seatAssignment.seat.timePreference }}</span>
         </p>
         <p v-if="seatAssignment.assignedByName">
-          <span class="text-slate-500">Assigned By:</span>
+          <span class="text-slate-600">Assigned By:</span>
           <span class="ml-2 text-slate-800">{{ seatAssignment.assignedByName }}</span>
         </p>
         <p>
-          <span class="text-slate-500">Assigned On:</span>
+          <span class="text-slate-600">Assigned On:</span>
           <span class="ml-2 text-slate-800">{{ formatDate(seatAssignment.assignedAt) }}</span>
         </p>
         <p v-if="seatAssignment.notes" class="pt-2 border-t border-slate-100">
-          <span class="text-slate-500">Notes:</span>
+          <span class="text-slate-600">Notes:</span>
           <span class="ml-2 text-slate-800">{{ seatAssignment.notes }}</span>
         </p>
       </div>
-      <div v-else class="text-sm text-slate-500 py-2">
+      <div v-else class="text-sm text-slate-600 py-2">
         No default seat assigned
       </div>
       <div class="mt-3 flex gap-2">
@@ -102,7 +102,7 @@
           <div>
             <p class="font-medium text-slate-800 text-sm">{{ sub.planName }}</p>
             <p class="text-sm text-slate-600">{{ formatDuration(sub.durationType, sub.durationValue) }}</p>
-            <p class="text-xs text-slate-400">{{ formatDate(sub.startDate) }} &mdash; {{ formatDate(sub.endDate) }}</p>
+            <p class="text-xs text-slate-600">{{ formatDate(sub.startDate) }} &mdash; {{ formatDate(sub.endDate) }}</p>
           </div>
           <div class="text-right space-y-1">
             <p class="text-sm font-semibold">{{ formatCurrency(sub.amount) }}</p>
@@ -114,7 +114,7 @@
                 {{ paymentStatusLabel(sub.paymentStatus) }}
               </AppBadge>
             </div>
-            <p v-if="sub.totalPaid > 0 && sub.paymentStatus !== 'paid'" class="text-xs text-slate-500">
+            <p v-if="sub.totalPaid > 0 && sub.paymentStatus !== 'paid'" class="text-xs text-slate-600">
               Paid: {{ formatCurrency(sub.totalPaid) }} / {{ formatCurrency(sub.amount) }}
             </p>
             <div class="flex items-center gap-1 justify-end mt-1">
@@ -145,7 +145,7 @@
             </div>
           </div>
         </div>
-        <div v-if="subscriptions.length === 0" class="text-sm text-slate-500 py-2">No subscriptions</div>
+        <div v-if="subscriptions.length === 0" class="text-sm text-slate-600 py-2">No subscriptions</div>
       </div>
       <div class="mt-3">
         <AppButton v-if="hasActiveSubscription" size="sm" variant="secondary" @click="openChangePlan">Change Plan</AppButton>
@@ -159,11 +159,11 @@
         <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
             <p class="text-sm font-medium text-slate-800">{{ formatCurrency(payment.amount) }}</p>
-            <p class="text-xs text-slate-500">{{ formatDate(payment.date) }} &middot; {{ payment.method }}</p>
+            <p class="text-xs text-slate-600">{{ formatDate(payment.date) }} &middot; {{ payment.method }}</p>
           </div>
-          <p v-if="payment.notes" class="text-xs text-slate-500 max-w-[200px] truncate">{{ payment.notes }}</p>
+          <p v-if="payment.notes" class="text-xs text-slate-600 max-w-[200px] truncate">{{ payment.notes }}</p>
         </div>
-        <div v-if="payments.length === 0" class="text-sm text-slate-500 py-2">No payments recorded</div>
+        <div v-if="payments.length === 0" class="text-sm text-slate-600 py-2">No payments recorded</div>
       </div>
     </AppCard>
 
@@ -173,7 +173,7 @@
         <div v-for="ci in recentCheckIns" :key="ci.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
             <p class="text-sm text-slate-800">{{ formatCheckInDateTime(ci.checkedInAt) }}</p>
-            <p v-if="ci.checkedOutAt" class="text-xs text-slate-500">
+            <p v-if="ci.checkedOutAt" class="text-xs text-slate-600">
               Duration: {{ ci.durationMinutes != null ? formatCheckInDuration(ci.durationMinutes) : '—' }}
             </p>
             <p v-else class="text-xs text-green-600 font-medium">Currently checked in</p>
@@ -185,7 +185,7 @@
             <AppBadge v-if="ci.autoCheckedOut" color="yellow" class="text-xs">auto</AppBadge>
           </div>
         </div>
-        <div v-if="recentCheckIns.length === 0" class="text-sm text-slate-500 py-2">No check-ins</div>
+        <div v-if="recentCheckIns.length === 0" class="text-sm text-slate-600 py-2">No check-ins</div>
       </div>
       <div class="mt-3 flex items-center justify-between">
         <AppButton

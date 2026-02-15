@@ -16,8 +16,8 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="font-medium text-slate-800 text-sm">{{ item.member_name }}</p>
-            <p class="text-xs text-slate-500">{{ item.plan_name }} &middot; Due: {{ formatCurrency(item.pending_amount) }}</p>
-            <p class="text-xs text-slate-400">{{ formatDate(item.start_date) }} &mdash; {{ formatDate(item.end_date) }}</p>
+            <p class="text-xs text-slate-600">{{ item.plan_name }} &middot; Due: {{ formatCurrency(item.pending_amount) }}</p>
+            <p class="text-xs text-slate-600">{{ formatDate(item.start_date) }} &mdash; {{ formatDate(item.end_date) }}</p>
           </div>
           <div class="flex items-center gap-2">
             <a

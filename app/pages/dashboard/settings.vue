@@ -31,7 +31,7 @@
         <div v-for="s in staff" :key="s.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
             <p class="text-sm font-medium text-slate-800">{{ s.name }}</p>
-            <p class="text-xs text-slate-500">{{ s.email }}</p>
+            <p class="text-xs text-slate-600">{{ s.email }}</p>
           </div>
           <div class="flex items-center gap-2">
             <AppBadge :color="s.role === 'owner' ? 'blue' : 'gray'">{{ s.role }}</AppBadge>
@@ -45,7 +45,7 @@
             </AppButton>
           </div>
         </div>
-        <div v-if="staff.length === 0" class="text-sm text-slate-500">No staff added yet.</div>
+        <div v-if="staff.length === 0" class="text-sm text-slate-600">No staff added yet.</div>
       </div>
     </AppCard>
 
@@ -59,21 +59,21 @@
           min="0"
           placeholder="0"
         />
-        <p class="text-xs text-slate-500 -mt-2">Allow members to continue using services for this many days after subscription expires. Set to 0 to disable.</p>
+        <p class="text-xs text-slate-600 -mt-2">Allow members to continue using services for this many days after subscription expires. Set to 0 to disable.</p>
         <AppButton type="submit" size="sm" :loading="savingSubscriptionSettings">Save</AppButton>
       </form>
     </AppCard>
 
     <!-- Expense Categories (owner only) -->
     <AppCard v-if="isOwner" title="Expense Categories">
-      <p class="text-sm text-slate-500 mb-3">
+      <p class="text-sm text-slate-600 mb-3">
         Manage expense categories for tracking business expenses.
       </p>
       <div class="space-y-3 mb-4">
         <div v-for="cat in categories" :key="cat.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div class="flex items-center gap-2">
             <AppBadge :color="cat.color">{{ cat.name }}</AppBadge>
-            <span v-if="cat.isSystem" class="text-xs text-slate-400">(default)</span>
+            <span v-if="cat.isSystem" class="text-xs text-slate-600">(default)</span>
           </div>
           <div class="flex items-center gap-2">
             <AppButton
@@ -94,7 +94,7 @@
             </AppButton>
           </div>
         </div>
-        <div v-if="categories.length === 0" class="text-sm text-slate-500">No categories yet.</div>
+        <div v-if="categories.length === 0" class="text-sm text-slate-600">No categories yet.</div>
       </div>
       <AppButton size="sm" @click="showAddCategoryModal = true">
         Add Category
@@ -103,7 +103,7 @@
 
     <!-- Cache Management (owner only) -->
     <AppCard v-if="isOwner" title="Cache">
-      <p class="text-sm text-slate-500 mb-3">
+      <p class="text-sm text-slate-600 mb-3">
         Data like dashboard stats and analytics are cached for up to 10 minutes. Clear the cache if you need to see the latest data immediately.
       </p>
       <div class="flex items-center gap-3">
@@ -147,7 +147,7 @@
           <p v-if="inviteError" class="mt-2 text-sm text-red-600">{{ inviteError }}</p>
           <p v-if="copySuccess" class="mt-2 text-sm text-green-600">{{ copySuccess }}</p>
           <p v-if="copyError" class="mt-2 text-sm text-red-600">{{ copyError }}</p>
-          <p class="mt-1 text-xs text-slate-500">
+          <p class="mt-1 text-xs text-slate-600">
             {{ pendingInvites.length }} / 10 pending invitations
           </p>
         </div>
@@ -168,11 +168,11 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <AppBadge color="blue">{{ invite.status }}</AppBadge>
-                    <span class="text-xs text-slate-500">
+                    <span class="text-xs text-slate-600">
                       Expires {{ formatExpiry(invite.expiresAt) }}
                     </span>
                   </div>
-                  <p class="text-xs text-slate-500 mt-1">
+                  <p class="text-xs text-slate-600 mt-1">
                     Created {{ formatDateTime(invite.createdAt) }}
                   </p>
                 </div>
@@ -214,7 +214,7 @@
             Used Invitations ({{ usedInvites.length }})
           </button>
           <div v-if="showUsedInvites" class="mt-3 space-y-2">
-            <div v-if="usedInvites.length === 0" class="text-sm text-slate-500">
+            <div v-if="usedInvites.length === 0" class="text-sm text-slate-600">
               No used invitations
             </div>
             <div
@@ -228,7 +228,7 @@
                   {{ invite.status }}
                 </AppBadge>
               </div>
-              <p class="text-xs text-slate-500">
+              <p class="text-xs text-slate-600">
                 Created {{ formatDateTime(invite.createdAt) }}
               </p>
               <p v-if="invite.acceptedAt && invite.acceptedBy" class="text-xs text-slate-600 mt-1">

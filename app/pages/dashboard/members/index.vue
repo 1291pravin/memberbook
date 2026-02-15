@@ -100,7 +100,7 @@
         </select>
         <button
           v-if="activeFilterCount > 0"
-          class="text-sm text-slate-500 hover:text-slate-700 underline"
+          class="text-sm text-slate-600 hover:text-slate-700 underline"
           @click="clearFilters"
         >
           Clear all
@@ -132,10 +132,10 @@
           <div class="flex items-center justify-between">
             <div class="min-w-0 flex-1">
               <p class="font-medium text-slate-800">{{ member.name }}</p>
-              <p v-if="member.phone" class="text-sm text-slate-500">{{ member.phone }}</p>
-              <p v-if="member.planName" class="text-sm text-slate-500 mt-0.5">
+              <p v-if="member.phone" class="text-sm text-slate-600">{{ member.phone }}</p>
+              <p v-if="member.planName" class="text-sm text-slate-600 mt-0.5">
                 {{ member.planName }}
-                <span v-if="member.subscriptionEndDate" class="text-slate-400">
+                <span v-if="member.subscriptionEndDate" class="text-slate-600">
                   &middot; ends {{ formatDate(member.subscriptionEndDate) }}
                 </span>
               </p>

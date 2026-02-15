@@ -7,7 +7,7 @@
           ← Back to Home
         </NuxtLink>
         <h1 class="mt-4 text-3xl font-bold text-slate-800">Privacy Policy</h1>
-        <p class="mt-2 text-slate-500">Last updated: {{ lastUpdated }}</p>
+        <p class="mt-2 text-slate-600">Last updated: {{ lastUpdated }}</p>
       </div>
 
       <!-- Content -->

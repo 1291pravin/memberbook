@@ -32,7 +32,7 @@
 
           <div v-else-if="inviteUrl" class="space-y-4">
             <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <p class="text-xs text-slate-500 mb-2">Invite Link (valid for 48 hours)</p>
+              <p class="text-xs text-slate-600 mb-2">Invite Link (valid for 48 hours)</p>
               <div class="flex items-center gap-2">
                 <input
                   type="text"
@@ -63,7 +63,7 @@
               </AppButton>
             </div>
 
-            <p class="text-xs text-slate-500 text-center">
+            <p class="text-xs text-slate-600 text-center">
               You can always invite more team members later from Settings
             </p>
           </div>
@@ -137,7 +137,7 @@
             </AppButton>
           </form>
 
-          <p class="text-xs text-slate-500 text-center mt-4">
+          <p class="text-xs text-slate-600 text-center mt-4">
             You can add more plans later from the Plans page
           </p>
         </div>
@@ -161,7 +161,7 @@
             </NuxtLink>
           </div>
 
-          <p class="text-xs text-slate-500 text-center mt-4">
+          <p class="text-xs text-slate-600 text-center mt-4">
             You can skip this for now and set up seats later
           </p>
         </div>

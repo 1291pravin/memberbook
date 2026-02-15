@@ -37,7 +37,7 @@
           <div class="w-full border-t border-slate-200" />
         </div>
         <div class="relative flex justify-center text-sm">
-          <span class="bg-slate-50 px-2 text-slate-500">or</span>
+          <span class="bg-slate-50 px-2 text-slate-600">or</span>
         </div>
       </div>
 
@@ -66,7 +66,7 @@
         Continue with Google
       </a>
 
-      <p class="mt-6 text-center text-sm text-slate-500">
+      <p class="mt-6 text-center text-sm text-slate-600">
         Don't have an account?
         <NuxtLink
           :to="route.query.redirect ? `/register?redirect=${encodeURIComponent(route.query.redirect as string)}` : '/register'"

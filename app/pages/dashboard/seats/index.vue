@@ -82,7 +82,7 @@
     <!-- Seat Grid -->
     <AppCard title="Seat Grid">
       <div v-if="loading" class="text-center py-8">
-        <p class="text-sm text-slate-500">Loading seats...</p>
+        <p class="text-sm text-slate-600">Loading seats...</p>
       </div>
       <div v-else-if="seats.length === 0" class="text-center py-8">
         <AppEmptyState
@@ -108,15 +108,15 @@
           <h3 class="text-sm font-medium text-slate-700 mb-2">Seat Information</h3>
           <div class="space-y-1 text-sm">
             <p v-if="selectedSeat.seatLabel">
-              <span class="text-slate-500">Label:</span>
+              <span class="text-slate-600">Label:</span>
               <span class="ml-2 text-slate-800">{{ selectedSeat.seatLabel }}</span>
             </p>
             <p v-if="selectedSeat.timePreference">
-              <span class="text-slate-500">Time:</span>
+              <span class="text-slate-600">Time:</span>
               <span class="ml-2 text-slate-800 capitalize">{{ selectedSeat.timePreference }}</span>
             </p>
             <p v-if="selectedSeat.genderPreference">
-              <span class="text-slate-500">Gender:</span>
+              <span class="text-slate-600">Gender:</span>
               <span class="ml-2 text-slate-800 capitalize">{{ selectedSeat.genderPreference }}</span>
             </p>
           </div>
@@ -127,7 +127,7 @@
           <h3 class="text-sm font-medium text-slate-700 mb-2">Current Occupant</h3>
           <div class="space-y-1 text-sm">
             <p>
-              <span class="text-slate-500">Name:</span>
+              <span class="text-slate-600">Name:</span>
               <NuxtLink
                 :to="`/dashboard/members/${selectedSeat.currentOccupant.memberId}`"
                 class="ml-2 text-primary-600 hover:text-primary-500"
@@ -136,13 +136,13 @@
               </NuxtLink>
             </p>
             <p>
-              <span class="text-slate-500">Checked in:</span>
+              <span class="text-slate-600">Checked in:</span>
               <span class="ml-2 text-slate-800">{{ formatDateTime(selectedSeat.currentOccupant.checkedInAt) }}</span>
             </p>
           </div>
         </div>
         <div v-else>
-          <p class="text-sm text-slate-500">This seat is currently vacant</p>
+          <p class="text-sm text-slate-600">This seat is currently vacant</p>
         </div>
 
         <!-- Actions -->

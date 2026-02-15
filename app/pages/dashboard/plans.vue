@@ -19,7 +19,7 @@
           <div>
             <h3 class="font-semibold text-slate-800">{{ plan.name }}</h3>
             <p class="text-2xl font-bold text-primary-600 mt-1">{{ formatCurrency(plan.price) }}</p>
-            <p class="text-sm text-slate-500 mt-1">{{ formatDuration(plan.durationType, plan.durationValue) }}</p>
+            <p class="text-sm text-slate-600 mt-1">{{ formatDuration(plan.durationType, plan.durationValue) }}</p>
           </div>
           <AppBadge :color="plan.active ? 'green' : 'gray'">
             {{ plan.active ? "Active" : "Inactive" }}

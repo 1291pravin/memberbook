@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-xl font-bold text-slate-800">Manage Seats</h1>
-        <p class="text-sm text-slate-500 mt-1">Create, edit, and organize library seats</p>
+        <p class="text-sm text-slate-600 mt-1">Create, edit, and organize library seats</p>
       </div>
       <div class="flex gap-2">
         <AppButton size="sm" variant="secondary" @click="showBulkModal = true">
@@ -19,7 +19,7 @@
     <!-- Seats Table -->
     <AppCard title="All Seats">
       <div v-if="loading" class="text-center py-8">
-        <p class="text-sm text-slate-500">Loading seats...</p>
+        <p class="text-sm text-slate-600">Loading seats...</p>
       </div>
       <div v-else-if="seats.length === 0" class="text-center py-8">
         <AppEmptyState
@@ -219,7 +219,7 @@
         <p class="text-sm text-slate-700">
           Are you sure you want to delete seat <strong>{{ seatToDelete?.seatNumber }}</strong>?
         </p>
-        <p class="text-xs text-slate-500">
+        <p class="text-xs text-slate-600">
           This action cannot be undone. The seat will be marked as inactive.
         </p>
 

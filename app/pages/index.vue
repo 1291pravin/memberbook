@@ -31,7 +31,7 @@
               <span class="text-primary-600 text-xl">{{ feature.emoji }}</span>
             </div>
             <h3 class="font-semibold text-slate-800">{{ feature.title }}</h3>
-            <p class="text-sm text-slate-500 mt-2">{{ feature.desc }}</p>
+            <p class="text-sm text-slate-600 mt-2">{{ feature.desc }}</p>
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
+    <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-600">
       <div class="mb-3">
         MemberBook &mdash; Simple member management for small businesses.
       </div>

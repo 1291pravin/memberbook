@@ -15,7 +15,7 @@
         @dragleave="dragOver = false"
         @drop.prevent="handleDrop"
       >
-        <p class="text-slate-500 text-sm">Click or drag a CSV file here</p>
+        <p class="text-slate-600 text-sm">Click or drag a CSV file here</p>
         <input
           ref="fileInput"
           type="file"
@@ -38,20 +38,20 @@
         <div class="text-sm text-slate-600">
           <span class="text-green-600 font-medium">{{ validCount }} valid</span>
           <span v-if="errorCount > 0" class="ml-2 text-red-600 font-medium">{{ errorCount }} errors</span>
-          <span class="ml-2 text-slate-400">of {{ previewRows.length }} rows</span>
+          <span class="ml-2 text-slate-600">of {{ previewRows.length }} rows</span>
         </div>
-        <button class="text-sm text-slate-500 hover:underline" @click="reset">Change file</button>
+        <button class="text-sm text-slate-600 hover:underline" @click="reset">Change file</button>
       </div>
 
       <div class="max-h-72 overflow-auto border border-slate-200 rounded-lg">
         <table class="w-full text-xs">
           <thead class="bg-slate-50 sticky top-0">
             <tr>
-              <th class="px-2 py-1 text-left text-slate-500">#</th>
-              <th class="px-2 py-1 text-left text-slate-500">Name</th>
-              <th class="px-2 py-1 text-left text-slate-500">Phone</th>
-              <th class="px-2 py-1 text-left text-slate-500">Plan</th>
-              <th class="px-2 py-1 text-left text-slate-500">Status</th>
+              <th class="px-2 py-1 text-left text-slate-600">#</th>
+              <th class="px-2 py-1 text-left text-slate-600">Name</th>
+              <th class="px-2 py-1 text-left text-slate-600">Phone</th>
+              <th class="px-2 py-1 text-left text-slate-600">Plan</th>
+              <th class="px-2 py-1 text-left text-slate-600">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -60,7 +60,7 @@
               :key="i"
               :class="row.error ? 'bg-red-50' : 'bg-green-50'"
             >
-              <td class="px-2 py-1 text-slate-400">{{ i + 1 }}</td>
+              <td class="px-2 py-1 text-slate-600">{{ i + 1 }}</td>
               <td class="px-2 py-1">{{ row.data.name || '—' }}</td>
               <td class="px-2 py-1">{{ row.data.phone || '—' }}</td>
               <td class="px-2 py-1">{{ row.data.plan || '—' }}</td>

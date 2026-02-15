@@ -2,7 +2,7 @@
   <div class="min-h-[80vh] flex items-center justify-center px-4">
     <div class="w-full max-w-sm">
       <h1 class="text-2xl font-bold text-slate-800 text-center mb-2">Set up your workspace</h1>
-      <p class="text-center text-sm text-slate-500 mb-8">Tell us about your business</p>
+      <p class="text-center text-sm text-slate-600 mb-8">Tell us about your business</p>
 
       <div v-if="error" class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
         {{ error }}

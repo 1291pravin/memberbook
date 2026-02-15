@@ -36,7 +36,7 @@
         <div v-for="item in expiring" :key="item.memberId" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
             <p class="text-sm font-medium text-slate-800">{{ item.memberName }}</p>
-            <p class="text-xs text-slate-500">{{ item.planName }} &mdash; expires {{ formatDate(item.endDate) }}</p>
+            <p class="text-xs text-slate-600">{{ item.planName }} &mdash; expires {{ formatDate(item.endDate) }}</p>
           </div>
           <div class="flex items-center gap-2">
             <a
@@ -59,7 +59,7 @@
         <div v-for="p in recentPayments" :key="p.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div>
             <p class="text-sm font-medium text-slate-800">{{ p.memberName }}</p>
-            <p class="text-xs text-slate-500">{{ formatDate(p.date) }}</p>
+            <p class="text-xs text-slate-600">{{ formatDate(p.date) }}</p>
           </div>
           <p class="text-sm font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
         </div>

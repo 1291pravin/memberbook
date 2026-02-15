@@ -4,7 +4,7 @@
     <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-slate-800 lg:fixed lg:inset-y-0">
       <div class="p-4 border-b border-slate-700">
         <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300">MemberBook</NuxtLink>
-        <p v-if="currentOrg" class="text-xs text-slate-500 mt-1">{{ currentOrg.name }}</p>
+        <p v-if="currentOrg" class="text-xs text-slate-400 mt-1">{{ currentOrg.name }}</p>
       </div>
       <nav class="flex-1 p-3 space-y-1">
         <NuxtLink
@@ -34,10 +34,10 @@
       <header class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <NuxtLink to="/dashboard" class="text-lg font-bold text-primary-600">MemberBook</NuxtLink>
         <div class="flex items-center gap-2">
-          <p v-if="currentOrg" class="text-xs text-slate-500">{{ currentOrg.name }}</p>
+          <p v-if="currentOrg" class="text-xs text-slate-600">{{ currentOrg.name }}</p>
           <div class="relative">
             <button
-              class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"
+              class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
               @click="mobileMenuOpen = !mobileMenuOpen"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@
         :key="item.to"
         :to="item.to"
         class="relative flex flex-col items-center gap-0.5 px-2 py-1 text-xs"
-        :class="isActive(item.to) ? 'text-primary-600' : 'text-slate-500'"
+        :class="isActive(item.to) ? 'text-primary-600' : 'text-slate-600'"
       >
         <span
           v-if="isActive(item.to)"
@@ -97,7 +97,7 @@
       <!-- More Button -->
       <button
         class="relative flex flex-col items-center gap-0.5 px-2 py-1 text-xs"
-        :class="moreMenuOpen ? 'text-primary-600' : 'text-slate-500'"
+        :class="moreMenuOpen ? 'text-primary-600' : 'text-slate-600'"
         @click="moreMenuOpen = !moreMenuOpen"
       >
         <span
@@ -147,7 +147,7 @@
             <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
               <h3 class="text-lg font-semibold text-slate-800">Menu</h3>
               <button
-                class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100"
+                class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
                 @click="moreMenuOpen = false"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

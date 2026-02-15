@@ -27,7 +27,7 @@
               <div class="text-xs text-primary-600 font-medium mb-2">{{ post.category }}</div>
               <h2 class="text-xl font-semibold text-slate-800 mb-2 line-clamp-2">{{ post.title }}</h2>
               <p class="text-sm text-slate-600 mb-4 line-clamp-3">{{ post.excerpt }}</p>
-              <div class="flex items-center justify-between text-xs text-slate-500">
+              <div class="flex items-center justify-between text-xs text-slate-600">
                 <span>{{ post.date }}</span>
                 <span>{{ post.readTime }} read</span>
               </div>

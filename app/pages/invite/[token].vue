@@ -32,7 +32,7 @@
           <AppButton class="w-full" variant="secondary" @click="handleRegister">
             Create New Account
           </AppButton>
-          <p class="text-xs text-center text-slate-500 mt-2">
+          <p class="text-xs text-center text-slate-600 mt-2">
             You'll return here to accept the invitation after signing in
           </p>
         </div>

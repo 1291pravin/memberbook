@@ -9,12 +9,14 @@ MemberBook is a multi-tenant SaaS application for managing memberships, subscrip
 ## Development Workflow
 
 Work directly with Claude for all development tasks (features, bug fixes, UI changes, etc.). Claude will:
+
 - Read existing code before making changes
 - Plan implementations before writing code
 - Iterate based on errors and feedback
 - Follow established project patterns
 
 **Optional agents for specific reviews:**
+
 - **code-reviewer** — Use before merging PRs: "Review this PR before merge"
 - **security-auditor** — Use for periodic audits: "Audit all API routes for security"
 - **data-migrator** — Use for importing member data from external sources
@@ -77,6 +79,22 @@ UI primitives in `app/components/`: `AppButton`, `AppInput`, `AppSelect`, `AppCa
 - `useApi()` — typed `$fetch` wrapper with Content-Type header
 - `useFormatCurrency()` — currency formatting
 - `useWhatsApp()` — WhatsApp messaging integration
+
+### Design System - Text Colors
+
+**IMPORTANT:** Use accessible text colors that meet WCAG AA/AAA standards (7:1 contrast ratio on white backgrounds):
+
+- **Primary text:** `text-slate-800` — Dark, high contrast (14:1 ratio) — Use for headings, member names, important content
+- **Secondary text:** `text-slate-600` — Medium contrast (7.1:1 ratio) — Use for descriptions, metadata, phone numbers, dates
+- **Labels:** `text-slate-700` — Strong contrast (10.7:1 ratio) — Use for form labels, card titles, subheadings
+- **Disabled/muted:** `text-slate-500` — Lower contrast (4.6:1 ratio) — Use sparingly, only for truly de-emphasized content
+- **Placeholders:** `placeholder-slate-500` — Use for input placeholders
+- **Icons (empty states):** `text-slate-400` — Use for decorative icons only
+
+**Never use:**
+
+- `text-slate-300` or `text-slate-400` for readable text (fails WCAG AA)
+- `text-slate-500` for important information (barely passes AA, fails AAA)
 
 ## Environment Variables
 

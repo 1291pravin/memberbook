@@ -12,7 +12,7 @@
     </div>
 
     <!-- Seat Label (if present) -->
-    <div v-if="seat.seatLabel" class="text-xs text-slate-500 mb-2">
+    <div v-if="seat.seatLabel" class="text-xs text-slate-600 mb-2">
       {{ seat.seatLabel }}
     </div>
 
@@ -37,7 +37,7 @@
       </div>
     </div>
     <div v-else class="border-t border-slate-200 pt-2">
-      <div class="text-sm text-slate-400 font-medium">
+      <div class="text-sm text-slate-600 font-medium">
         Vacant
       </div>
     </div>

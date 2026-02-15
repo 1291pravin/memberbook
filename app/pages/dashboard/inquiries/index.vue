@@ -34,9 +34,9 @@
         <div class="flex items-start justify-between">
           <div>
             <p class="font-medium text-slate-800 text-sm">{{ inq.name }}</p>
-            <p v-if="inq.phone" class="text-xs text-slate-500">{{ inq.phone }}</p>
-            <p v-if="inq.interest" class="text-xs text-slate-400 mt-1">{{ inq.interest }}</p>
-            <p v-if="inq.followUpDate" class="text-xs text-slate-400">Follow up: {{ inq.followUpDate }}</p>
+            <p v-if="inq.phone" class="text-xs text-slate-600">{{ inq.phone }}</p>
+            <p v-if="inq.interest" class="text-xs text-slate-600 mt-1">{{ inq.interest }}</p>
+            <p v-if="inq.followUpDate" class="text-xs text-slate-600">Follow up: {{ inq.followUpDate }}</p>
           </div>
           <div class="flex items-center gap-2">
             <AppBadge :color="statusColor(inq.status)">{{ inq.status }}</AppBadge>
