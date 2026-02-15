@@ -177,7 +177,7 @@ useHead({
           '@type': 'Organization',
           name: 'MemberBook',
           url: 'https://memberbook.in',
-          logo: 'https://memberbook.in/logo.svg',
+          logo: 'https://memberbook.in/logo.png',
           sameAs: [
             // Add social profiles when available
           ],
@@ -403,7 +403,7 @@ useHead({
         '@type': 'Organization',
         name: 'MemberBook',
         url: 'https://memberbook.in',
-        logo: 'https://memberbook.in/logo.svg',
+        logo: 'https://memberbook.in/logo.png',
         description: 'Simple membership and subscription management software for small businesses in India.',
         address: {
           '@type': 'PostalAddress',
@@ -539,7 +539,7 @@ useSeoMeta({
     name: 'MemberBook',
     logo: {
       '@type': 'ImageObject',
-      url: 'https://memberbook.in/logo.svg',
+      url: 'https://memberbook.in/logo.png',
     }
   }
 }

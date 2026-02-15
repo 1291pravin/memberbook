@@ -121,7 +121,7 @@ useHead({
         "@type": "Organization",
         "name": "MemberBook",
         "url": appUrl,
-        "logo": `${appUrl}/logo.svg`,
+        "logo": `${appUrl}/logo.png`,
         "description": "Simple member management software for Indian small businesses including gyms, libraries, and tuition centers",
         "foundingDate": "2025",
         "address": {

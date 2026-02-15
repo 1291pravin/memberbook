@@ -141,7 +141,7 @@ useHead({
           "name": "MemberBook",
           "logo": {
             "@type": "ImageObject",
-            "url": `${appUrl}/logo.svg`,
+            "url": `${appUrl}/logo.png`,
           },
         },
         "mainEntityOfPage": {
