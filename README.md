@@ -6,6 +6,28 @@ Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduct
 
 Make sure to install dependencies:
 
+### Environment Variables
+
+Create a `.env` file in the project root with the following variables:
+
+```env
+NUXT_SESSION_PASSWORD=your-session-password-min-32-chars
+NUXT_OAUTH_GOOGLE_CLIENT_ID=your-google-oauth-client-id
+NUXT_OAUTH_GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+NUXT_PUBLIC_APP_URL=http://localhost:3000
+NUXT_PUBLIC_GTAG_ID=G-XXXXXXXXXX  # Your Google Analytics 4 Measurement ID
+```
+
+**Google Analytics Setup:**
+1. Go to [Google Analytics](https://analytics.google.com/)
+2. Create a new GA4 property or select an existing one
+3. Copy your Measurement ID (format: `G-XXXXXXXXXX`)
+4. Replace `G-XXXXXXXXXX` in your `.env` file with your actual Measurement ID
+
+### Install Dependencies
+
+Make sure to install dependencies:
+
 ```bash
 # npm
 npm install

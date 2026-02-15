@@ -27,4 +27,10 @@
       "invocation_logs": true,
     },
   },
+  "vars": {
+    "NUXT_PUBLIC_APP_URL": "https://memberbook.in",
+    "NUXT_SITE_URL": "https://memberbook.in",
+    "NUXT_SITE_NAME": "MemberBook",
+    "NUXT_PUBLIC_GTAG_ID": "G-0X02PJLVRK",
+  },
 }

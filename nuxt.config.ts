@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/eslint", "@nuxt/hints", "@nuxthub/core", "nuxt-auth-utils", "@nuxtjs/sitemap"],
+  modules: ["@nuxt/eslint", "@nuxt/hints", "@nuxthub/core", "nuxt-auth-utils", "@nuxtjs/sitemap", "nuxt-gtag"],
 
   // Global SEO defaults
   app: {
@@ -45,7 +45,6 @@ export default defineNuxtConfig({
 
   // Sitemap configuration
   sitemap: {
-    hostname: process.env.NUXT_PUBLIC_APP_URL || "https://memberbook.app",
     exclude: [
       "/dashboard/**",
       "/onboarding",
@@ -57,18 +56,16 @@ export default defineNuxtConfig({
       changefreq: "weekly",
       priority: 0.7,
     },
-    routes: async () => {
-      return [
-        { url: "/", changefreq: "daily", priority: 1.0 },
-        { url: "/features", changefreq: "weekly", priority: 0.9 },
-        { url: "/about", changefreq: "monthly", priority: 0.8 },
-        { url: "/gym", changefreq: "weekly", priority: 0.9 },
-        { url: "/library", changefreq: "weekly", priority: 0.9 },
-        { url: "/tuition", changefreq: "weekly", priority: 0.9 },
-        { url: "/privacy", changefreq: "monthly", priority: 0.5 },
-        { url: "/terms", changefreq: "monthly", priority: 0.5 },
-      ];
-    },
+    urls: [
+      { loc: "/", changefreq: "daily", priority: 1.0 },
+      { loc: "/features", changefreq: "weekly", priority: 0.9 },
+      { loc: "/about", changefreq: "monthly", priority: 0.8 },
+      { loc: "/gym", changefreq: "weekly", priority: 0.9 },
+      { loc: "/library", changefreq: "weekly", priority: 0.9 },
+      { loc: "/tuition", changefreq: "weekly", priority: 0.9 },
+      { loc: "/privacy", changefreq: "monthly", priority: 0.5 },
+      { loc: "/terms", changefreq: "monthly", priority: 0.5 },
+    ],
   },
 
   vite: {
@@ -90,7 +87,7 @@ export default defineNuxtConfig({
       },
     },
     public: {
-      appUrl: "",
+      appUrl: ""
     },
   },
 });
