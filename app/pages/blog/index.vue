@@ -20,8 +20,12 @@
             :to="`/blog/${post.slug}`"
             class="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow"
           >
-            <div class="aspect-video bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-4xl">
-              {{ post.emoji }}
+            <div class="aspect-video overflow-hidden">
+              <img
+                :src="post.image"
+                :alt="post.title"
+                class="w-full h-full object-cover"
+              >
             </div>
             <div class="p-6">
               <div class="text-xs text-primary-600 font-medium mb-2">{{ post.category }}</div>
@@ -47,6 +51,8 @@
 </template>
 
 <script setup lang="ts">
+import { blogPosts } from "~/data/blogPosts";
+
 definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
@@ -113,17 +119,4 @@ useHead({
   ],
 });
 
-// Placeholder blog posts - replace with real content or CMS integration
-const blogPosts = ref([
-  // Example structure - add real blog posts here
-  // {
-  //   slug: "how-to-manage-gym-members",
-  //   title: "How to Manage Gym Members Effectively in 2025",
-  //   excerpt: "Learn the best practices for managing gym memberships, tracking payments, and keeping members engaged.",
-  //   category: "Gym Management",
-  //   date: "Feb 10, 2025",
-  //   readTime: "5 min",
-  //   emoji: "🏋️"
-  // },
-]);
 </script>
