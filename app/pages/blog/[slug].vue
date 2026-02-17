@@ -9,47 +9,54 @@
           <span class="mx-2">/</span>
           <NuxtLink to="/blog" class="hover:text-primary-600">Blog</NuxtLink>
           <span class="mx-2">/</span>
-          <span class="text-slate-900">{{ article.title }}</span>
+          <span class="text-slate-800">{{ article.title }}</span>
         </nav>
 
-        <!-- Article Meta -->
-        <div class="mb-6">
-          <div class="text-sm text-primary-600 font-medium mb-2">{{ article.category }}</div>
-          <h1 class="text-4xl font-bold text-slate-800 mb-4">{{ article.title }}</h1>
-          <div class="flex items-center gap-4 text-sm text-slate-600">
+        <!-- Hero image -->
+        <div class="rounded-xl overflow-hidden mb-8 shadow-md">
+          <img
+            :src="article.image"
+            :alt="article.title"
+            class="w-full aspect-video object-cover"
+          >
+        </div>
+
+        <!-- Category + Title -->
+        <div class="mb-8">
+          <div class="text-sm text-primary-600 font-semibold mb-3 uppercase tracking-wide">{{ article.category }}</div>
+          <h1 class="text-4xl font-bold text-slate-800 mb-5 leading-tight">{{ article.title }}</h1>
+          <div class="flex items-center gap-4 text-sm text-slate-600 pb-6 border-b border-slate-200">
+            <span>By {{ article.author }}</span>
+            <span>&middot;</span>
             <span>{{ article.date }}</span>
             <span>&middot;</span>
             <span>{{ article.readTime }} read</span>
           </div>
         </div>
 
-        <!-- Article Content -->
-        <div class="prose prose-slate max-w-none">
-          <p class="lead text-lg text-slate-600">{{ article.excerpt }}</p>
+        <!-- Lead excerpt -->
+        <p class="text-xl text-slate-600 leading-relaxed mb-8">{{ article.excerpt }}</p>
 
-          <!-- Placeholder for article content -->
-          <div class="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center my-8">
-            <div class="text-5xl mb-4">📝</div>
-            <p class="text-slate-600">
-              Article content will be added here. This is a placeholder for the blog post structure.
-            </p>
-          </div>
-        </div>
+        <!-- Article Content -->
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <div class="prose-content" v-html="article.content" />
 
         <!-- Share -->
         <div class="mt-12 pt-8 border-t border-slate-200">
           <p class="text-sm font-medium text-slate-800 mb-4">Share this article</p>
-          <div class="flex gap-3">
+          <div class="flex gap-3 flex-wrap">
             <a
               :href="`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(articleUrl)}`"
               target="_blank"
+              rel="noopener noreferrer"
               class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
             >
-              Twitter
+              X (Twitter)
             </a>
             <a
               :href="`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`"
               target="_blank"
+              rel="noopener noreferrer"
               class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
             >
               Facebook
@@ -57,6 +64,7 @@
             <a
               :href="`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`"
               target="_blank"
+              rel="noopener noreferrer"
               class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
             >
               LinkedIn
@@ -82,6 +90,8 @@
 </template>
 
 <script setup lang="ts">
+import { getBlogPost } from "~/data/blogPosts";
+
 definePageMeta({ layout: "default" });
 
 const route = useRoute();
@@ -89,34 +99,30 @@ const config = useRuntimeConfig();
 const appUrl = config.public.appUrl || "https://memberbook.app";
 const slug = route.params.slug as string;
 
-// In a real implementation, this would fetch from a CMS or database
-// For now, using placeholder data
-const article = ref({
-  slug,
-  title: "Sample Blog Post",
-  excerpt: "This is a placeholder for blog article content. Replace this with your actual blog post data.",
-  category: "Guides",
-  date: "Feb 12, 2025",
-  readTime: "5 min",
-  author: "MemberBook Team",
-});
+const article = getBlogPost(slug);
+
+if (!article) {
+  throw createError({ statusCode: 404, message: "Article not found" });
+}
 
 const articleUrl = `${appUrl}/blog/${slug}`;
+const ogImage = `${appUrl}${article.image}`;
 
 useSeoMeta({
-  title: `${article.value.title} - MemberBook Blog`,
-  description: article.value.excerpt,
-  ogTitle: article.value.title,
-  ogDescription: article.value.excerpt,
-  ogImage: `${appUrl}/og-image.png`,
+  title: `${article.title} - MemberBook Blog`,
+  description: article.excerpt,
+  ogTitle: article.title,
+  ogDescription: article.excerpt,
+  ogImage,
   ogUrl: articleUrl,
   ogType: "article",
-  articlePublishedTime: article.value.date,
-  articleAuthor: article.value.author,
+  articlePublishedTime: article.dateISO,
+  articleAuthor: article.author,
+  articleTag: article.keywords,
   twitterCard: "summary_large_image",
-  twitterTitle: article.value.title,
-  twitterDescription: article.value.excerpt,
-  twitterImage: `${appUrl}/og-image.png`,
+  twitterTitle: article.title,
+  twitterDescription: article.excerpt,
+  twitterImage: ogImage,
 });
 
 useHead({
@@ -129,12 +135,15 @@ useHead({
       children: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BlogPosting",
-        "headline": article.value.title,
-        "description": article.value.excerpt,
-        "datePublished": article.value.date,
+        "headline": article.title,
+        "description": article.excerpt,
+        "keywords": article.keywords.join(", "),
+        "datePublished": article.dateISO,
+        "dateModified": article.dateISO,
         "author": {
           "@type": "Organization",
-          "name": article.value.author,
+          "name": article.author,
+          "url": appUrl,
         },
         "publisher": {
           "@type": "Organization",
@@ -148,6 +157,8 @@ useHead({
           "@type": "WebPage",
           "@id": articleUrl,
         },
+        "image": ogImage,
+        "inLanguage": "en-IN",
       }),
     },
     {
@@ -171,7 +182,7 @@ useHead({
           {
             "@type": "ListItem",
             "position": 3,
-            "name": article.value.title,
+            "name": article.title,
             "item": articleUrl,
           },
         ],
@@ -180,3 +191,55 @@ useHead({
   ],
 });
 </script>
+
+<style scoped>
+.prose-content :deep(h2) {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b; /* slate-800 */
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.prose-content :deep(h3) {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #334155; /* slate-700 */
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-content :deep(p) {
+  color: #475569; /* slate-600 */
+  line-height: 1.8;
+  margin-bottom: 1.25rem;
+}
+
+.prose-content :deep(ul) {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose-content :deep(li) {
+  color: #475569; /* slate-600 */
+  line-height: 1.8;
+  margin-bottom: 0.5rem;
+}
+
+.prose-content :deep(strong) {
+  color: #1e293b; /* slate-800 */
+  font-weight: 600;
+}
+
+.prose-content :deep(a) {
+  color: var(--color-primary-600, #2563eb);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-content :deep(a:hover) {
+  color: var(--color-primary-700, #1d4ed8);
+}
+</style>

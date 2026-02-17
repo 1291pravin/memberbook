@@ -37,6 +37,34 @@
       </div>
     </section>
 
+    <!-- From the Blog -->
+    <section class="py-16 px-4 bg-slate-50">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-2xl font-bold text-slate-800">From the Blog</h2>
+          <NuxtLink to="/blog" class="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            View all articles →
+          </NuxtLink>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+          <NuxtLink
+            v-for="post in featuredPosts"
+            :key="post.slug"
+            :to="`/blog/${post.slug}`"
+            class="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow"
+          >
+            <div class="aspect-video overflow-hidden rounded-lg mb-4 -mt-1">
+              <img :src="post.image" :alt="post.title" class="w-full h-full object-cover">
+            </div>
+            <div class="text-xs text-primary-600 font-medium mb-2">{{ post.category }}</div>
+            <h3 class="font-semibold text-slate-800 mb-2 leading-snug">{{ post.title }}</h3>
+            <p class="text-sm text-slate-600 line-clamp-2">{{ post.excerpt }}</p>
+            <div class="mt-4 text-xs text-slate-500">{{ post.date }} &middot; {{ post.readTime }} read</div>
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="py-16 px-4 text-center">
       <div class="max-w-xl mx-auto">
@@ -56,6 +84,8 @@
       <div class="flex gap-4 justify-center flex-wrap">
         <NuxtLink to="/features" class="hover:text-primary-600">Features</NuxtLink>
         <span>&middot;</span>
+        <NuxtLink to="/blog" class="hover:text-primary-600">Blog</NuxtLink>
+        <span>&middot;</span>
         <NuxtLink to="/about" class="hover:text-primary-600">About</NuxtLink>
         <span>&middot;</span>
         <NuxtLink to="/privacy" class="hover:text-primary-600">Privacy Policy</NuxtLink>
@@ -67,6 +97,8 @@
 </template>
 
 <script setup lang="ts">
+import { blogPosts } from "~/data/blogPosts";
+
 definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
@@ -178,6 +210,8 @@ useHead({
     },
   ],
 });
+
+const featuredPosts = blogPosts.slice(0, 2);
 
 const features = [
   { emoji: "👥", title: "Member Management", desc: "Track members, their subscriptions, and payment history in one place." },

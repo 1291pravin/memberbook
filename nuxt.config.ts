@@ -65,6 +65,9 @@ export default defineNuxtConfig({
       { loc: "/tuition", changefreq: "weekly", priority: 0.9 },
       { loc: "/privacy", changefreq: "monthly", priority: 0.5 },
       { loc: "/terms", changefreq: "monthly", priority: 0.5 },
+      { loc: "/blog", changefreq: "weekly", priority: 0.8 },
+      { loc: "/blog/how-to-manage-gym-members", changefreq: "monthly", priority: 0.7 },
+      { loc: "/blog/reduce-membership-payment-defaults", changefreq: "monthly", priority: 0.7 },
     ],
   },
 
