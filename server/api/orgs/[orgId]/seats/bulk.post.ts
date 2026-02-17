@@ -58,11 +58,20 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Bulk insert
-  const seats = await db
-    .insert(schema.librarySeats)
-    .values(seatsToCreate)
-    .returning();
+  // Bulk insert in chunks — D1 limits bound parameters to 100 per query
+  // Each row has 9 params, so max 10 rows per chunk (90 params)
+  const CHUNK_SIZE = 10;
+  const chunks: (typeof seatsToCreate)[] = [];
+  for (let i = 0; i < seatsToCreate.length; i += CHUNK_SIZE) {
+    chunks.push(seatsToCreate.slice(i, i + CHUNK_SIZE));
+  }
+
+  const results = await db.batch(
+    chunks.map((chunk) =>
+      db.insert(schema.librarySeats).values(chunk).returning()
+    )
+  );
+  const seats = results.flat();
 
   // Invalidate cache
   await invalidateCache(access.orgId);
