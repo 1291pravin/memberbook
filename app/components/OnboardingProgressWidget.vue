@@ -1,5 +1,5 @@
 <template>
-  <AppCard v-if="!isComplete && progress" class="mb-6 bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
+  <AppCard v-if="!dismissed && !isComplete && progress" class="mb-6 bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
     <div class="flex items-start justify-between mb-3">
       <div>
         <h3 class="font-semibold text-slate-800 flex items-center gap-2">
@@ -51,9 +51,14 @@
 </template>
 
 <script setup lang="ts">
+const { orgId } = useOrg();
 const { progress, loadProgress, markStepComplete, isComplete } = useOnboarding();
 
+const DISMISS_KEY = computed(() => `onboarding-dismissed-${orgId.value}`);
+const dismissed = ref(false);
+
 onMounted(() => {
+  dismissed.value = localStorage.getItem(DISMISS_KEY.value) === 'true';
   loadProgress();
 });
 
@@ -77,7 +82,8 @@ async function goToStep(stepKey: string) {
 }
 
 async function dismissWidget() {
-  // Mark dashboard tour as complete (user acknowledges they've seen the widget)
+  dismissed.value = true;
+  localStorage.setItem(DISMISS_KEY.value, 'true');
   await markStepComplete('dashboardTourCompleted');
 }
 </script>
