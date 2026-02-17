@@ -68,6 +68,10 @@ export default defineNuxtConfig({
       { loc: "/blog", changefreq: "weekly", priority: 0.8 },
       { loc: "/blog/how-to-manage-gym-members", changefreq: "monthly", priority: 0.7 },
       { loc: "/blog/reduce-membership-payment-defaults", changefreq: "monthly", priority: 0.7 },
+      { loc: "/tools", changefreq: "weekly", priority: 0.9 },
+      { loc: "/tools/whatsapp-gym-renewal-reminder", changefreq: "monthly", priority: 0.8 },
+      { loc: "/tools/tuition-fee-receipt-generator", changefreq: "monthly", priority: 0.8 },
+      { loc: "/tools/gym-membership-revenue-calculator", changefreq: "monthly", priority: 0.8 },
     ],
   },
 

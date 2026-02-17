@@ -5,6 +5,7 @@
         <NuxtLink to="/" class="text-xl font-bold text-primary-600">MemberBook</NuxtLink>
         <nav class="flex items-center gap-4">
           <NuxtLink to="/blog" class="hidden sm:block text-sm text-slate-600 hover:text-slate-900">Blog</NuxtLink>
+          <NuxtLink to="/tools" class="hidden sm:block text-sm text-slate-600 hover:text-slate-900">Tools</NuxtLink>
           <template v-if="loggedIn">
             <NuxtLink to="/dashboard" class="text-sm text-slate-600 hover:text-slate-900">Dashboard</NuxtLink>
             <button class="text-sm text-slate-600 hover:text-slate-900" @click="logout">Logout</button>
