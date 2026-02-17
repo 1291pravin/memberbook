@@ -80,6 +80,9 @@ export default defineNuxtConfig({
     cache: true,
   },
   runtimeConfig: {
+    session: {
+      maxAge: 60 * 60 * 24 * 365, // 1 year — effectively "no timeout"
+    },
     oauth: {
       google: {
         clientId: "",
