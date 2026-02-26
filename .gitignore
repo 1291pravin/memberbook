@@ -25,3 +25,9 @@ logs
 .env
 .env.*
 !.env.example
+
+# Analytics OAuth token cache (contains refresh tokens — never commit)
+.analytics-token.json
+
+# Google service account key (if ever added)
+google-service-account.json
