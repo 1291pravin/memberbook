@@ -180,16 +180,29 @@
         <!-- Assigned Member (batch mode) -->
         <div v-if="selectedSeat.assignedMember && !selectedSeat.isOccupied">
           <h3 class="text-sm font-medium text-slate-700 mb-2">Assigned Member</h3>
-          <div class="space-y-1 text-sm">
-            <p>
-              <span class="text-slate-600">Name:</span>
-              <NuxtLink
-                :to="`/dashboard/members/${selectedSeat.assignedMember.memberId}`"
-                class="ml-2 text-primary-600 hover:text-primary-500"
-              >
-                {{ selectedSeat.assignedMember.memberName }}
-              </NuxtLink>
-            </p>
+          <div class="flex items-center justify-between">
+            <div class="space-y-1 text-sm">
+              <p>
+                <span class="text-slate-600">Name:</span>
+                <NuxtLink
+                  :to="`/dashboard/members/${selectedSeat.assignedMember.memberId}`"
+                  class="ml-2 text-primary-600 hover:text-primary-500"
+                >
+                  {{ selectedSeat.assignedMember.memberName }}
+                </NuxtLink>
+              </p>
+            </div>
+            <button
+              type="button"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              title="Remove assignment"
+              :disabled="removingAssignment"
+              @click="handleRemoveAssignment"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -337,6 +350,7 @@ const selectedMemberId = ref<number | null>(null);
 const selectedMemberName = ref("");
 const assigningMember = ref(false);
 const assignError = ref("");
+const removingAssignment = ref(false);
 
 // Batch support
 interface Batch {
@@ -601,6 +615,31 @@ async function handleAssignMember() {
     assignError.value = error?.data?.statusMessage || "Failed to assign member";
   } finally {
     assigningMember.value = false;
+  }
+}
+
+// Remove seat assignment
+async function handleRemoveAssignment() {
+  if (!selectedSeat.value?.assignedMember?.memberId) return;
+
+  removingAssignment.value = true;
+  try {
+    const params = new URLSearchParams();
+    if (selectedBatchId.value) {
+      params.set("batchId", String(selectedBatchId.value));
+    }
+    const queryString = params.toString();
+    const url = `/api/orgs/${orgId.value}/members/${selectedSeat.value.assignedMember.memberId}/seat-assignment${queryString ? `?${queryString}` : ""}`;
+
+    await api(url, { method: "DELETE" });
+
+    showSeatModal.value = false;
+    selectedSeat.value = null;
+    await fetchSeats();
+  } catch (error: any) {
+    console.error("Failed to remove assignment:", error);
+  } finally {
+    removingAssignment.value = false;
   }
 }
 
