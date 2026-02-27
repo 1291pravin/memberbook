@@ -5,9 +5,14 @@
         <NuxtLink to="/dashboard/members" class="text-sm text-primary-600 hover:text-primary-500">&larr; {{ t.members }}</NuxtLink>
         <h1 class="text-xl font-bold text-slate-800 mt-1">{{ member?.name }}</h1>
       </div>
-      <AppBadge v-if="member" :color="member.status === 'active' ? 'green' : 'gray'">
-        {{ member.status }}
-      </AppBadge>
+      <div class="flex items-center gap-2">
+        <AppBadge v-if="member" :color="member.status === 'active' ? 'green' : 'gray'">
+          {{ member.status }}
+        </AppBadge>
+        <AppButton v-if="member" size="sm" variant="secondary" @click="openEditMember">
+          Edit
+        </AppButton>
+      </div>
     </div>
 
     <!-- Error Banner -->
@@ -21,6 +26,9 @@
       <div class="space-y-2 text-sm">
         <p v-if="member.phone"><span class="text-slate-600">Phone:</span> <a :href="`tel:${member.phone}`" class="text-primary-600 hover:underline">{{ member.phone }}</a></p>
         <p v-if="member.email"><span class="text-slate-600">Email:</span> {{ member.email }}</p>
+        <p v-if="member.fatherName"><span class="text-slate-600">Father's Name:</span> {{ member.fatherName }}</p>
+        <p v-if="member.address"><span class="text-slate-600">Address:</span> {{ member.address }}</p>
+        <p v-if="member.batch"><span class="text-slate-600">Batch:</span> {{ member.batch }}</p>
         <p v-if="member.notes"><span class="text-slate-600">Notes:</span> {{ member.notes }}</p>
       </div>
       <div class="mt-3 flex flex-wrap gap-2">
@@ -59,38 +67,32 @@
 
     <!-- Seat Assignment -->
     <AppCard title="Seat Assignment">
-      <div v-if="seatAssignment" class="space-y-2 text-sm">
-        <p>
-          <span class="text-slate-600">Assigned Seat:</span>
-          <span class="ml-2 font-medium text-slate-800">{{ seatAssignment.seat.seatNumber }}</span>
-          <span v-if="seatAssignment.seat.seatLabel" class="ml-1 text-slate-600">({{ seatAssignment.seat.seatLabel }})</span>
-        </p>
-        <p v-if="seatAssignment.seat.timePreference">
-          <span class="text-slate-600">Time Preference:</span>
-          <span class="ml-2 text-slate-800 capitalize">{{ seatAssignment.seat.timePreference }}</span>
-        </p>
-        <p v-if="seatAssignment.assignedByName">
-          <span class="text-slate-600">Assigned By:</span>
-          <span class="ml-2 text-slate-800">{{ seatAssignment.assignedByName }}</span>
-        </p>
-        <p>
-          <span class="text-slate-600">Assigned On:</span>
-          <span class="ml-2 text-slate-800">{{ formatDate(seatAssignment.assignedAt) }}</span>
-        </p>
-        <p v-if="seatAssignment.notes" class="pt-2 border-t border-slate-100">
-          <span class="text-slate-600">Notes:</span>
-          <span class="ml-2 text-slate-800">{{ seatAssignment.notes }}</span>
-        </p>
+      <!-- Multiple batch assignments -->
+      <div v-if="seatAssignments.length > 0" class="space-y-3">
+        <div v-for="assignment in seatAssignments" :key="assignment.id" class="border-b border-slate-100 last:border-0 pb-2 last:pb-0">
+          <div class="space-y-1 text-sm">
+            <p>
+              <span v-if="assignment.batchName" class="inline-block bg-primary-50 text-primary-700 text-xs font-medium px-2 py-0.5 rounded mr-2">{{ assignment.batchName }}</span>
+              <span class="font-medium text-slate-800">Seat {{ assignment.seat.seatNumber }}</span>
+              <span v-if="assignment.seat.seatLabel" class="ml-1 text-slate-600">({{ assignment.seat.seatLabel }})</span>
+            </p>
+            <p v-if="assignment.assignedByName" class="text-slate-600">
+              Assigned by {{ assignment.assignedByName }} on {{ formatDate(assignment.assignedAt) }}
+            </p>
+          </div>
+          <div class="mt-1">
+            <AppButton size="sm" variant="ghost" @click="removeBatchSeatAssignment(assignment.batchId)" :loading="removingSeat">
+              Remove
+            </AppButton>
+          </div>
+        </div>
       </div>
       <div v-else class="text-sm text-slate-600 py-2">
-        No default seat assigned
+        No seat assigned
       </div>
-      <div class="mt-3 flex gap-2">
+      <div class="mt-3">
         <AppButton size="sm" variant="secondary" @click="openSeatAssignment">
-          {{ seatAssignment ? 'Change Seat' : 'Assign Seat' }}
-        </AppButton>
-        <AppButton v-if="seatAssignment" size="sm" variant="ghost" @click="removeSeatAssignment" :loading="removingSeat">
-          Remove
+          Assign Seat
         </AppButton>
       </div>
     </AppCard>
@@ -263,9 +265,51 @@
       </form>
     </AppModal>
 
+    <!-- Edit Member Modal -->
+    <AppModal :open="showEditModal" title="Edit Member" @close="showEditModal = false">
+      <form class="space-y-4" @submit.prevent="saveEditMember">
+        <AppInput v-model="editForm.name" label="Name" required />
+        <AppInput
+          v-model="editForm.phone"
+          label="Phone"
+          type="tel"
+          placeholder="+91 98765 43210"
+          :error="editPhoneError"
+          @blur="validateEditPhone"
+        />
+        <AppInput v-model="editForm.email" label="Email" type="email" placeholder="member@example.com" />
+        <AppInput v-model="editForm.fatherName" label="Father's Name" placeholder="Optional" />
+        <AppInput v-model="editForm.address" label="Address" placeholder="Optional" />
+        <AppInput v-model="editForm.batch" label="Batch / Timing" placeholder="e.g., Morning, Afternoon, Evening" />
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+          <textarea
+            v-model="editForm.notes"
+            rows="3"
+            class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+            placeholder="Optional notes"
+          />
+        </div>
+        <div v-if="editError" class="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <p class="text-sm text-red-700">{{ editError }}</p>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <AppButton variant="secondary" @click="showEditModal = false">Cancel</AppButton>
+          <AppButton type="submit" :loading="savingEdit">Save</AppButton>
+        </div>
+      </form>
+    </AppModal>
+
     <!-- Assign Seat Modal -->
     <AppModal :open="showSeatModal" title="Assign Seat" @close="showSeatModal = false">
       <form class="space-y-4" @submit.prevent="assignSeat">
+        <AppSelect
+          v-if="seatBatches.length > 0"
+          v-model="seatForm.batchId"
+          label="Batch"
+          :options="batchOptions"
+          placeholder="Select a batch"
+        />
         <AppSelect
           v-model="seatForm.seatId"
           label="Select Seat"
@@ -295,6 +339,8 @@
 </template>
 
 <script setup lang="ts">
+import { validatePhone, normalizePhone } from "~~/shared/utils/phone";
+
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const route = useRoute();
@@ -314,6 +360,9 @@ interface MemberDetail {
   email: string | null;
   status: string;
   notes: string | null;
+  fatherName: string | null;
+  address: string | null;
+  batch: string | null;
 }
 
 interface Subscription {
@@ -368,6 +417,8 @@ const paymentMethods = [
 interface SeatAssignment {
   id: number;
   seatId: number;
+  batchId: number | null;
+  batchName: string | null;
   assignedAt: string;
   assignedByName: string;
   notes: string | null;
@@ -378,6 +429,12 @@ interface SeatAssignment {
     timePreference?: string | null;
     genderPreference?: string | null;
   };
+}
+
+interface SeatBatch {
+  id: number;
+  name: string;
+  isActive: boolean;
 }
 
 interface LibrarySeat {
@@ -391,13 +448,23 @@ const showSeatModal = ref(false);
 const assigningSeat = ref(false);
 const removingSeat = ref(false);
 const seatError = ref("");
-const seatForm = reactive({ seatId: "", notes: "" });
+const seatForm = reactive({ seatId: "", batchId: "", notes: "" });
 
-const { data: seatAssignmentData, refresh: refreshSeatAssignment } = await useFetch<{ assignment: SeatAssignment | null }>(
+const { data: seatAssignmentData, refresh: refreshSeatAssignment } = await useFetch<{ assignment: SeatAssignment | null; assignments: SeatAssignment[] }>(
   `/api/orgs/${orgId.value}/members/${memberId}/seat-assignment`,
   { query: { _v: cacheVersion } },
 );
-const seatAssignment = computed(() => seatAssignmentData.value?.assignment ?? null);
+const seatAssignments = computed(() => seatAssignmentData.value?.assignments ?? []);
+
+// Fetch seat batches
+const { data: seatBatchesData } = await useFetch<{ batches: SeatBatch[] }>(
+  `/api/orgs/${orgId.value}/seat-batches`,
+);
+const seatBatches = computed(() => (seatBatchesData.value?.batches ?? []).filter(b => b.isActive));
+const batchOptions = computed(() => [
+  { value: "", label: "No batch (default)" },
+  ...seatBatches.value.map(b => ({ value: b.id, label: b.name })),
+]);
 
 const { data: availableSeatsData } = await useFetch<{ seats: LibrarySeat[] }>(
   `/api/orgs/${orgId.value}/seats`,
@@ -412,8 +479,9 @@ const availableSeatsOptions = computed(() =>
 );
 
 function openSeatAssignment() {
-  seatForm.seatId = seatAssignment.value ? String(seatAssignment.value.seatId) : "";
-  seatForm.notes = seatAssignment.value?.notes || "";
+  seatForm.seatId = "";
+  seatForm.batchId = "";
+  seatForm.notes = "";
   seatError.value = "";
   showSeatModal.value = true;
 }
@@ -426,6 +494,7 @@ async function assignSeat() {
       method: "POST",
       body: {
         seatId: Number(seatForm.seatId),
+        batchId: seatForm.batchId ? Number(seatForm.batchId) : null,
         notes: seatForm.notes || null,
       },
     });
@@ -440,13 +509,14 @@ async function assignSeat() {
   }
 }
 
-async function removeSeatAssignment() {
+async function removeBatchSeatAssignment(batchId: number | null) {
   if (!confirm("Are you sure you want to remove this seat assignment?")) return;
 
   removingSeat.value = true;
   errorMessage.value = "";
   try {
-    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/seat-assignment`, {
+    const query = batchId ? `?batchId=${batchId}` : "";
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/seat-assignment${query}`, {
       method: "DELETE",
     });
     cacheVersion.value = Date.now();
@@ -659,6 +729,73 @@ async function toggleStatus() {
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
     errorMessage.value = e.data?.statusMessage || e.message || "Failed to update status";
+  }
+}
+
+// Edit Member
+const showEditModal = ref(false);
+const savingEdit = ref(false);
+const editError = ref("");
+const editPhoneError = ref("");
+const editForm = reactive({
+  name: "",
+  phone: "",
+  email: "",
+  fatherName: "",
+  address: "",
+  batch: "",
+  notes: "",
+});
+
+function openEditMember() {
+  if (!member.value) return;
+  editForm.name = member.value.name;
+  editForm.phone = member.value.phone || "";
+  editForm.email = member.value.email || "";
+  editForm.fatherName = member.value.fatherName || "";
+  editForm.address = member.value.address || "";
+  editForm.batch = member.value.batch || "";
+  editForm.notes = member.value.notes || "";
+  editError.value = "";
+  editPhoneError.value = "";
+  showEditModal.value = true;
+}
+
+function validateEditPhone() {
+  editPhoneError.value = validatePhone(editForm.phone) || "";
+}
+
+async function saveEditMember() {
+  const phoneErr = validatePhone(editForm.phone);
+  if (phoneErr) {
+    editPhoneError.value = phoneErr;
+    return;
+  }
+  editPhoneError.value = "";
+
+  savingEdit.value = true;
+  editError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}`, {
+      method: "PUT",
+      body: {
+        name: editForm.name,
+        phone: editForm.phone ? normalizePhone(editForm.phone) : null,
+        email: editForm.email || null,
+        fatherName: editForm.fatherName || null,
+        address: editForm.address || null,
+        batch: editForm.batch || null,
+        notes: editForm.notes || null,
+      },
+    });
+    showEditModal.value = false;
+    cacheVersion.value = Date.now();
+    await refreshMember();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    editError.value = e.data?.statusMessage || e.message || "Failed to update member";
+  } finally {
+    savingEdit.value = false;
   }
 }
 

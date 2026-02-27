@@ -11,6 +11,9 @@ export default defineEventHandler(async (event) => {
   if (body.email !== undefined) updates.email = body.email?.trim() || null;
   if (body.status) updates.status = body.status;
   if (body.notes !== undefined) updates.notes = body.notes?.trim() || null;
+  if (body.fatherName !== undefined) updates.fatherName = body.fatherName?.trim() || null;
+  if (body.address !== undefined) updates.address = body.address?.trim() || null;
+  if (body.batch !== undefined) updates.batch = body.batch?.trim() || null;
 
   if (Object.keys(updates).length === 0) {
     throw createError({ statusCode: 400, statusMessage: "Nothing to update" });

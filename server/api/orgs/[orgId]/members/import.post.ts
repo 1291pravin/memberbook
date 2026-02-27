@@ -6,6 +6,9 @@ interface ImportRow {
   email?: string;
   status?: string;
   notes?: string;
+  fatherName?: string;
+  address?: string;
+  batch?: string;
   plan?: string;
   startDate?: string;
   amountPaid?: number;
@@ -72,6 +75,9 @@ export default defineEventHandler(async (event) => {
             email: row.email?.trim() || null,
             status: row.status === "inactive" ? "inactive" as const : "active" as const,
             notes: row.notes?.trim() || null,
+            fatherName: row.fatherName?.trim() || null,
+            address: row.address?.trim() || null,
+            batch: row.batch?.trim() || null,
           })),
         ).returning();
 
@@ -97,6 +103,9 @@ export default defineEventHandler(async (event) => {
           email: row.email?.trim() || null,
           status: row.status === "inactive" ? "inactive" : "active",
           notes: row.notes?.trim() || null,
+          fatherName: row.fatherName?.trim() || null,
+          address: row.address?.trim() || null,
+          batch: row.batch?.trim() || null,
         }).returning();
 
         const plan = planMap.get(row.plan!.toLowerCase().trim());

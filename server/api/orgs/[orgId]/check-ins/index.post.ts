@@ -3,7 +3,7 @@ import { eq, and, isNull, desc } from "drizzle-orm";
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const body = await readBody(event);
-  const { memberId, notes, seatId } = body;
+  const { memberId, notes, seatId, batchId } = body;
 
   if (!memberId) {
     throw createError({ statusCode: 400, statusMessage: "Member ID is required" });
@@ -41,16 +41,39 @@ export default defineEventHandler(async (event) => {
   // Handle seat allocation
   let finalSeatId = seatId;
   let seatNumber = null;
+  let finalBatchId = batchId ? Number(batchId) : null;
+  let batchName = null;
+
+  // If batchId provided, resolve batch name
+  if (finalBatchId) {
+    const [batch] = await db
+      .select({ name: schema.seatBatches.name })
+      .from(schema.seatBatches)
+      .where(and(
+        eq(schema.seatBatches.id, finalBatchId),
+        eq(schema.seatBatches.orgId, access.orgId),
+      ))
+      .limit(1);
+    if (batch) {
+      batchName = batch.name;
+    }
+  }
 
   // If no seat provided, check for default seat assignment
   if (!finalSeatId) {
+    const assignmentConditions = [
+      eq(schema.memberSeatAssignments.memberId, Number(memberId)),
+      eq(schema.memberSeatAssignments.orgId, access.orgId),
+    ];
+    // If batchId provided, look up batch-specific assignment
+    if (finalBatchId) {
+      assignmentConditions.push(eq(schema.memberSeatAssignments.batchId, finalBatchId));
+    }
+
     const [assignment] = await db
       .select({ seatId: schema.memberSeatAssignments.seatId })
       .from(schema.memberSeatAssignments)
-      .where(and(
-        eq(schema.memberSeatAssignments.memberId, Number(memberId)),
-        eq(schema.memberSeatAssignments.orgId, access.orgId),
-      ))
+      .where(and(...assignmentConditions))
       .limit(1);
 
     if (assignment) {
@@ -141,6 +164,8 @@ export default defineEventHandler(async (event) => {
     subscriptionStatus,
     seatId: finalSeatId || null,
     seatNumber: seatNumber || null,
+    batchId: finalBatchId || null,
+    batchName: batchName || null,
     notes: notes || null,
   }).returning();
 

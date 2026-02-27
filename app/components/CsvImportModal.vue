@@ -4,7 +4,7 @@
     <div v-if="step === 'select'">
       <p class="text-sm text-slate-600 mb-3">
         Upload a CSV file with {{ t.memberLower }} data. Required column: <strong>name</strong>.
-        Optional: phone, email, status, notes, plan, startDate, amountPaid, paymentMethod.
+        Optional: phone, email, status, notes, fatherName, address, batch, plan, startDate, amountPaid, paymentMethod.
       </p>
 
       <div
@@ -185,7 +185,7 @@ async function processFile(file: File) {
   const headerMap = new Map<string, number>();
   headers.forEach((h, i) => headerMap.set(h.toLowerCase().trim(), i));
 
-  const fields = ["name", "phone", "email", "status", "notes", "plan", "startDate", "amountPaid", "paymentMethod"];
+  const fields = ["name", "phone", "email", "status", "notes", "fatherName", "address", "batch", "plan", "startDate", "amountPaid", "paymentMethod"];
 
   previewRows.value = rows.map((cols) => {
     const data: Record<string, string> = {};
@@ -226,6 +226,9 @@ async function doImport() {
       email: r.data.email || undefined,
       status: r.data.status || undefined,
       notes: r.data.notes || undefined,
+      fatherName: r.data.fatherName || undefined,
+      address: r.data.address || undefined,
+      batch: r.data.batch || undefined,
       plan: r.data.plan || undefined,
       startDate: r.data.startDate || undefined,
       amountPaid: r.data.amountPaid ? Number(r.data.amountPaid) : undefined,
@@ -261,7 +264,7 @@ async function doImport() {
 }
 
 function downloadSample() {
-  const csv = "name,phone,email,status,notes,plan,startDate,amountPaid,paymentMethod\nJohn Doe,9876543210,john@example.com,active,New member,Monthly Plan,2025-01-01,500,upi\nJane Smith,9876543211,,active,,,,\n";
+  const csv = "name,phone,email,status,notes,fatherName,address,batch,plan,startDate,amountPaid,paymentMethod\nJohn Doe,9876543210,john@example.com,active,New member,Robert Doe,\"123 Main St, City\",Morning,Monthly Plan,2025-01-01,500,upi\nJane Smith,9876543211,,active,,,,,,,\n";
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

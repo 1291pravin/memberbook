@@ -1,8 +1,10 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const memberId = getRouterParam(event, "memberId");
+  const query = getQuery(event);
+  const batchId = query.batchId ? Number(query.batchId) : undefined;
 
   if (!memberId || !Number.isInteger(Number(memberId))) {
     throw createError({
@@ -11,15 +13,22 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Delete the assignment
+  const conditions = [
+    eq(schema.memberSeatAssignments.memberId, Number(memberId)),
+    eq(schema.memberSeatAssignments.orgId, access.orgId),
+  ];
+
+  // If batchId specified, delete only that batch's assignment
+  if (batchId !== undefined) {
+    conditions.push(eq(schema.memberSeatAssignments.batchId, batchId));
+  } else {
+    // Delete assignment with no batch (legacy/default)
+    conditions.push(isNull(schema.memberSeatAssignments.batchId));
+  }
+
   const result = await db
     .delete(schema.memberSeatAssignments)
-    .where(
-      and(
-        eq(schema.memberSeatAssignments.memberId, Number(memberId)),
-        eq(schema.memberSeatAssignments.orgId, access.orgId),
-      ),
-    )
+    .where(and(...conditions))
     .returning();
 
   if (result.length === 0) {

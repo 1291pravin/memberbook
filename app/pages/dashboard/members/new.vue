@@ -26,6 +26,9 @@
           { value: 'female', label: 'Female' },
         ]"
       />
+      <AppInput v-model="form.fatherName" label="Father's Name" placeholder="Optional" />
+      <AppInput v-model="form.address" label="Address" placeholder="Optional" />
+      <AppInput v-model="form.batch" label="Batch / Timing" placeholder="e.g., Morning, Afternoon, Evening" />
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
         <textarea
@@ -88,6 +91,9 @@ const form = reactive({
   phone: "",
   email: "",
   gender: "",
+  fatherName: "",
+  address: "",
+  batch: "",
   notes: "",
   planId: "",
   startDate: new Date().toISOString().split("T")[0],
@@ -153,6 +159,9 @@ async function handleSubmit() {
       phone: form.phone ? normalizePhone(form.phone) : "",
       email: form.email,
       gender: form.gender || null,
+      fatherName: form.fatherName || null,
+      address: form.address || null,
+      batch: form.batch || null,
       notes: form.notes,
     };
 

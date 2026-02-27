@@ -1,11 +1,15 @@
 <template>
   <div
     :class="[
-      'rounded-xl border p-4 shadow-sm cursor-pointer transition-all hover:shadow-md',
+      'rounded-xl border p-4 shadow-sm cursor-pointer transition-all hover:shadow-md relative',
+      hasAlert ? 'border-2 border-red-400' : '',
       bgColor,
     ]"
     @click="$emit('click', seat)"
   >
+    <!-- Warning Icon -->
+    <span v-if="hasAlert" class="absolute top-2 right-2 text-sm" title="Needs attention">&#x26A0;&#xFE0F;</span>
+
     <!-- Seat Number (Large) -->
     <div class="text-2xl font-bold mb-2" :class="textColor">
       {{ seat.seatNumber }}
@@ -18,22 +22,35 @@
 
     <!-- Preferences Icons -->
     <div class="flex gap-2 mb-3">
-      <span v-if="seat.timePreference === 'day'" class="text-lg" title="Day">☀️</span>
-      <span v-else-if="seat.timePreference === 'evening'" class="text-lg" title="Evening">🌙</span>
-      <span v-else-if="seat.timePreference === 'flexible'" class="text-lg" title="Flexible">🔄</span>
-      <span v-else-if="seat.timePreference === 'all-day'" class="text-lg" title="All Day">🕐</span>
+      <span v-if="seat.timePreference === 'day'" class="text-lg" title="Day">&#x2600;&#xFE0F;</span>
+      <span v-else-if="seat.timePreference === 'evening'" class="text-lg" title="Evening">&#x1F319;</span>
+      <span v-else-if="seat.timePreference === 'flexible'" class="text-lg" title="Flexible">&#x1F504;</span>
+      <span v-else-if="seat.timePreference === 'all-day'" class="text-lg" title="All Day">&#x1F550;</span>
 
-      <span v-if="seat.genderPreference === 'male'" class="text-sm" title="Male preferred">♂️</span>
-      <span v-else-if="seat.genderPreference === 'female'" class="text-sm" title="Female preferred">♀️</span>
+      <span v-if="seat.genderPreference === 'male'" class="text-sm" title="Male preferred">&#x2642;&#xFE0F;</span>
+      <span v-else-if="seat.genderPreference === 'female'" class="text-sm" title="Female preferred">&#x2640;&#xFE0F;</span>
     </div>
 
     <!-- Occupancy Status -->
     <div v-if="seat.isOccupied && seat.currentOccupant" class="border-t border-slate-200 pt-2">
+      <span class="inline-block px-1.5 py-0.5 text-[10px] font-semibold uppercase rounded bg-green-600 text-white mb-1">Checked In</span>
       <div class="font-medium text-sm mb-1" :class="textColor">
         {{ seat.currentOccupant.memberName }}
       </div>
+      <div v-if="alertLabel" class="text-xs font-medium mb-1" :class="alertLabel === 'No subscription' ? 'text-red-600' : 'text-amber-600'">
+        {{ alertLabel }}
+      </div>
       <div class="text-xs text-slate-600">
         {{ formatCheckInTime(seat.currentOccupant.checkedInAt) }}
+      </div>
+    </div>
+    <div v-else-if="assignedMember" class="border-t border-slate-200 pt-2">
+      <span class="inline-block px-1.5 py-0.5 text-[10px] font-semibold uppercase rounded bg-slate-200 text-slate-600 mb-1">Assigned</span>
+      <div class="font-medium text-sm mb-1" :class="textColor">
+        {{ assignedMember.memberName }}
+      </div>
+      <div v-if="alertLabel" class="text-xs font-medium mb-1" :class="alertLabel === 'No subscription' ? 'text-red-600' : 'text-amber-600'">
+        {{ alertLabel }}
       </div>
     </div>
     <div v-else class="border-t border-slate-200 pt-2">
@@ -61,40 +78,70 @@ interface Seat {
   } | null;
 }
 
+interface MemberAlert {
+  hasActiveSubscription: boolean;
+  paymentStatus: string | null;
+}
+
+interface AssignedMember {
+  memberId: number;
+  memberName: string;
+  memberGender?: string | null;
+}
+
 const props = defineProps<{
   seat: Seat;
+  assignedMember?: AssignedMember | null;
+  memberAlert?: MemberAlert | null;
 }>();
 
 defineEmits<{
   click: [seat: Seat];
 }>();
 
+const hasAlert = computed(() => {
+  if (!props.memberAlert) return false;
+  return !props.memberAlert.hasActiveSubscription || props.memberAlert.paymentStatus === 'unpaid' || props.memberAlert.paymentStatus === 'partial';
+});
+
+const alertLabel = computed(() => {
+  if (!props.memberAlert) return null;
+  if (!props.memberAlert.hasActiveSubscription) return 'No subscription';
+  if (props.memberAlert.paymentStatus === 'unpaid') return 'Unpaid';
+  if (props.memberAlert.paymentStatus === 'partial') return 'Partial payment';
+  return null;
+});
+
 const bgColor = computed(() => {
-  if (!props.seat.isOccupied) {
-    return 'bg-white border-slate-200';
+  if (props.seat.isOccupied) {
+    const gender = props.seat.currentOccupant?.memberGender;
+    if (gender === 'female') return 'bg-pink-100 border-pink-300';
+    if (gender === 'male') return 'bg-yellow-100 border-yellow-300';
+    return 'bg-cyan-100 border-cyan-300';
   }
-  const gender = props.seat.currentOccupant?.memberGender;
-  if (gender === 'female') {
-    return 'bg-pink-100 border-pink-300';
+  if (props.assignedMember) {
+    const gender = props.assignedMember.memberGender;
+    if (gender === 'female') return 'bg-pink-50 border-pink-200';
+    if (gender === 'male') return 'bg-yellow-50 border-yellow-200';
+    return 'bg-cyan-50 border-cyan-200';
   }
-  if (gender === 'male') {
-    return 'bg-yellow-100 border-yellow-300';
-  }
-  return 'bg-cyan-100 border-cyan-300';
+  return 'bg-white border-slate-200';
 });
 
 const textColor = computed(() => {
-  if (!props.seat.isOccupied) {
-    return 'text-slate-700';
+  if (props.seat.isOccupied) {
+    const gender = props.seat.currentOccupant?.memberGender;
+    if (gender === 'female') return 'text-pink-900';
+    if (gender === 'male') return 'text-yellow-900';
+    return 'text-cyan-900';
   }
-  const gender = props.seat.currentOccupant?.memberGender;
-  if (gender === 'female') {
-    return 'text-pink-900';
+  if (props.assignedMember) {
+    const gender = props.assignedMember.memberGender;
+    if (gender === 'female') return 'text-pink-800';
+    if (gender === 'male') return 'text-yellow-800';
+    return 'text-cyan-800';
   }
-  if (gender === 'male') {
-    return 'text-yellow-900';
-  }
-  return 'text-cyan-900';
+  return 'text-slate-700';
 });
 
 function formatCheckInTime(isoString: string): string {

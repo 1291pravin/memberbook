@@ -49,6 +49,9 @@ export const members = sqliteTable("members", {
   gender: text("gender"), // "male", "female", null
   status: text("status").notNull().default("active"), // active, inactive
   notes: text("notes"),
+  fatherName: text("father_name"),
+  address: text("address"),
+  batch: text("batch"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -104,18 +107,32 @@ export const librarySeats = sqliteTable("library_seats", {
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+export const seatBatches = sqliteTable("seat_batches", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  startTime: text("start_time"), // "09:00" optional, for display
+  endTime: text("end_time"), // "12:00" optional
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => ({
+  orgNameUnique: uniqueIndex("seat_batches_org_name_unique").on(table.orgId, table.name),
+}));
+
 export const memberSeatAssignments = sqliteTable("member_seat_assignments", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   orgId: integer("org_id").notNull().references(() => organizations.id),
   memberId: integer("member_id").notNull().references(() => members.id),
   seatId: integer("seat_id").notNull().references(() => librarySeats.id),
+  batchId: integer("batch_id").references(() => seatBatches.id),
   assignedAt: text("assigned_at").notNull().$defaultFn(() => new Date().toISOString()),
   assignedBy: integer("assigned_by").notNull().references(() => users.id),
   notes: text("notes"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
-  memberOrgUnique: uniqueIndex("member_seat_assignments_member_org_unique")
-    .on(table.memberId, table.orgId),
+  memberOrgBatchUnique: uniqueIndex("member_seat_assignments_member_org_batch_unique")
+    .on(table.memberId, table.orgId, table.batchId),
 }));
 
 export const checkIns = sqliteTable("check_ins", {
@@ -131,6 +148,8 @@ export const checkIns = sqliteTable("check_ins", {
   subscriptionStatus: text("subscription_status").notNull(), // active, expired, inactive, none
   seatId: integer("seat_id").references(() => librarySeats.id),
   seatNumber: text("seat_number"), // Denormalized for history
+  batchId: integer("batch_id").references(() => seatBatches.id),
+  batchName: text("batch_name"), // Denormalized for history
   notes: text("notes"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
