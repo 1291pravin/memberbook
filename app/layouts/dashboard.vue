@@ -4,7 +4,37 @@
     <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-slate-800 lg:fixed lg:inset-y-0">
       <div class="p-4 border-b border-slate-700">
         <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300">MemberBook</NuxtLink>
-        <p v-if="currentOrg" class="text-xs text-slate-400 mt-1">{{ currentOrg.name }}</p>
+        <div v-if="currentOrg" class="relative mt-1">
+          <button
+            v-if="hasMultipleOrgs"
+            class="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+            @click.stop="orgDropdownOpen = !orgDropdownOpen"
+          >
+            {{ currentOrg.name }}
+            <svg class="w-3 h-3" :class="orgDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          <p v-else class="text-xs text-slate-400">{{ currentOrg.name }}</p>
+          <div
+            v-if="orgDropdownOpen"
+            class="absolute left-0 top-full mt-1 w-56 bg-slate-700 rounded-lg shadow-lg border border-slate-600 py-1 z-50"
+          >
+            <button
+              v-for="org in userOrgs"
+              :key="org.orgId"
+              class="flex items-center justify-between w-full px-3 py-2 text-sm transition-colors"
+              :class="org.orgId === currentOrg.orgId ? 'bg-slate-600 text-white' : 'text-slate-300 hover:bg-slate-600'"
+              @click="switchOrg(org.orgId)"
+            >
+              <span class="truncate">{{ org.name }}</span>
+              <span
+                class="ml-2 shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
+                :class="org.role === 'owner' ? 'bg-primary-500/20 text-primary-300' : 'bg-slate-500/30 text-slate-400'"
+              >{{ org.role === 'owner' ? 'Owner' : 'Staff' }}</span>
+            </button>
+          </div>
+        </div>
       </div>
       <nav class="flex-1 p-3 space-y-1">
         <NuxtLink
@@ -34,7 +64,37 @@
       <header class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <NuxtLink to="/dashboard" class="text-lg font-bold text-primary-600">MemberBook</NuxtLink>
         <div class="flex items-center gap-2">
-          <p v-if="currentOrg" class="text-xs text-slate-600">{{ currentOrg.name }}</p>
+          <div v-if="currentOrg" class="relative">
+            <button
+              v-if="hasMultipleOrgs"
+              class="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-800 transition-colors"
+              @click.stop="mobileOrgDropdownOpen = !mobileOrgDropdownOpen"
+            >
+              {{ currentOrg.name }}
+              <svg class="w-3 h-3" :class="mobileOrgDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+            <p v-else class="text-xs text-slate-600">{{ currentOrg.name }}</p>
+            <div
+              v-if="mobileOrgDropdownOpen"
+              class="absolute right-0 top-full mt-1 w-52 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50"
+            >
+              <button
+                v-for="org in userOrgs"
+                :key="org.orgId"
+                class="flex items-center justify-between w-full px-3 py-2 text-sm transition-colors"
+                :class="org.orgId === currentOrg.orgId ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-50'"
+                @click="switchOrg(org.orgId)"
+              >
+                <span class="truncate">{{ org.name }}</span>
+                <span
+                  class="ml-2 shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
+                  :class="org.role === 'owner' ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-600'"
+                >{{ org.role === 'owner' ? 'Owner' : 'Staff' }}</span>
+              </button>
+            </div>
+          </div>
           <div class="relative">
             <button
               class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
@@ -186,22 +246,57 @@ useSeoMeta({
 });
 
 const route = useRoute();
-const { clear } = useUserSession();
+const { clear, fetch: refreshSession } = useUserSession();
 const { currentOrg } = useOrg();
 const t = useTerminology();
 const mobileMenuOpen = ref(false);
 const moreMenuOpen = ref(false);
+const orgDropdownOpen = ref(false);
+const mobileOrgDropdownOpen = ref(false);
+const userOrgs = ref<{ orgId: number; name: string; slug: string; type: string; role: string }[]>([]);
+const hasMultipleOrgs = ref(false);
 
-function closeMobileMenu(e: MouseEvent) {
-  if (!(e.target as HTMLElement).closest(".relative")) {
-    mobileMenuOpen.value = false;
+async function fetchUserOrgs() {
+  try {
+    const { orgs } = await $fetch("/api/orgs");
+    userOrgs.value = orgs;
+    hasMultipleOrgs.value = orgs.length > 1;
+  }
+  catch {
+    // silently fail — single org experience
   }
 }
-onMounted(() => document.addEventListener("click", closeMobileMenu));
-onUnmounted(() => document.removeEventListener("click", closeMobileMenu));
+
+async function switchOrg(orgId: number) {
+  if (orgId === currentOrg.value?.orgId) {
+    orgDropdownOpen.value = false;
+    mobileOrgDropdownOpen.value = false;
+    return;
+  }
+  await $fetch("/api/orgs/switch", { method: "POST", body: { orgId } });
+  await refreshSession();
+  orgDropdownOpen.value = false;
+  mobileOrgDropdownOpen.value = false;
+  navigateTo("/dashboard");
+}
+
+function closeDropdowns(e: MouseEvent) {
+  if (!(e.target as HTMLElement).closest(".relative")) {
+    mobileMenuOpen.value = false;
+    orgDropdownOpen.value = false;
+    mobileOrgDropdownOpen.value = false;
+  }
+}
+onMounted(() => {
+  document.addEventListener("click", closeDropdowns);
+  fetchUserOrgs();
+});
+onUnmounted(() => document.removeEventListener("click", closeDropdowns));
 watch(() => route.path, () => {
   mobileMenuOpen.value = false;
   moreMenuOpen.value = false;
+  orgDropdownOpen.value = false;
+  mobileOrgDropdownOpen.value = false;
 });
 
 function icon(d: string) {
