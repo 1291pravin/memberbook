@@ -60,6 +60,7 @@ export default defineNuxtConfig({
       { loc: "/", changefreq: "daily", priority: 1.0 },
       { loc: "/features", changefreq: "weekly", priority: 0.9 },
       { loc: "/about", changefreq: "monthly", priority: 0.8 },
+      { loc: "/contact", changefreq: "monthly", priority: 0.8 },
       { loc: "/gym", changefreq: "weekly", priority: 0.9 },
       { loc: "/library", changefreq: "weekly", priority: 0.9 },
       { loc: "/tuition", changefreq: "weekly", priority: 0.9 },

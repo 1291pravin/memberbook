@@ -213,3 +213,15 @@ export const onboardingProgress = sqliteTable("onboarding_progress", {
 }, (table) => ({
   orgIdUnique: uniqueIndex("onboarding_progress_org_unique").on(table.orgId),
 }));
+
+export const contactSubmissions = sqliteTable("contact_submissions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull(),
+  businessName: text("business_name").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("new"), // new, contacted, resolved
+  sourcePage: text("source_page"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});

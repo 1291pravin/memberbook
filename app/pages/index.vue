@@ -76,23 +76,6 @@
       </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-600">
-      <div class="mb-3">
-        MemberBook &mdash; Simple member management for small businesses.
-      </div>
-      <div class="flex gap-4 justify-center flex-wrap">
-        <NuxtLink to="/features" class="hover:text-primary-600">Features</NuxtLink>
-        <span>&middot;</span>
-        <NuxtLink to="/blog" class="hover:text-primary-600">Blog</NuxtLink>
-        <span>&middot;</span>
-        <NuxtLink to="/about" class="hover:text-primary-600">About</NuxtLink>
-        <span>&middot;</span>
-        <NuxtLink to="/privacy" class="hover:text-primary-600">Privacy Policy</NuxtLink>
-        <span>&middot;</span>
-        <NuxtLink to="/terms" class="hover:text-primary-600">Terms of Service</NuxtLink>
-      </div>
-    </footer>
   </div>
 </template>
 

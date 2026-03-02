@@ -83,11 +83,11 @@
           MemberBook helps you manage all of this automatically — members, payments, renewals, and more.
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="mailto:hello@memberbook.app">
+          <NuxtLink to="/contact">
             <AppButton variant="secondary" size="lg">
               Request a Tool
             </AppButton>
-          </a>
+          </NuxtLink>
           <NuxtLink to="/register">
             <AppButton variant="primary" size="lg">
               Try MemberBook Free
