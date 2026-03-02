@@ -1,18 +1,23 @@
 <template>
   <div class="min-h-screen bg-slate-50">
-    <header class="bg-white border-b border-slate-200">
-      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <NuxtLink to="/" class="text-xl font-bold text-primary-600">MemberBook</NuxtLink>
-        <nav class="flex items-center gap-4">
-          <NuxtLink to="/blog" class="hidden sm:block text-sm text-slate-600 hover:text-slate-900">Blog</NuxtLink>
-          <NuxtLink to="/tools" class="hidden sm:block text-sm text-slate-600 hover:text-slate-900">Tools</NuxtLink>
-          <NuxtLink to="/contact" class="hidden sm:block text-sm text-slate-600 hover:text-slate-900">Contact</NuxtLink>
+    <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-sm">
+      <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
+        <NuxtLink to="/" class="group inline-flex items-center gap-2.5 rounded-full border border-primary-100 bg-white px-3 py-1.5 text-base font-semibold tracking-tight text-slate-900 transition-colors hover:border-primary-200 sm:text-lg">
+          <img src="/logo.png" alt="MemberBook logo" class="h-7 w-7 rounded-md object-contain" />
+          <span>MemberBook</span>
+        </NuxtLink>
+
+        <nav class="flex items-center gap-2 sm:gap-3">
+          <NuxtLink to="/blog" class="hidden rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700 md:inline-flex" :class="navLinkClass('/blog')">Blog</NuxtLink>
+          <NuxtLink to="/tools" class="hidden rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700 md:inline-flex" :class="navLinkClass('/tools')">Tools</NuxtLink>
+          <NuxtLink to="/contact" class="hidden rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700 md:inline-flex" :class="navLinkClass('/contact')">Contact</NuxtLink>
+
           <template v-if="loggedIn">
-            <NuxtLink to="/dashboard" class="text-sm text-slate-600 hover:text-slate-900">Dashboard</NuxtLink>
-            <button class="text-sm text-slate-600 hover:text-slate-900" @click="logout">Logout</button>
+            <NuxtLink to="/dashboard" class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/dashboard')">Dashboard</NuxtLink>
+            <button class="rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900" @click="logout">Logout</button>
           </template>
           <template v-else>
-            <NuxtLink to="/login" class="text-sm text-slate-600 hover:text-slate-900">Login</NuxtLink>
+            <NuxtLink to="/login" class="rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">Login</NuxtLink>
             <NuxtLink to="/register">
               <AppButton size="sm">Get Started</AppButton>
             </NuxtLink>
@@ -45,7 +50,12 @@
 </template>
 
 <script setup lang="ts">
+const route = useRoute();
 const { loggedIn, clear } = useUserSession();
+
+function navLinkClass(path: string) {
+  return route.path.startsWith(path) ? "bg-primary-50 text-primary-700" : "text-slate-600";
+}
 
 async function logout() {
   await $fetch("/api/auth/logout", { method: "POST" });
