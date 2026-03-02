@@ -9,6 +9,12 @@
         <p class="mt-4 text-lg text-slate-600">
           Practical tools built for gym owners, tuition centers, and libraries in India — completely free, no sign-up required.
         </p>
+        <p class="mt-3 text-sm text-slate-600">
+          Most used tool:
+          <NuxtLink to="/tools/gym-membership-revenue-calculator" class="font-medium text-primary-700 hover:text-primary-800">
+            Gym Membership Revenue Calculator
+          </NuxtLink>
+        </p>
       </div>
     </section>
 

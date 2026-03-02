@@ -10,8 +10,14 @@
         <p class="mt-4 text-lg text-slate-600 max-w-xl mx-auto">
           Simple subscription and member management for gyms, libraries, tuition centers, and more. No spreadsheets. No WhatsApp chaos.
         </p>
+        <p class="mt-3 text-sm text-slate-600">
+          Looking for "Member Book" software?
+          <NuxtLink to="/member-book" class="font-medium text-primary-700 hover:text-primary-800">
+            See why MemberBook is the right fit.
+          </NuxtLink>
+        </p>
         <div class="mt-8 flex gap-3 justify-center">
-          <NuxtLink to="/register">
+          <NuxtLink to="/register" @click="trackCtaClick('home_hero_start_free')">
             <AppButton size="lg">Start Free</AppButton>
           </NuxtLink>
           <NuxtLink to="/login">
@@ -70,8 +76,14 @@
       <div class="max-w-xl mx-auto">
         <h2 class="text-2xl font-bold text-slate-800">Ready to get organized?</h2>
         <p class="mt-2 text-slate-600">Set up your workspace in under a minute.</p>
+        <p class="mt-3 text-sm text-slate-600">
+          Want to estimate your gym monthly income first?
+          <NuxtLink to="/tools/gym-membership-revenue-calculator" class="font-medium text-primary-700 hover:text-primary-800">
+            Try the free revenue calculator.
+          </NuxtLink>
+        </p>
         <NuxtLink to="/register" class="mt-6 inline-block">
-          <AppButton size="lg">Create Your Account</AppButton>
+          <AppButton size="lg" @click="trackCtaClick('home_bottom_create_account')">Create Your Account</AppButton>
         </NuxtLink>
       </div>
     </section>
@@ -89,16 +101,16 @@ const appUrl = config.public.appUrl || "https://memberbook.app";
 
 // SEO Meta Tags
 useSeoMeta({
-  title: "MemberBook - Simple Member Management for Gyms, Libraries & Tuition Centers",
-  description: "Manage memberships, subscriptions and payments for your gym, library or tuition center. Built for Indian small businesses. Free to start.",
-  ogTitle: "MemberBook - Effortless Member Management for Small Businesses",
-  ogDescription: "Simple subscription and member management for gyms, libraries, tuition centers. No spreadsheets. No WhatsApp chaos. Built for India.",
+  title: "MemberBook (Member Book) | Member Management Software for Gyms, Libraries & Tuition",
+  description: "MemberBook, also searched as Member Book, helps gyms, libraries, and tuition centers manage memberships, payments, and renewals. Free to start.",
+  ogTitle: "MemberBook (Member Book) | Member Management Software for India",
+  ogDescription: "MemberBook, also searched as Member Book, helps gyms, libraries, and tuition centers manage memberships, payments, and renewals. Free to start.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: appUrl,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "MemberBook - Member Management Made Simple",
-  twitterDescription: "Manage memberships, subscriptions and payments for your gym, library or tuition center. Built for India.",
+  twitterTitle: "MemberBook (Member Book) | Member Management Software for India",
+  twitterDescription: "Manage memberships, subscriptions, renewals, and payments for gyms, libraries, and tuition centers in India.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
@@ -195,6 +207,18 @@ useHead({
 });
 
 const featuredPosts = blogPosts.slice(0, 2);
+
+function trackCtaClick(label: string) {
+  if (typeof window === "undefined") return;
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  if (!gtag) return;
+  gtag("event", "seo_cta_click", {
+    event_category: "SEO",
+    event_label: label,
+    page_location: window.location.href,
+    page_path: window.location.pathname,
+  });
+}
 
 const features = [
   { emoji: "👥", title: "Member Management", desc: "Track members, their subscriptions, and payment history in one place." },

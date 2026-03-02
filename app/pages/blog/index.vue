@@ -7,6 +7,12 @@
         <p class="mt-3 text-lg text-slate-600">
           Tips, guides, and insights for managing your gym, library, or tuition center.
         </p>
+        <p class="mt-3 text-sm text-slate-600">
+          Running a gym? Start with our
+          <NuxtLink to="/tools/gym-membership-revenue-calculator" class="font-medium text-primary-700 hover:text-primary-800">
+            free gym monthly income calculator.
+          </NuxtLink>
+        </p>
       </div>
     </section>
 
