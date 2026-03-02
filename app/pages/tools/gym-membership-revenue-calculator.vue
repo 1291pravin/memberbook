@@ -13,10 +13,10 @@
         </nav>
 
         <h1 class="text-4xl font-bold text-slate-800">
-          Gym Membership Revenue Calculator
+          Free Gym Membership Revenue Calculator
         </h1>
         <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-          Calculate your gym's monthly and annual revenue across plans. See how default rates impact your income — and what you could recover.
+          Estimate your gym monthly income in under 60 seconds. Calculate annual revenue, default loss, and how much you can recover.
         </p>
       </div>
     </section>
@@ -403,19 +403,19 @@ const faqs = [
 // --- SEO & Schemas ---
 
 useSeoMeta({
-  title: "Gym Membership Revenue Calculator for India | Calculate Gym Monthly Income",
+  title: "Gym Membership Revenue Calculator (Free) | MemberBook",
   description:
-    "Free gym membership revenue calculator to estimate gym monthly income in India. Forecast annual revenue, default loss, and renewal impact in minutes.",
-  ogTitle: "Gym Membership Revenue Calculator for India | Calculate Gym Monthly Income",
+    "Estimate gym monthly income in 60 seconds. Free gym revenue calculator with annual forecast, default loss, and renewal impact for Indian gyms.",
+  ogTitle: "Gym Membership Revenue Calculator (Free) | MemberBook",
   ogDescription:
-    "Free gym membership revenue calculator to estimate gym monthly income in India. Forecast annual revenue, default loss, and renewal impact in minutes.",
+    "Estimate gym monthly income in 60 seconds. Free gym revenue calculator with annual forecast, default loss, and renewal impact for Indian gyms.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/tools/gym-membership-revenue-calculator`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Gym Membership Revenue Calculator for India | Calculate Gym Monthly Income",
+  twitterTitle: "Gym Membership Revenue Calculator (Free) | MemberBook",
   twitterDescription:
-    "Free gym membership revenue calculator to estimate gym monthly income in India. Forecast annual revenue, default loss, and renewal impact in minutes.",
+    "Estimate gym monthly income in 60 seconds. Free gym revenue calculator with annual forecast, default loss, and renewal impact for Indian gyms.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
@@ -430,10 +430,16 @@ useHead({
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Gym Membership Revenue Calculator",
-        "description": "Calculate monthly and annual gym membership revenue with default rate analysis",
+        "description": "Free tool to estimate monthly and annual gym revenue with default rate analysis for Indian gyms",
         "url": `${appUrl}/tools/gym-membership-revenue-calculator`,
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web Browser",
+        "isAccessibleForFree": true,
+        "featureList": [
+          "Monthly and annual gym revenue estimate",
+          "Default loss impact calculator",
+          "Renewal rate what-if analysis",
+        ],
         "offers": {
           "@type": "Offer",
           "price": "0",

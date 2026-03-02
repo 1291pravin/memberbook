@@ -4,11 +4,11 @@
     <section class="py-16 px-4 text-center">
       <div class="max-w-3xl mx-auto">
         <h1 class="text-4xl font-bold text-slate-800 sm:text-5xl">
-          Manage your members,
-          <span class="text-primary-600">effortlessly</span>
+          Member Management Software for
+          <span class="text-primary-600">Gyms, Libraries, and Tuition Centers</span>
         </h1>
         <p class="mt-4 text-lg text-slate-600 max-w-xl mx-auto">
-          Simple subscription and member management for gyms, libraries, tuition centers, and more. No spreadsheets. No WhatsApp chaos.
+          Track members, collect payments, and send WhatsApp renewal reminders in one place. Free to start and built for India.
         </p>
         <p class="mt-3 text-sm text-slate-600">
           Looking for "Member Book" software?
@@ -101,16 +101,16 @@ const appUrl = config.public.appUrl || "https://memberbook.app";
 
 // SEO Meta Tags
 useSeoMeta({
-  title: "MemberBook (Member Book) | Member Management Software for Gyms, Libraries & Tuition",
-  description: "MemberBook, also searched as Member Book, helps gyms, libraries, and tuition centers manage memberships, payments, and renewals. Free to start.",
-  ogTitle: "MemberBook (Member Book) | Member Management Software for India",
-  ogDescription: "MemberBook, also searched as Member Book, helps gyms, libraries, and tuition centers manage memberships, payments, and renewals. Free to start.",
+  title: "MemberBook (Member Book) - Member Management Software",
+  description: "Member management software for gyms, libraries, and tuition centers. Track members, collect payments, send WhatsApp reminders. Free to start.",
+  ogTitle: "MemberBook (Member Book) - Member Management Software",
+  ogDescription: "Track members, collect payments, and send WhatsApp renewal reminders for gyms, libraries, and tuition centers. Free to start.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: appUrl,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "MemberBook (Member Book) | Member Management Software for India",
-  twitterDescription: "Manage memberships, subscriptions, renewals, and payments for gyms, libraries, and tuition centers in India.",
+  twitterTitle: "MemberBook (Member Book) - Member Management Software",
+  twitterDescription: "Track members, collect payments, and send WhatsApp renewal reminders for gyms, libraries, and tuition centers.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 

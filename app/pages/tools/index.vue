@@ -4,10 +4,10 @@
     <section class="bg-slate-50 py-16 px-4 text-center">
       <div class="max-w-3xl mx-auto">
         <h1 class="text-4xl font-bold text-slate-800">
-          Free Tools for Small Business Owners
+          Free Gym, Tuition, and Library Management Tools
         </h1>
         <p class="mt-4 text-lg text-slate-600">
-          Practical tools built for gym owners, tuition centers, and libraries in India — completely free, no sign-up required.
+          Use free tools to calculate gym revenue, generate WhatsApp reminders, and create fee receipts. No sign-up required.
         </p>
         <p class="mt-3 text-sm text-slate-600">
           Most used tool:
@@ -144,16 +144,16 @@ const comingSoonTools = [
 ];
 
 useSeoMeta({
-  title: "Free Tools for Gym Owners, Tuition Centers & Libraries — MemberBook",
-  description: "Free tools to manage your gym, tuition center, or library. Generate WhatsApp renewal reminders, fee receipts, and calculate gym revenue. Made for India.",
-  ogTitle: "Free Tools for Gym Owners, Tuition Centers & Libraries — MemberBook",
-  ogDescription: "Free tools to manage your gym, tuition center, or library. Generate WhatsApp renewal reminders, fee receipts, and calculate gym revenue. Made for India.",
+  title: "Free Gym Revenue Calculator, WhatsApp Reminder & More",
+  description: "Free tools for gyms, tuition centers, and libraries: gym revenue calculator, WhatsApp renewal reminder generator, and tuition fee receipt PDF tool.",
+  ogTitle: "Free Gym Revenue Calculator, WhatsApp Reminder & More",
+  ogDescription: "Free tools for gyms, tuition centers, and libraries: gym revenue calculator, WhatsApp renewal reminder generator, and tuition fee receipt PDF tool.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/tools`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Free Tools for Gym Owners, Tuition Centers & Libraries — MemberBook",
-  twitterDescription: "Free tools to manage your gym, tuition center, or library. Generate WhatsApp renewal reminders, fee receipts, and calculate gym revenue. Made for India.",
+  twitterTitle: "Free Gym Revenue Calculator, WhatsApp Reminder & More",
+  twitterDescription: "Free tools for gyms, tuition centers, and libraries: gym revenue calculator, WhatsApp renewal reminder generator, and tuition fee receipt PDF tool.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 

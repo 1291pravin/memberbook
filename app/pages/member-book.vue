@@ -4,10 +4,10 @@
       <div class="max-w-4xl mx-auto text-center">
         <p class="text-sm font-semibold uppercase tracking-wide text-primary-700">Member Book Software</p>
         <h1 class="mt-3 text-4xl font-bold text-slate-800 sm:text-5xl">
-          Looking for "Member Book"? Use MemberBook.
+          Member Book Software for Gyms, Libraries, and Tuition Centers
         </h1>
         <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-          MemberBook helps gyms, libraries, and tuition centers in India manage members, payments, and renewals in one place.
+          Looking for "member book" software? MemberBook helps you track members, collect payments, and manage renewals in one place.
         </p>
         <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
           <NuxtLink to="/register" @click="trackCtaClick('member_book_start_free')">
@@ -81,19 +81,19 @@ function trackCtaClick(label: string) {
 }
 
 useSeoMeta({
-  title: "Member Book Software in India | MemberBook",
+  title: "Member Book Software (Free) | MemberBook",
   description:
-    "Searching for Member Book software? MemberBook helps gyms, libraries, and tuition centers manage members, payments, and renewals. Free to start.",
-  ogTitle: "Member Book Software in India | MemberBook",
+    "Looking for member book software? Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free to start with MemberBook.",
+  ogTitle: "Member Book Software (Free) | MemberBook",
   ogDescription:
-    "Searching for Member Book software? MemberBook helps gyms, libraries, and tuition centers manage members, payments, and renewals. Free to start.",
+    "Looking for member book software? Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free to start with MemberBook.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: pageUrl,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Member Book Software in India | MemberBook",
+  twitterTitle: "Member Book Software (Free) | MemberBook",
   twitterDescription:
-    "MemberBook helps gyms, libraries, and tuition centers manage members, payments, and renewals. Free to start.",
+    "Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free to start with MemberBook.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
@@ -108,6 +108,39 @@ useHead({
         "name": "Member Book Software in India",
         "url": pageUrl,
         "description": "MemberBook helps gyms, libraries, and tuition centers manage members, payments, and renewals.",
+      }),
+    },
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Member Book software?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Member Book software helps businesses track members, fees, renewals, and payment status in one dashboard.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Is MemberBook free to start?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. MemberBook is free to start for gyms, libraries, and tuition centers.",
+            },
+          },
+          {
+            "@type": "Question",
+            "name": "Can I send payment reminders using MemberBook?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. MemberBook supports WhatsApp-ready reminder workflows to reduce missed renewals.",
+            },
+          },
+        ],
       }),
     },
   ],
