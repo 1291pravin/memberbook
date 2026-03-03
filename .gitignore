@@ -35,3 +35,6 @@ google-service-account.json
 # Outreach lead data (contains PII — never commit)
 outreach/
 !outreach/.gitkeep
+
+# Local Claude/Codex skill and Playwright CLI runtime artifacts
+.playwright-cli/
