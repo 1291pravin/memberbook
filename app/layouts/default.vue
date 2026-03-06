@@ -7,10 +7,11 @@
           <span>MemberBook</span>
         </NuxtLink>
 
-        <nav class="flex items-center gap-2 sm:gap-3">
-          <NuxtLink to="/blog" class="hidden rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700 md:inline-flex" :class="navLinkClass('/blog')">Blog</NuxtLink>
-          <NuxtLink to="/tools" class="hidden rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700 md:inline-flex" :class="navLinkClass('/tools')">Tools</NuxtLink>
-          <NuxtLink to="/contact" class="hidden rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700 md:inline-flex" :class="navLinkClass('/contact')">Contact</NuxtLink>
+        <!-- Desktop nav -->
+        <nav class="hidden items-center gap-2 sm:gap-3 md:flex">
+          <NuxtLink to="/blog" class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/blog')">Blog</NuxtLink>
+          <NuxtLink to="/tools" class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/tools')">Tools</NuxtLink>
+          <NuxtLink to="/contact" class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/contact')">Contact</NuxtLink>
 
           <template v-if="loggedIn">
             <NuxtLink to="/dashboard" class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/dashboard')">Dashboard</NuxtLink>
@@ -23,6 +24,39 @@
             </NuxtLink>
           </template>
         </nav>
+
+        <!-- Mobile nav -->
+        <div class="flex items-center gap-2 md:hidden">
+          <template v-if="loggedIn">
+            <NuxtLink to="/dashboard" class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/dashboard')">Dashboard</NuxtLink>
+          </template>
+          <template v-else>
+            <NuxtLink to="/login" class="rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">Login</NuxtLink>
+          </template>
+          <button class="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900" @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Toggle menu">
+            <svg v-if="!mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile menu dropdown -->
+      <div v-if="mobileMenuOpen" class="border-t border-slate-200/80 bg-white px-4 py-3 md:hidden">
+        <div class="flex flex-col gap-1">
+          <NuxtLink to="/blog" class="rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/blog')" @click="mobileMenuOpen = false">Blog</NuxtLink>
+          <NuxtLink to="/tools" class="rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/tools')" @click="mobileMenuOpen = false">Tools</NuxtLink>
+          <NuxtLink to="/contact" class="rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-primary-50 hover:text-primary-700" :class="navLinkClass('/contact')" @click="mobileMenuOpen = false">Contact</NuxtLink>
+          <template v-if="loggedIn">
+            <button class="rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900" @click="mobileMenuOpen = false; logout()">Logout</button>
+          </template>
+          <template v-else>
+            <NuxtLink to="/register" class="rounded-lg px-3 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50 hover:text-primary-700" @click="mobileMenuOpen = false">Get Started</NuxtLink>
+          </template>
+        </div>
       </div>
     </header>
     <main>
@@ -52,6 +86,11 @@
 <script setup lang="ts">
 const route = useRoute();
 const { loggedIn, clear } = useUserSession();
+const mobileMenuOpen = ref(false);
+
+watch(() => route.path, () => {
+  mobileMenuOpen.value = false;
+});
 
 function navLinkClass(path: string) {
   return route.path.startsWith(path) ? "bg-primary-50 text-primary-700" : "text-slate-600";
