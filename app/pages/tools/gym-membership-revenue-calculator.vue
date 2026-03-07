@@ -55,9 +55,9 @@
                   placeholder="Monthly Plan"
                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-3"
                 >
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                   <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">Price per month (₹)</label>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Plan price (₹)</label>
                     <input
                       v-model.number="plan.price"
                       type="number"
@@ -67,7 +67,19 @@
                     >
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">Number of members</label>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Duration</label>
+                    <select
+                      v-model.number="plan.duration"
+                      class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                    >
+                      <option :value="1">1 month</option>
+                      <option :value="3">3 months</option>
+                      <option :value="6">6 months</option>
+                      <option :value="12">12 months</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1">Members</label>
                     <input
                       v-model.number="plan.members"
                       type="number"
@@ -77,6 +89,9 @@
                     >
                   </div>
                 </div>
+                <p v-if="plan.duration > 1 && plan.price > 0" class="text-xs text-slate-500 mt-1">
+                  = {{ formatCurrency(Math.round(plan.price / plan.duration)) }}/month per member
+                </p>
               </div>
             </div>
 
@@ -89,47 +104,30 @@
               <span class="text-lg leading-none">+</span> Add Another Plan
             </button>
 
-            <!-- Sliders -->
-            <div class="space-y-7">
-              <div>
-                <div class="flex items-center justify-between mb-2">
-                  <label class="text-sm font-medium text-slate-700">Default Rate</label>
-                  <span class="text-sm font-semibold text-slate-800">{{ defaultRate }}%</span>
-                </div>
-                <p class="text-xs text-slate-600 mb-2">Members who don't renew: {{ defaultRate }}%</p>
-                <input
-                  v-model.number="defaultRate"
-                  type="range"
-                  min="0"
-                  max="40"
-                  step="1"
-                  class="w-full accent-green-500"
-                >
-                <div class="flex justify-between text-xs text-slate-500 mt-1">
-                  <span>0%</span>
-                  <span>40%</span>
-                </div>
+            <!-- Churn Slider -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-sm font-medium text-slate-700">Monthly Churn Rate</label>
+                <span class="text-sm font-semibold text-slate-800">{{ defaultRate }}%</span>
               </div>
-
-              <div>
-                <div class="flex items-center justify-between mb-2">
-                  <label class="text-sm font-medium text-slate-700">Annual Renewal Rate</label>
-                  <span class="text-sm font-semibold text-slate-800">{{ renewalRate }}%</span>
-                </div>
-                <p class="text-xs text-slate-600 mb-2">Members who renew annually: {{ renewalRate }}%</p>
-                <input
-                  v-model.number="renewalRate"
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  class="w-full accent-green-500"
-                >
-                <div class="flex justify-between text-xs text-slate-500 mt-1">
-                  <span>0%</span>
-                  <span>100%</span>
-                </div>
+              <p class="text-xs text-slate-600 mb-2">
+                {{ defaultRate }}% of members don't renew each month — you lose that revenue.
+              </p>
+              <input
+                v-model.number="defaultRate"
+                type="range"
+                min="0"
+                max="40"
+                step="1"
+                class="w-full accent-green-500"
+              >
+              <div class="flex justify-between text-xs text-slate-500 mt-1">
+                <span>0%</span>
+                <span>40%</span>
               </div>
+              <p class="text-xs text-slate-500 mt-2">
+                Typical for Indian gyms: 15–25% for monthly plans, 8–12% with reminders.
+              </p>
             </div>
           </div>
 
@@ -152,10 +150,15 @@
                 <p class="text-2xl font-bold text-slate-800">{{ formatCurrency(annualRevenue) }}</p>
               </div>
               <div class="bg-white border border-slate-200 rounded-xl p-5 text-center">
-                <p class="text-xs font-medium text-slate-600 mb-1">Revenue Lost to Defaults/yr</p>
+                <p class="text-xs font-medium text-slate-600 mb-1">Revenue Lost to Churn/yr</p>
                 <p class="text-2xl font-bold text-red-600">{{ formatCurrency(annualDefaultLoss) }}</p>
               </div>
             </div>
+
+            <!-- How it's calculated -->
+            <p class="text-xs text-slate-500 -mt-2">
+              Gross = sum of (plan price &divide; duration &times; members). Net = Gross minus {{ defaultRate }}% churn. Annual = Net &times; 12.
+            </p>
 
             <!-- Plan Breakdown Bars -->
             <div class="bg-white border border-slate-200 rounded-xl p-5">
@@ -165,7 +168,7 @@
                   <div class="flex items-center justify-between text-xs text-slate-700 mb-1">
                     <span class="font-medium truncate max-w-[140px]">{{ plan.name || 'Unnamed Plan' }}</span>
                     <span class="text-slate-600 ml-2 shrink-0">
-                      {{ formatCurrency(plan.price * plan.members) }}
+                      {{ formatCurrency(planMonthlyRevenue(plan)) }}
                       <span class="text-slate-500">({{ planPercentage(plan) }}%)</span>
                     </span>
                   </div>
@@ -193,7 +196,7 @@
                 </div>
                 <div>
                   <div class="flex justify-between text-xs text-slate-600 mb-1">
-                    <span>Net Revenue (after defaults)</span>
+                    <span>Net Revenue (after churn)</span>
                     <span>{{ formatCurrency(monthlyNet) }}</span>
                   </div>
                   <div class="h-4 bg-slate-100 rounded-full overflow-hidden">
@@ -208,9 +211,9 @@
 
             <!-- What If Section -->
             <div class="bg-white border border-slate-200 rounded-xl p-5">
-              <h3 class="text-sm font-semibold text-slate-700 mb-1">What If You Reduced Defaults?</h3>
+              <h3 class="text-sm font-semibold text-slate-700 mb-1">What If You Reduced Churn?</h3>
               <p class="text-xs text-slate-600 mb-4">
-                Extra annual revenue you'd recover by lowering your default rate.
+                Extra annual revenue you'd keep by lowering your churn rate.
               </p>
               <div v-if="defaultRate > 0 && annualDefaultLoss > 0" class="space-y-3">
                 <div
@@ -219,7 +222,7 @@
                   class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
                 >
                   <span class="text-sm text-slate-700">
-                    Reduce defaults by {{ reduction.by }}%
+                    Reduce churn by {{ reduction.by }}%
                   </span>
                   <span class="text-sm font-semibold text-green-600">
                     + {{ formatCurrency(reduction.recovery) }}/yr
@@ -285,6 +288,7 @@ interface Plan {
   id: number
   name: string
   price: number
+  duration: number // months
   members: number
 }
 
@@ -296,17 +300,16 @@ const appUrl = config.public.appUrl || "https://memberbook.app";
 // --- Reactive state ---
 
 const plans = ref<Plan[]>([
-  { id: 1, name: "Monthly Plan", price: 1500, members: 30 },
-  { id: 2, name: "Quarterly Plan", price: 4000, members: 15 },
+  { id: 1, name: "Monthly Plan", price: 1500, duration: 1, members: 30 },
+  { id: 2, name: "Quarterly Plan", price: 4000, duration: 3, members: 15 },
 ]);
 const defaultRate = ref(15);
-const renewalRate = ref(70);
 let nextId = 3;
 
 // --- Plan management ---
 
 function addPlan() {
-  plans.value.push({ id: nextId++, name: "", price: 0, members: 0 });
+  plans.value.push({ id: nextId++, name: "", price: 0, duration: 1, members: 0 });
 }
 
 function removePlan(id: number) {
@@ -317,8 +320,13 @@ function removePlan(id: number) {
 
 // --- Computed revenue values ---
 
+function planMonthlyRevenue(plan: Plan): number {
+  const duration = plan.duration || 1;
+  return Math.round((plan.price / duration) * plan.members);
+}
+
 const monthlyGross = computed(() =>
-  plans.value.reduce((sum, p) => sum + (p.price * p.members), 0),
+  plans.value.reduce((sum, p) => sum + planMonthlyRevenue(p), 0),
 );
 
 const monthlyNet = computed(() =>
@@ -335,7 +343,7 @@ const annualDefaultLoss = computed(() =>
 
 function planPercentage(plan: Plan): number {
   if (monthlyGross.value === 0) return 0;
-  return Math.round((plan.price * plan.members) / monthlyGross.value * 100);
+  return Math.round(planMonthlyRevenue(plan) / monthlyGross.value * 100);
 }
 
 function formatCurrency(n: number): string {
