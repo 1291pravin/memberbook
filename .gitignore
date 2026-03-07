@@ -38,3 +38,6 @@ outreach/
 
 # Local Claude/Codex skill and Playwright CLI runtime artifacts
 .playwright-cli/
+
+# Autopilot active state (ephemeral, never commit)
+autopilot/active/
