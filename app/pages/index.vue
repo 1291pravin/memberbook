@@ -71,6 +71,42 @@
       </div>
     </section>
 
+    <!-- FAQ -->
+    <section class="py-16 px-4 bg-white">
+      <div class="max-w-3xl mx-auto">
+        <h2 class="text-2xl font-bold text-center text-slate-800 mb-10">Frequently Asked Questions</h2>
+        <div class="divide-y divide-slate-200 border-t border-b border-slate-200">
+          <div v-for="(faq, index) in faqs" :key="index">
+            <button
+              class="w-full flex items-center justify-between gap-4 py-5 text-left cursor-pointer"
+              :aria-expanded="openFaqIndex === index"
+              @click="toggleFaq(index)"
+            >
+              <span class="font-medium text-slate-800">{{ faq.question }}</span>
+              <svg
+                class="w-5 h-5 shrink-0 text-slate-500 transition-transform duration-200"
+                :class="{ 'rotate-180': openFaqIndex === index }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div
+              class="grid transition-[grid-template-rows] duration-200 ease-in-out"
+              :class="openFaqIndex === index ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+            >
+              <div class="overflow-hidden">
+                <p class="pb-5 text-slate-600 leading-relaxed">{{ faq.answer }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="py-16 px-4 text-center">
       <div class="max-w-xl mx-auto">
@@ -98,6 +134,25 @@ definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
 const appUrl = config.public.appUrl || "https://memberbook.app";
+
+const faqs: { question: string; answer: string }[] = [
+  {
+    question: "What is MemberBook?",
+    answer: "MemberBook is a simple member and subscription management software designed for Indian small businesses like gyms, libraries, and tuition centers. It helps you track members, manage subscriptions, record payments, and send WhatsApp reminders.",
+  },
+  {
+    question: "Is MemberBook free?",
+    answer: "Yes, MemberBook is free to start. You can manage your members and subscriptions without any upfront cost.",
+  },
+  {
+    question: "What types of businesses can use MemberBook?",
+    answer: "MemberBook is designed for gyms, fitness centers, libraries, tuition centers, coaching classes, yoga studios, dance academies, and any membership-based business.",
+  },
+  {
+    question: "Can I send WhatsApp reminders?",
+    answer: "Yes, MemberBook generates pre-filled WhatsApp messages for payment reminders and renewal notifications that you can send with one click.",
+  },
+];
 
 // SEO Meta Tags
 useSeoMeta({
@@ -147,40 +202,14 @@ useHead({
       children: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "What is MemberBook?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "MemberBook is a simple member and subscription management software designed for Indian small businesses like gyms, libraries, and tuition centers. It helps you track members, manage subscriptions, record payments, and send WhatsApp reminders.",
-            },
+        "mainEntity": faqs.map(faq => ({
+          "@type": "Question",
+          "name": faq.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": faq.answer,
           },
-          {
-            "@type": "Question",
-            "name": "Is MemberBook free?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes, MemberBook is free to start. You can manage your members and subscriptions without any upfront cost.",
-            },
-          },
-          {
-            "@type": "Question",
-            "name": "What types of businesses can use MemberBook?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "MemberBook is designed for gyms, fitness centers, libraries, tuition centers, coaching classes, yoga studios, dance academies, and any membership-based business.",
-            },
-          },
-          {
-            "@type": "Question",
-            "name": "Can I send WhatsApp reminders?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes, MemberBook generates pre-filled WhatsApp messages for payment reminders and renewal notifications that you can send with one click.",
-            },
-          },
-        ],
+        })),
       }),
     },
     // Organization Schema
@@ -207,6 +236,11 @@ useHead({
 });
 
 const featuredPosts = blogPosts.slice(0, 2);
+
+const openFaqIndex = ref<number | null>(null);
+function toggleFaq(index: number) {
+  openFaqIndex.value = openFaqIndex.value === index ? null : index;
+}
 
 function trackCtaClick(label: string) {
   if (typeof window === "undefined") return;
