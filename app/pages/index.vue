@@ -43,6 +43,23 @@
       </div>
     </section>
 
+    <!-- Testimonials -->
+    <section class="py-16 px-4 bg-slate-50">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-center text-slate-800 mb-12">What our customers say</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div v-for="testimonial in testimonials" :key="testimonial.name" class="bg-white rounded-xl border border-slate-200 p-6">
+            <div class="text-primary-400 text-4xl leading-none mb-3">&ldquo;</div>
+            <p class="text-sm text-slate-600 leading-relaxed">{{ testimonial.quote }}</p>
+            <div class="mt-6 pt-4 border-t border-slate-100">
+              <p class="font-semibold text-slate-800">{{ testimonial.name }}</p>
+              <p class="text-sm text-slate-600">{{ testimonial.role }}, {{ testimonial.business }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- From the Blog -->
     <section class="py-16 px-4 bg-slate-50">
       <div class="max-w-4xl mx-auto">
@@ -261,5 +278,37 @@ const features = [
   { emoji: "📊", title: "Dashboard", desc: "See active members, revenue, and expiring subscriptions at a glance." },
   { emoji: "🔔", title: "Smart Reminders", desc: "Pre-filled WhatsApp messages for payment and renewal reminders." },
   { emoji: "👥", title: "Multi-Staff", desc: "Add staff members to help manage your business." },
+];
+
+interface Testimonial {
+  quote: string;
+  name: string;
+  role: string;
+  business: string;
+  type: "gym" | "library" | "tuition center";
+}
+
+const testimonials: Testimonial[] = [
+  {
+    quote: "MemberBook replaced our register and Excel sheets overnight. Now I know exactly who has paid and who needs a reminder — no more chasing members manually.",
+    name: "Rajesh Patil",
+    role: "Owner",
+    business: "Iron Fitness Gym",
+    type: "gym",
+  },
+  {
+    quote: "Managing 500+ library members used to be a headache. With MemberBook, renewals and dues are tracked automatically and I can focus on growing our collection.",
+    name: "Sneha Iyer",
+    role: "Head Librarian",
+    business: "PageTurn Community Library",
+    type: "library",
+  },
+  {
+    quote: "I run batches for three subjects and each student has a different plan. MemberBook handles it all and the WhatsApp reminders save me hours every month.",
+    name: "Amit Sharma",
+    role: "Director",
+    business: "BrightMinds Tuition Center",
+    type: "tuition center",
+  },
 ];
 </script>
