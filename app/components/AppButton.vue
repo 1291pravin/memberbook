@@ -3,10 +3,10 @@
     :type="type"
     :disabled="disabled || loading"
     :class="[
-      'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+      'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer',
       variantClasses,
       sizeClasses,
-      { 'opacity-50 cursor-not-allowed': disabled || loading },
+      disabled || loading ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.97]',
     ]"
   >
     <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -32,9 +32,9 @@ const props = withDefaults(defineProps<{
 
 const variantClasses = computed(() => {
   const map = {
-    primary: "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
-    secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-400",
-    danger: "bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500",
+    primary: "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md hover:shadow-primary-500/25 focus:ring-primary-500",
+    secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200 hover:shadow-sm focus:ring-slate-400",
+    danger: "bg-danger-600 text-white hover:bg-danger-700 hover:shadow-md hover:shadow-danger-500/25 focus:ring-danger-500",
     ghost: "text-slate-600 hover:bg-slate-100 focus:ring-slate-400",
   };
   return map[props.variant];

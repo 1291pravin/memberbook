@@ -39,4 +39,19 @@
   --color-info-100: #dbeafe;
   --color-info-600: #2563eb;
   --color-info-700: #1d4ed8;
+
+  /* Typography */
+  --font-heading: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Open Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Base typography */
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
 }

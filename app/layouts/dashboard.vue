@@ -1,9 +1,9 @@
 <template>
   <div class="min-h-screen bg-slate-50 lg:flex">
     <!-- Desktop Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-slate-800 lg:fixed lg:inset-y-0">
-      <div class="p-4 border-b border-slate-700">
-        <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300">MemberBook</NuxtLink>
+    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-gradient-to-b lg:from-slate-800 lg:to-slate-900 lg:fixed lg:inset-y-0">
+      <div class="p-4 border-b border-slate-700/50">
+        <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300 tracking-tight">MemberBook</NuxtLink>
         <div v-if="currentOrg" class="relative mt-1">
           <button
             v-if="hasMultipleOrgs"
@@ -36,21 +36,21 @@
           </div>
         </div>
       </div>
-      <nav class="flex-1 p-3 space-y-1">
+      <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto">
         <NuxtLink
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-          :class="isActive(item.to) ? 'bg-[rgba(99,102,241,0.15)] text-primary-200' : 'text-slate-400 hover:bg-[rgba(148,163,184,0.1)]'"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          :class="isActive(item.to) ? 'bg-primary-600/15 text-primary-200 shadow-sm shadow-primary-500/10' : 'text-slate-400 hover:bg-white/5 hover:text-slate-300'"
         >
           <component :is="item.icon" class="w-5 h-5" />
           {{ item.label }}
         </NuxtLink>
       </nav>
-      <div class="p-3 border-t border-slate-700">
+      <div class="p-3 border-t border-slate-700/50">
         <button
-          class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-[rgba(148,163,184,0.1)]"
+          class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-white/5 hover:text-slate-300 transition-all duration-200 cursor-pointer"
           @click="logout"
         >
           Logout
