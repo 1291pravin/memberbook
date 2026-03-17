@@ -2,7 +2,7 @@
   <div class="min-h-screen flex items-center justify-center px-4 py-8 bg-slate-50">
     <div class="w-full max-w-2xl">
       <!-- Progress Indicator -->
-      <div class="mb-8" v-if="progress">
+      <div class="mb-8" v-if="progress && currentStep !== 'complete'">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm text-slate-600">Setup Progress</span>
           <span class="text-sm font-medium">{{ progress.completedSteps }}/{{ progress.totalSteps }}</span>

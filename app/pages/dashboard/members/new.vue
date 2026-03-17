@@ -16,28 +16,48 @@
         :error="phoneError"
         @blur="validatePhoneField"
       />
-      <AppInput v-model="form.email" label="Email" type="email" placeholder="member@example.com" />
-      <AppSelect
-        v-model="form.gender"
-        label="Gender (Optional)"
-        :options="[
-          { value: '', label: 'Prefer not to say' },
-          { value: 'male', label: 'Male' },
-          { value: 'female', label: 'Female' },
-        ]"
-      />
-      <AppInput v-model="form.fatherName" label="Father's Name" placeholder="Optional" />
-      <AppInput v-model="form.address" label="Address" placeholder="Optional" />
-      <AppInput v-model="form.batch" label="Batch / Timing" placeholder="e.g., Morning, Afternoon, Evening" />
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-        <textarea
-          v-model="form.notes"
-          rows="3"
-          class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-          placeholder="Optional notes"
+      <!-- More Details (optional fields) -->
+      <button
+        type="button"
+        class="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+        @click="showMoreDetails = !showMoreDetails"
+      >
+        <svg
+          class="h-4 w-4 transition-transform"
+          :class="{ 'rotate-90': showMoreDetails }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        More Details
+      </button>
+
+      <template v-if="showMoreDetails">
+        <AppInput v-model="form.email" label="Email" type="email" placeholder="member@example.com" />
+        <AppSelect
+          v-model="form.gender"
+          label="Gender (Optional)"
+          :options="[
+            { value: '', label: 'Prefer not to say' },
+            { value: 'male', label: 'Male' },
+            { value: 'female', label: 'Female' },
+          ]"
         />
-      </div>
+        <AppInput v-model="form.fatherName" label="Father's Name" placeholder="Optional" />
+        <AppInput v-model="form.address" label="Address" placeholder="Optional" />
+        <AppInput v-model="form.batch" label="Batch / Timing" placeholder="e.g., Morning, Afternoon, Evening" />
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+          <textarea
+            v-model="form.notes"
+            rows="3"
+            class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+            placeholder="Optional notes"
+          />
+        </div>
+      </template>
 
       <!-- Optional Plan Selection -->
       <div class="border-t border-slate-200 pt-4">
@@ -101,6 +121,7 @@ const form = reactive({
   paymentAmount: "",
   paymentMethod: "cash",
 });
+const showMoreDetails = ref(false);
 const error = ref("");
 const phoneError = ref("");
 const saving = ref(false);
@@ -135,6 +156,10 @@ watch(() => form.planId, (planId) => {
   const plan = plans.value.find(p => p.id === Number(planId));
   if (plan) {
     form.paymentAmount = String(plan.price / 100);
+    form.recordPayment = true;
+  }
+  else {
+    form.recordPayment = false;
   }
 });
 

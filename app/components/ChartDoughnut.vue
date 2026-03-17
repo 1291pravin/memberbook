@@ -29,6 +29,7 @@ const props = defineProps<{
 const height = computed(() => props.height || 250);
 const hasData = computed(() => {
   const ds = props.chartData.datasets;
-  return ds.length > 0 && (ds[0]?.data?.length ?? 0) > 0;
+  if (ds.length === 0 || (ds[0]?.data?.length ?? 0) === 0) return false;
+  return ds.some(d => (d.data as number[]).some(v => v !== 0));
 });
 </script>
