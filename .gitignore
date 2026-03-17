@@ -36,8 +36,14 @@ google-service-account.json
 outreach/
 !outreach/.gitkeep
 
+# WhatsApp Baileys session (contains auth keys — never commit)
+outreach/.wa-session/
+
 # Local Claude/Codex skill and Playwright CLI runtime artifacts
 .playwright-cli/
+
+# MCP server config (may contain local paths)
+.mcp.json
 
 # Autopilot active state (ephemeral, never commit)
 autopilot/active/

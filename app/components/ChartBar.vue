@@ -1,6 +1,6 @@
 <template>
   <div class="relative" :style="{ height: height + 'px' }">
-    <Bar v-if="chartData.datasets.length > 0" :data="chartData" :options="chartOptions" />
+    <Bar v-if="hasData" :data="chartData" :options="chartOptions" />
     <div v-else class="flex items-center justify-center h-full text-slate-600 text-sm">
       {{ emptyMessage }}
     </div>
@@ -30,4 +30,9 @@ const props = defineProps<{
 }>();
 
 const height = computed(() => props.height || 250);
+const hasData = computed(() => {
+  const ds = props.chartData.datasets;
+  if (ds.length === 0) return false;
+  return ds.some(d => (d.data as number[]).some(v => v !== 0));
+});
 </script>

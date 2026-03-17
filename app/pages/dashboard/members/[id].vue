@@ -649,6 +649,10 @@ watch(() => assignForm.planId, (planId) => {
   const plan = plans.value.find(p => p.id === Number(planId));
   if (plan) {
     assignForm.paymentAmount = String(plan.price / 100);
+    assignForm.recordPayment = true;
+  }
+  else {
+    assignForm.recordPayment = false;
   }
 });
 

@@ -30,6 +30,12 @@ Work directly with Claude for all development tasks (features, bug fixes, UI cha
 - `npx drizzle-kit generate` — Generate DB migration from schema changes
 - `npx drizzle-kit migrate` — Apply migrations locally
 
+## Scripts
+
+- `node scripts/add-staff.mjs <email> <org-id>` — Add a user as staff to an org (remote D1)
+  - `--role owner` to add as owner instead of staff
+  - `--local` to run against local D1
+
 ## Tech Stack
 
 - **Framework:** Nuxt 4.3 (Vue 3.5, Vue Router 4)
@@ -103,6 +109,11 @@ Required in `.env`:
 - `NUXT_SESSION_PASSWORD` — session secret (min 32 chars)
 - `NUXT_OAUTH_GOOGLE_CLIENT_ID` — Google OAuth client ID
 - `NUXT_OAUTH_GOOGLE_CLIENT_SECRET` — Google OAuth client secret
+
+## WhatsApp
+
+- Pravin's WhatsApp number: **9137849812** (+91 91378 49812)
+- Use this number for sending/receiving all WhatsApp messages (outreach, customer communication, etc.)
 
 ## Git
 
