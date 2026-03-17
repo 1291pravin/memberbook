@@ -77,23 +77,20 @@ const FRAMEWORKS = {
 
 function whatsappMessage(lead, framework) {
   const name = lead.name || 'there';
-  // Mixed Hindi+English — natural WhatsApp tone
+  const category = lead.category === 'tuition' ? 'tuition center' : lead.category;
+  const ratingLine = lead.rating ? ` — ${lead.rating} stars, great going!` : '';
   return [
-    `Hi ${name} ji,`,
+    `Hi ${name},`,
     ``,
-    `I came across your ${lead.category === 'tuition' ? 'tuition center' : lead.category} on Google and wanted to reach out.`,
+    `Saw your ${category} on Google Maps${ratingLine}`,
     ``,
-    `${framework.pain}.`,
+    `Quick question — how do you currently track member payments and renewals? Register or Excel?`,
     ``,
-    `We built *MemberBook* — ${framework.promise}.`,
+    `We built *MemberBook* specifically for ${category}s — ${framework.promise.charAt(0).toLowerCase() + framework.promise.slice(1)}.`,
     ``,
     `${framework.proof}.`,
     ``,
-    `Kya aap 2 min ka demo dekhna chahenge? It is free to try and works on your phone.`,
-    ``,
-    `Website: https://memberbook.in`,
-    ``,
-    `Thanks!`,
+    `It's free to try and takes 2 minutes to set up: https://memberbook.in`,
   ].join('\n');
 }
 

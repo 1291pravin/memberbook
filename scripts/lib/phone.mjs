@@ -30,6 +30,17 @@ export function normalizeIndianPhone(phone) {
  * @param {string} message - Pre-filled message
  * @returns {string} wa.me URL
  */
+/**
+ * Check if a normalized Indian phone number is a mobile number (starts with 6-9 after +91).
+ * Landlines (e.g., 022-XXXX) cannot receive WhatsApp messages.
+ * @param {string} phone - Raw or normalized phone string
+ * @returns {boolean}
+ */
+export function isMobileNumber(phone) {
+  const normalized = typeof phone === 'string' && phone.startsWith('+') ? phone : normalizeIndianPhone(phone);
+  return /^\+91[6-9]\d{9}$/.test(normalized);
+}
+
 export function buildWhatsAppLink(phone, message) {
   const normalized = normalizeIndianPhone(phone);
   if (!normalized) return '';
