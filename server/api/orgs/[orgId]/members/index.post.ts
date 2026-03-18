@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import { normalizePhone, validatePhone } from "~~/shared/utils/phone";
 
 export default defineEventHandler(async (event) => {
@@ -83,5 +83,9 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  return { member };
+  // Return total member count so frontend can detect first member
+  const memberCount = await db.select({ count: count() }).from(schema.members).where(eq(schema.members.orgId, access.orgId));
+  const totalMembers = memberCount[0]?.count ?? 0;
+
+  return { member, totalMembers };
 });

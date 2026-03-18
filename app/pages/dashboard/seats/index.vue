@@ -2,7 +2,7 @@
   <div class="p-4 space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Library Seats</h1>
+      <h1 class="text-xl font-bold text-slate-800">{{ seatsTitle }}</h1>
       <div class="flex gap-2">
         <AppButton v-if="batches.length > 0" size="sm" variant="secondary" @click="navigateTo('/dashboard/seats/batches')">
           Manage Batches
@@ -111,6 +111,7 @@
           ]"
         />
         <AppSelect
+          v-if="currentOrg?.type === 'library'"
           v-model="genderFilter"
           label="Gender Preference"
           :options="[
@@ -329,8 +330,16 @@
 <script setup lang="ts">
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
-const { orgId } = useOrg();
+const { orgId, currentOrg } = useOrg();
 const { api } = useApi();
+
+const seatsTitle = computed(() => {
+  const type = currentOrg.value?.type;
+  if (type === 'gym') return 'Gym Slots';
+  if (type === 'tuition') return 'Class Seats';
+  if (type === 'library') return 'Library Seats';
+  return 'Seats';
+});
 const searchQuery = ref("");
 const statusFilter = ref("all");
 const timeFilter = ref("all");

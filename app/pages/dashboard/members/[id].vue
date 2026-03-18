@@ -24,7 +24,7 @@
     <!-- Member Info -->
     <AppCard v-if="member" title="Contact">
       <div class="space-y-2 text-sm">
-        <p v-if="member.phone"><span class="text-slate-600">Phone:</span> <a :href="`tel:${member.phone}`" class="text-primary-600 hover:underline">{{ member.phone }}</a></p>
+        <p v-if="member.phone"><span class="text-slate-600">Phone:</span> <a :href="`tel:${member.phone}`" class="text-primary-600 hover:underline">{{ formatPhone(member.phone) }}</a></p>
         <p v-if="member.email"><span class="text-slate-600">Email:</span> {{ member.email }}</p>
         <p v-if="member.fatherName"><span class="text-slate-600">Father's Name:</span> {{ member.fatherName }}</p>
         <p v-if="member.address"><span class="text-slate-600">Address:</span> {{ member.address }}</p>
@@ -339,7 +339,7 @@
 </template>
 
 <script setup lang="ts">
-import { validatePhone, normalizePhone } from "~~/shared/utils/phone";
+import { validatePhone, normalizePhone, formatPhone } from "~~/shared/utils/phone";
 
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 

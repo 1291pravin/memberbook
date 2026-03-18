@@ -4,13 +4,12 @@
       <!-- Progress Indicator -->
       <div class="mb-8" v-if="progress && currentStep !== 'complete'">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm text-slate-600">Setup Progress</span>
-          <span class="text-sm font-medium">{{ progress.completedSteps }}/{{ progress.totalSteps }}</span>
+          <span class="text-sm font-medium text-slate-800">Step {{ currentStepNumber }} of {{ totalWizardSteps }}: {{ currentStepLabel }}</span>
         </div>
         <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
           <div
             class="h-full bg-primary-500 transition-all duration-300"
-            :style="{ width: `${progress.percentageComplete}%` }"
+            :style="{ width: `${(currentStepNumber / totalWizardSteps) * 100}%` }"
           />
         </div>
       </div>
@@ -206,6 +205,26 @@ const { progress, loadProgress, markStepComplete } = useOnboarding();
 
 const currentStep = computed(() => route.params.step as string);
 
+// Step numbering
+const wizardSteps = computed(() => {
+  const isLibrary = currentOrg.value?.type === 'library';
+  const steps = [
+    { key: 'staff', label: 'Invite Your Team' },
+    { key: 'plans', label: 'Create Your First Plan' },
+  ];
+  if (isLibrary) steps.push({ key: 'seats', label: 'Setup Library Seats' });
+  return steps;
+});
+const totalWizardSteps = computed(() => wizardSteps.value.length);
+const currentStepNumber = computed(() => {
+  const idx = wizardSteps.value.findIndex(s => s.key === currentStep.value);
+  return idx >= 0 ? idx + 1 : 1;
+});
+const currentStepLabel = computed(() => {
+  const step = wizardSteps.value.find(s => s.key === currentStep.value);
+  return step?.label ?? '';
+});
+
 // Staff invite state
 const inviteUrl = ref("");
 const inviteLoading = ref(false);
@@ -220,9 +239,12 @@ const planForm = reactive({
 });
 const planLoading = ref(false);
 
-// Load progress on mount
-onMounted(() => {
-  loadProgress();
+// Load progress on mount, auto-complete dashboard tour on completion
+onMounted(async () => {
+  await loadProgress();
+  if (currentStep.value === 'complete') {
+    await markStepComplete('dashboardTourCompleted');
+  }
 });
 
 // Generate invite link

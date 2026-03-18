@@ -1,5 +1,24 @@
 <template>
   <div class="p-4 max-w-lg">
+    <!-- First Member Celebration -->
+    <div v-if="showCelebration" class="text-center py-8 space-y-6">
+      <div class="text-6xl">🎉</div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800">{{ t.member }} Added!</h2>
+        <p class="text-slate-600 mt-2">Great start! You're on your way to managing your {{ t.members.toLowerCase() }} like a pro.</p>
+      </div>
+      <div class="space-y-3 max-w-xs mx-auto">
+        <NuxtLink :to="`/dashboard/members/${newMemberId}`">
+          <AppButton class="w-full">View {{ t.member }} &amp; Record Payment</AppButton>
+        </NuxtLink>
+        <AppButton variant="secondary" class="w-full" @click="resetForm">Add Another {{ t.member }}</AppButton>
+        <NuxtLink to="/dashboard">
+          <AppButton variant="ghost" class="w-full">Go to Dashboard</AppButton>
+        </NuxtLink>
+      </div>
+    </div>
+
+    <template v-else>
     <h1 class="text-xl font-bold text-slate-800 mb-6">{{ t.addMember }}</h1>
 
     <div v-if="error" class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -93,6 +112,7 @@
         <AppButton variant="secondary" @click="$router.back()">Cancel</AppButton>
       </div>
     </form>
+    </template>
   </div>
 </template>
 
@@ -105,6 +125,7 @@ const { orgId } = useOrg();
 const { parseCurrencyToInt } = useFormatCurrency();
 const t = useTerminology();
 const router = useRouter();
+const route = useRoute();
 
 const form = reactive({
   name: "",
@@ -122,6 +143,8 @@ const form = reactive({
   paymentMethod: "cash",
 });
 const showMoreDetails = ref(false);
+const showCelebration = ref(false);
+const newMemberId = ref<number | null>(null);
 const error = ref("");
 const phoneError = ref("");
 const saving = ref(false);
@@ -163,6 +186,27 @@ watch(() => form.planId, (planId) => {
   }
 });
 
+function resetForm() {
+  form.name = "";
+  form.phone = "";
+  form.email = "";
+  form.gender = "";
+  form.fatherName = "";
+  form.address = "";
+  form.batch = "";
+  form.notes = "";
+  form.planId = "";
+  form.startDate = new Date().toISOString().split("T")[0];
+  form.recordPayment = false;
+  form.paymentAmount = "";
+  form.paymentMethod = "cash";
+  showMoreDetails.value = false;
+  showCelebration.value = false;
+  newMemberId.value = null;
+  error.value = "";
+  phoneError.value = "";
+}
+
 function validatePhoneField() {
   phoneError.value = validatePhone(form.phone) || "";
 }
@@ -203,11 +247,19 @@ async function handleSubmit() {
       }
     }
 
-    const data = await $fetch<{ member: { id: number } }>(`/api/orgs/${orgId.value}/members`, {
+    const data = await $fetch<{ member: { id: number }; totalMembers?: number }>(`/api/orgs/${orgId.value}/members`, {
       method: "POST",
       body,
     });
-    router.push(`/dashboard/members/${data.member.id}`);
+
+    // Show celebration for the first member
+    const isFirst = data.totalMembers === 1 || route.query.first === '1';
+    if (isFirst) {
+      newMemberId.value = data.member.id;
+      showCelebration.value = true;
+    } else {
+      router.push(`/dashboard/members/${data.member.id}`);
+    }
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };
     error.value = err.data?.statusMessage || "Failed to add member";

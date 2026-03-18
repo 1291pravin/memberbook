@@ -26,6 +26,16 @@ export function normalizePhone(raw: string): string | null {
 }
 
 /**
+ * Format a phone number for display: 9876543210 → +91 98765 43210
+ * Returns the original string if it can't be normalized.
+ */
+export function formatPhone(phone: string): string {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return phone;
+  return `+91 ${normalized.slice(0, 5)} ${normalized.slice(5)}`;
+}
+
+/**
  * Validate a phone number string. Returns error message or null if valid.
  * Empty/null phone is allowed (phone is optional).
  */

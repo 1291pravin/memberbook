@@ -13,7 +13,7 @@
     <AppCard v-if="stats.activeMembers === 0" class="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
       <div class="mb-4">
         <h2 class="text-lg font-semibold text-slate-800">Welcome to MemberBook!</h2>
-        <p class="text-sm text-slate-600 mt-1">Complete these steps to get started with managing your {{ t.members.toLowerCase() }}.</p>
+        <p class="text-sm text-slate-600 mt-1">Add your first 3 {{ t.members.toLowerCase() }} to see your dashboard come alive with stats, charts, and insights.</p>
       </div>
       <div class="space-y-3">
         <!-- Create a plan -->
