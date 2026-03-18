@@ -54,12 +54,19 @@
         <AppInput v-model="form.price" label="Price (in Rupees)" type="number" placeholder="500" required />
         <div class="grid grid-cols-2 gap-3">
           <AppInput v-model="form.durationValue" label="Duration" type="number" placeholder="1" min="1" required />
-          <AppSelect
-            v-model="form.durationType"
-            label="Period"
-            :options="durationTypeOptions"
-            required
-          />
+          <div>
+            <div class="flex items-center mb-1">
+              <label class="block text-sm font-medium text-slate-700">Period</label>
+              <AppHelpIcon>
+                How the duration is measured. E.g., "1 Monthly" = 1 month plan, "3 Monthly" = quarterly, "1 Yearly" = annual plan. Daily plans work well for day passes.
+              </AppHelpIcon>
+            </div>
+            <AppSelect
+              v-model="form.durationType"
+              :options="durationTypeOptions"
+              required
+            />
+          </div>
         </div>
         <div class="flex gap-2 justify-end">
           <AppButton variant="secondary" @click="closeForm">Cancel</AppButton>

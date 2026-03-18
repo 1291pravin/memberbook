@@ -99,28 +99,41 @@
             { value: 'vacant', label: 'Vacant' },
           ]"
         />
-        <AppSelect
-          v-model="timeFilter"
-          label="Time Preference"
-          :options="[
-            { value: 'all', label: 'All Times' },
-            { value: 'day', label: 'Day' },
-            { value: 'evening', label: 'Evening' },
-            { value: 'flexible', label: 'Flexible' },
-            { value: 'all-day', label: 'All Day' },
-          ]"
-        />
-        <AppSelect
-          v-if="currentOrg?.type === 'library'"
-          v-model="genderFilter"
-          label="Gender Preference"
-          :options="[
-            { value: 'all', label: 'All Genders' },
-            { value: 'male', label: 'Male' },
-            { value: 'female', label: 'Female' },
-            { value: 'any', label: 'Any' },
-          ]"
-        />
+        <div>
+          <div class="flex items-center mb-1">
+            <label class="block text-sm font-medium text-slate-700">Time Preference</label>
+            <AppHelpIcon>
+              Filter seats by the time of day they are designated for. "Flexible" means the seat can be used at any time. "All Day" means the seat is reserved for the full day.
+            </AppHelpIcon>
+          </div>
+          <AppSelect
+            v-model="timeFilter"
+            :options="[
+              { value: 'all', label: 'All Times' },
+              { value: 'day', label: 'Day' },
+              { value: 'evening', label: 'Evening' },
+              { value: 'flexible', label: 'Flexible' },
+              { value: 'all-day', label: 'All Day' },
+            ]"
+          />
+        </div>
+        <div v-if="currentOrg?.type === 'library'">
+          <div class="flex items-center mb-1">
+            <label class="block text-sm font-medium text-slate-700">Gender Preference</label>
+            <AppHelpIcon>
+              Filter seats reserved for a specific gender. "Any" means the seat has no gender restriction and can be assigned to anyone.
+            </AppHelpIcon>
+          </div>
+          <AppSelect
+            v-model="genderFilter"
+            :options="[
+              { value: 'all', label: 'All Genders' },
+              { value: 'male', label: 'Male' },
+              { value: 'female', label: 'Female' },
+              { value: 'any', label: 'Any' },
+            ]"
+          />
+        </div>
       </div>
     </AppCard>
 

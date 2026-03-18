@@ -52,14 +52,21 @@
     <!-- Subscription Settings (owner only) -->
     <AppCard v-if="isOwner" title="Subscription Settings">
       <form class="space-y-4" @submit.prevent="saveSubscriptionSettings">
-        <AppInput
-          v-model="subscriptionForm.gracePeriodDays"
-          label="Grace Period (days)"
-          type="number"
-          min="0"
-          placeholder="0"
-        />
-        <p class="text-xs text-slate-600 -mt-2">Allow members to continue using services for this many days after subscription expires. Set to 0 to disable.</p>
+        <div>
+          <div class="flex items-center">
+            <label class="block text-sm font-medium text-slate-700">Grace Period (days)</label>
+            <AppHelpIcon>
+              When a subscription expires, the member will still show as "active" for this many extra days. Useful if you want to give members time to renew without losing access. Set to 0 to disable.
+            </AppHelpIcon>
+          </div>
+          <AppInput
+            v-model="subscriptionForm.gracePeriodDays"
+            type="number"
+            min="0"
+            placeholder="0"
+            class="mt-1"
+          />
+        </div>
         <AppButton type="submit" size="sm" :loading="savingSubscriptionSettings">Save</AppButton>
       </form>
     </AppCard>
@@ -99,6 +106,35 @@
       <AppButton size="sm" @click="showAddCategoryModal = true">
         Add Category
       </AppButton>
+    </AppCard>
+
+    <!-- Sample Data (owner only) -->
+    <AppCard v-if="isOwner" title="Sample Data">
+      <p class="text-sm text-slate-600 mb-3">
+        {{ hasDemoData
+          ? 'Your organization is currently using sample data. Clear it when you\'re ready to add real members.'
+          : 'Load realistic sample data to see how MemberBook looks with members, subscriptions, and payments.' }}
+      </p>
+      <div class="flex items-center gap-3">
+        <AppButton
+          v-if="hasDemoData"
+          size="sm"
+          variant="danger"
+          :loading="clearingDemo"
+          @click="clearDemoData"
+        >
+          Clear Sample Data
+        </AppButton>
+        <AppButton
+          v-else
+          size="sm"
+          :loading="loadingDemo"
+          @click="loadDemoData"
+        >
+          Load Sample Data
+        </AppButton>
+        <p v-if="demoMessage" class="text-sm" :class="demoMessageError ? 'text-red-600' : 'text-green-600'">{{ demoMessage }}</p>
+      </div>
     </AppCard>
 
     <!-- Cache Management (owner only) -->
@@ -297,6 +333,54 @@ const isOwner = computed(() => currentOrg.value?.role === "owner");
 
 const clearingCache = ref(false);
 const cacheCleared = ref("");
+
+// Demo data
+const { data: demoStatus, refresh: refreshDemoStatus } = await useFetch<{ hasDemoData: boolean }>(
+  `/api/orgs/${orgId.value}/demo-data`,
+);
+const hasDemoData = computed(() => demoStatus.value?.hasDemoData ?? false);
+const loadingDemo = ref(false);
+const clearingDemo = ref(false);
+const demoMessage = ref("");
+const demoMessageError = ref(false);
+
+async function loadDemoData() {
+  loadingDemo.value = true;
+  demoMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/demo-data`, { method: "POST" });
+    await refreshDemoStatus();
+    demoMessage.value = "Sample data loaded successfully!";
+    demoMessageError.value = false;
+    setTimeout(() => { demoMessage.value = ""; }, 5000);
+  } catch (e: unknown) {
+    const err = e as { data?: { statusMessage?: string } };
+    demoMessage.value = err.data?.statusMessage || "Failed to load sample data";
+    demoMessageError.value = true;
+    setTimeout(() => { demoMessage.value = ""; }, 5000);
+  } finally {
+    loadingDemo.value = false;
+  }
+}
+
+async function clearDemoData() {
+  clearingDemo.value = true;
+  demoMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/demo-data`, { method: "DELETE" });
+    await refreshDemoStatus();
+    demoMessage.value = "Sample data cleared successfully!";
+    demoMessageError.value = false;
+    setTimeout(() => { demoMessage.value = ""; }, 5000);
+  } catch (e: unknown) {
+    const err = e as { data?: { statusMessage?: string } };
+    demoMessage.value = err.data?.statusMessage || "Failed to clear sample data";
+    demoMessageError.value = true;
+    setTimeout(() => { demoMessage.value = ""; }, 5000);
+  } finally {
+    clearingDemo.value = false;
+  }
+}
 
 // Expense categories
 interface Category {

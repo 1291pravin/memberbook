@@ -170,8 +170,42 @@
           <div class="text-center py-8">
             <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-3xl font-bold text-slate-800 mb-2">You're All Set!</h2>
-            <p class="text-slate-600 mb-6">Your workspace is ready to use. Start adding members and managing your business.</p>
-            <AppButton @click="navigateTo('/dashboard')" size="lg">
+            <p class="text-slate-600 mb-4">Your workspace is ready. How would you like to add your members?</p>
+
+            <!-- Bulk Import Prompt -->
+            <div class="grid gap-3 max-w-md mx-auto mb-6 text-left">
+              <NuxtLink
+                to="/dashboard/members/new"
+                class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 border border-slate-200 hover:border-primary-300 hover:shadow-sm transition-all group"
+              >
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-slate-800 group-hover:text-primary-700">Add members one by one</p>
+                  <p class="text-xs text-slate-600">Best for a few members</p>
+                </div>
+              </NuxtLink>
+
+              <NuxtLink
+                to="/dashboard/members?import=1"
+                class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 border border-slate-200 hover:border-primary-300 hover:shadow-sm transition-all group"
+              >
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-slate-800 group-hover:text-primary-700">Import from CSV / Excel</p>
+                  <p class="text-xs text-slate-600">Best for 10+ existing members</p>
+                </div>
+              </NuxtLink>
+            </div>
+
+            <AppButton variant="secondary" @click="navigateTo('/dashboard')" size="lg">
               Go to Dashboard
             </AppButton>
           </div>

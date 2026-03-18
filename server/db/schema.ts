@@ -16,6 +16,7 @@ export const organizations = sqliteTable("organizations", {
   type: text("type").notNull(), // gym, library, tuition, other
   currency: text("currency").notNull().default("INR"),
   gracePeriodDays: integer("grace_period_days").notNull().default(0),
+  demoDataIds: text("demo_data_ids"), // JSON blob of seeded record IDs, null = no demo data
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 

@@ -206,6 +206,13 @@ function onImported() {
 const route = useRoute();
 const initialPlanId = (route.query.planId as string) || "all";
 
+// Auto-open import modal if ?import=1 query param is present
+onMounted(() => {
+  if (route.query.import === '1') {
+    showImport.value = true;
+  }
+});
+
 const search = ref("");
 const quickFilter = ref("all");
 const statusFilter = ref("all");

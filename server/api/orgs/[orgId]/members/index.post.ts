@@ -36,6 +36,7 @@ export default defineEventHandler(async (event) => {
   await invalidateCache(access.orgId);
 
   // If planId provided, create subscription
+  let subscriptionInfo: { planName: string; endDate: string } | null = null;
   if (planId && startDate) {
     const plans = await db
       .select()
@@ -51,6 +52,8 @@ export default defineEventHandler(async (event) => {
       if (payment?.amount) {
         paymentStatus = payment.amount >= plan.price ? "paid" : "partial";
       }
+
+      subscriptionInfo = { planName: plan.name, endDate };
 
       const subResult = await db.insert(schema.memberSubscriptions).values({
         orgId: access.orgId,
@@ -87,5 +90,5 @@ export default defineEventHandler(async (event) => {
   const memberCount = await db.select({ count: count() }).from(schema.members).where(eq(schema.members.orgId, access.orgId));
   const totalMembers = memberCount[0]?.count ?? 0;
 
-  return { member, totalMembers };
+  return { member, totalMembers, subscription: subscriptionInfo };
 });

@@ -7,11 +7,25 @@
         <h2 class="text-2xl font-bold text-slate-800">{{ t.member }} Added!</h2>
         <p class="text-slate-600 mt-2">Great start! You're on your way to managing your {{ t.members.toLowerCase() }} like a pro.</p>
       </div>
+
+      <!-- Show Value: concrete benefit preview -->
+      <div v-if="celebrationPlanName && celebrationEndDate" class="bg-primary-50 border border-primary-200 rounded-lg p-4 max-w-sm mx-auto text-left">
+        <p class="text-sm text-primary-800">
+          MemberBook will remind you when {{ celebrationMemberName }}'s membership expires on <strong>{{ celebrationEndDate }}</strong>. No more missed renewals.
+        </p>
+      </div>
+
+      <!-- Activation Loop: prompt to add more -->
+      <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 max-w-sm mx-auto">
+        <p class="text-sm text-slate-700 font-medium">1 of your {{ t.members.toLowerCase() }} added.</p>
+        <p class="text-xs text-slate-600 mt-1">Most {{ currentOrg?.type === 'library' ? 'libraries' : currentOrg?.type === 'tuition' ? 'coaching centers' : 'gyms' }} add 20+ in their first session.</p>
+      </div>
+
       <div class="space-y-3 max-w-xs mx-auto">
+        <AppButton class="w-full" @click="resetForm">Add {{ t.member }} #2</AppButton>
         <NuxtLink :to="`/dashboard/members/${newMemberId}`">
-          <AppButton class="w-full">View {{ t.member }} &amp; Record Payment</AppButton>
+          <AppButton variant="secondary" class="w-full">View {{ t.member }} &amp; Record Payment</AppButton>
         </NuxtLink>
-        <AppButton variant="secondary" class="w-full" @click="resetForm">Add Another {{ t.member }}</AppButton>
         <NuxtLink to="/dashboard">
           <AppButton variant="ghost" class="w-full">Go to Dashboard</AppButton>
         </NuxtLink>
@@ -66,7 +80,15 @@
         />
         <AppInput v-model="form.fatherName" label="Father's Name" placeholder="Optional" />
         <AppInput v-model="form.address" label="Address" placeholder="Optional" />
-        <AppInput v-model="form.batch" label="Batch / Timing" placeholder="e.g., Morning, Afternoon, Evening" />
+        <div>
+          <div class="flex items-center">
+            <label class="block text-sm font-medium text-slate-700">Batch / Timing</label>
+            <AppHelpIcon>
+              The time slot or batch this member attends. Useful for gyms with morning/evening batches or tuition centers with specific class timings.
+            </AppHelpIcon>
+          </div>
+          <AppInput v-model="form.batch" placeholder="e.g., Morning, Afternoon, Evening" class="mt-1" />
+        </div>
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
           <textarea
@@ -121,7 +143,7 @@ import { validatePhone, normalizePhone } from "~~/shared/utils/phone";
 
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
-const { orgId } = useOrg();
+const { orgId, currentOrg } = useOrg();
 const { parseCurrencyToInt } = useFormatCurrency();
 const t = useTerminology();
 const router = useRouter();
@@ -145,6 +167,9 @@ const form = reactive({
 const showMoreDetails = ref(false);
 const showCelebration = ref(false);
 const newMemberId = ref<number | null>(null);
+const celebrationMemberName = ref("");
+const celebrationPlanName = ref("");
+const celebrationEndDate = ref("");
 const error = ref("");
 const phoneError = ref("");
 const saving = ref(false);
@@ -203,6 +228,9 @@ function resetForm() {
   showMoreDetails.value = false;
   showCelebration.value = false;
   newMemberId.value = null;
+  celebrationMemberName.value = "";
+  celebrationPlanName.value = "";
+  celebrationEndDate.value = "";
   error.value = "";
   phoneError.value = "";
 }
@@ -247,7 +275,7 @@ async function handleSubmit() {
       }
     }
 
-    const data = await $fetch<{ member: { id: number }; totalMembers?: number }>(`/api/orgs/${orgId.value}/members`, {
+    const data = await $fetch<{ member: { id: number }; totalMembers?: number; subscription?: { planName: string; endDate: string } | null }>(`/api/orgs/${orgId.value}/members`, {
       method: "POST",
       body,
     });
@@ -256,6 +284,11 @@ async function handleSubmit() {
     const isFirst = data.totalMembers === 1 || route.query.first === '1';
     if (isFirst) {
       newMemberId.value = data.member.id;
+      celebrationMemberName.value = form.name;
+      if (data.subscription) {
+        celebrationPlanName.value = data.subscription.planName;
+        celebrationEndDate.value = new Date(data.subscription.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+      }
       showCelebration.value = true;
     } else {
       router.push(`/dashboard/members/${data.member.id}`);

@@ -9,6 +9,19 @@
       </NuxtLink>
     </div>
 
+    <!-- Demo Data Banner (shown when viewing sample data) -->
+    <div v-if="hasDemoData && stats.activeMembers > 0" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <p class="text-sm text-amber-800">You're viewing <strong>sample data</strong>. Clear it when you're ready to add real {{ t.members.toLowerCase() }}.</p>
+      </div>
+      <AppButton size="sm" variant="secondary" :loading="clearingDemo" @click="clearDemoData">
+        Clear Sample Data
+      </AppButton>
+    </div>
+
     <!-- Activation Checklist (shown when no active members) -->
     <AppCard v-if="stats.activeMembers === 0" class="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
       <div class="mb-4">
@@ -86,6 +99,25 @@
           </svg>
         </NuxtLink>
       </div>
+
+      <!-- Load Sample Data button -->
+      <button
+        class="mt-4 w-full flex items-center gap-3 rounded-lg border-2 border-dashed border-amber-300 bg-amber-50 px-4 py-3 hover:bg-amber-100 hover:border-amber-400 transition-colors group"
+        :disabled="loadingDemo"
+        @click="loadDemoData"
+      >
+        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center group-hover:bg-amber-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+          </svg>
+        </div>
+        <div class="flex-1 text-left">
+          <p class="text-sm font-medium text-amber-800 group-hover:text-amber-900">
+            {{ loadingDemo ? 'Loading sample data...' : 'Load sample data' }}
+          </p>
+          <p class="text-xs text-amber-600">See what a populated dashboard looks like</p>
+        </div>
+      </button>
     </AppCard>
 
     <!-- Stats Cards (shown when user has active members) -->
@@ -226,4 +258,41 @@ const stats = computed(
 const recentPayments = computed(() => dashData.value?.recentPayments ?? []);
 const expiring = computed(() => expiringData.value?.expiring ?? []);
 const plansCount = computed(() => plansData.value?.plans?.length ?? 0);
+
+// Demo data
+const { data: demoStatus, refresh: refreshDemoStatus } = await useFetch<{ hasDemoData: boolean }>(
+  `/api/orgs/${orgId.value}/demo-data`,
+);
+const hasDemoData = computed(() => demoStatus.value?.hasDemoData ?? false);
+
+const loadingDemo = ref(false);
+const clearingDemo = ref(false);
+
+async function loadDemoData() {
+  loadingDemo.value = true;
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/demo-data`, { method: "POST" });
+    await refreshDemoStatus();
+    refreshNuxtData();
+  } catch (e: unknown) {
+    const err = e as { data?: { statusMessage?: string } };
+    alert(err.data?.statusMessage || "Failed to load sample data");
+  } finally {
+    loadingDemo.value = false;
+  }
+}
+
+async function clearDemoData() {
+  clearingDemo.value = true;
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/demo-data`, { method: "DELETE" });
+    await refreshDemoStatus();
+    refreshNuxtData();
+  } catch (e: unknown) {
+    const err = e as { data?: { statusMessage?: string } };
+    alert(err.data?.statusMessage || "Failed to clear sample data");
+  } finally {
+    clearingDemo.value = false;
+  }
+}
 </script>
