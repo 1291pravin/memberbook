@@ -36,6 +36,12 @@ const TOKEN_FILE    = join(ROOT, '.analytics-token.json');
 const GA4_PROPERTY  = env.GA4_PROPERTY_ID || '524789436';
 const SC_SITE       = env.SEARCH_CONSOLE_SITE_URL || 'https://memberbook.in/';
 
+// Cloudflare Workers Analytics (optional)
+const CF_API_TOKEN   = env.CLOUDFLARE_API_TOKEN;
+const CF_ACCOUNT_ID  = env.CLOUDFLARE_ACCOUNT_ID;
+const CF_WORKER_NAME = env.CLOUDFLARE_WORKER_NAME || 'memberbook';
+const CF_ENABLED     = !!(CF_API_TOKEN && CF_ACCOUNT_ID);
+
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error('❌ Missing NUXT_OAUTH_GOOGLE_CLIENT_ID or NUXT_OAUTH_GOOGLE_CLIENT_SECRET in .env');
   process.exit(1);
@@ -230,6 +236,29 @@ async function scQuerySafe(token, body) {
   catch (e) { return { _error: e.message, rows: [] }; }
 }
 
+// ── Cloudflare Workers Analytics ─────────────────────────────────────────────
+
+async function cfGraphQL(query, variables = {}) {
+  const res = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${CF_API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  const data = await res.json();
+  if (data.errors?.length) {
+    throw new Error(`Cloudflare GraphQL: ${data.errors.map(e => e.message).join('; ')}`);
+  }
+  return data.data;
+}
+
+async function cfGraphQLSafe(query, variables = {}) {
+  try { return await cfGraphQL(query, variables); }
+  catch (e) { return { _error: e.message }; }
+}
+
 // ── Data helpers ──────────────────────────────────────────────────────────────
 
 function parseGA4Overview(report) {
@@ -286,6 +315,10 @@ async function generateReport() {
 
   // ── GA4 Fetches ──────────────────────────────────────────────────────────
 
+  // ISO 8601 date helpers for Cloudflare API
+  const cfDateStart = nDaysAgo(28) + 'T00:00:00Z';
+  const cfDateEnd   = today() + 'T23:59:59Z';
+
   const [
     ga4Overview,
     ga4OverviewPrev,
@@ -298,6 +331,8 @@ async function generateReport() {
     scQueries,
     scPages,
     scDevices,
+    cfOverview,
+    cfDaily,
   ] = await Promise.all([
     // GA4: Overview current period (last 28 days)
     ga4Report(token, {
@@ -397,6 +432,49 @@ async function generateReport() {
       endDate:    today(),
       dimensions: ['device'],
     }),
+
+    // Cloudflare Workers: Overview (last 28 days)
+    CF_ENABLED
+      ? cfGraphQLSafe(`query ($accountTag: String!, $filter: AccountWorkersInvocationsAdaptiveFilter_InputObject!) {
+          viewer {
+            accounts(filter: {accountTag: $accountTag}) {
+              workersInvocationsAdaptive(limit: 1, filter: $filter) {
+                sum { requests errors subrequests }
+                quantiles { cpuTimeP50 cpuTimeP75 cpuTimeP99 }
+              }
+            }
+          }
+        }`, {
+          accountTag: CF_ACCOUNT_ID,
+          filter: {
+            scriptName: CF_WORKER_NAME,
+            datetime_geq: cfDateStart,
+            datetime_leq: cfDateEnd,
+          },
+        })
+      : Promise.resolve(null),
+
+    // Cloudflare Workers: Daily trend
+    CF_ENABLED
+      ? cfGraphQLSafe(`query ($accountTag: String!, $filter: AccountWorkersInvocationsAdaptiveFilter_InputObject!) {
+          viewer {
+            accounts(filter: {accountTag: $accountTag}) {
+              workersInvocationsAdaptive(limit: 100, filter: $filter, orderBy: [date_ASC]) {
+                dimensions { date }
+                sum { requests errors subrequests }
+                quantiles { cpuTimeP50 cpuTimeP99 }
+              }
+            }
+          }
+        }`, {
+          accountTag: CF_ACCOUNT_ID,
+          filter: {
+            scriptName: CF_WORKER_NAME,
+            datetime_geq: cfDateStart,
+            datetime_leq: cfDateEnd,
+          },
+        })
+      : Promise.resolve(null),
   ]);
 
   console.log('✓ All data fetched\n');
@@ -434,6 +512,40 @@ async function generateReport() {
   const scPRows = scPages?.rows ?? [];
   const scDRows = scDevices?.rows ?? [];
 
+  // CF data
+  const cfError = cfOverview?._error ?? null;
+  if (CF_ENABLED && cfError) console.warn(`⚠️  Cloudflare Workers unavailable: ${cfError}`);
+  if (!CF_ENABLED) console.log('ℹ️  Cloudflare Workers analytics skipped (no credentials in .env)');
+
+  const cfStats = (() => {
+    if (!CF_ENABLED || cfError || !cfOverview) return null;
+    const nodes = cfOverview?.viewer?.accounts?.[0]?.workersInvocationsAdaptive;
+    if (!nodes?.length) return null;
+    const n = nodes[0];
+    return {
+      requests: n.sum.requests,
+      errors: n.sum.errors,
+      subrequests: n.sum.subrequests,
+      errorRate: n.sum.requests > 0 ? n.sum.errors / n.sum.requests : 0,
+      cpuP50: n.quantiles.cpuTimeP50,
+      cpuP75: n.quantiles.cpuTimeP75,
+      cpuP99: n.quantiles.cpuTimeP99,
+    };
+  })();
+
+  const cfDailyRows = (() => {
+    if (!CF_ENABLED || !cfDaily || cfDaily._error) return [];
+    const nodes = cfDaily?.viewer?.accounts?.[0]?.workersInvocationsAdaptive ?? [];
+    return nodes.map(n => ({
+      date: n.dimensions.date,
+      requests: n.sum.requests,
+      errors: n.sum.errors,
+      subrequests: n.sum.subrequests,
+      cpuP50: n.quantiles.cpuTimeP50,
+      cpuP99: n.quantiles.cpuTimeP99,
+    }));
+  })();
+
   // Opportunities: queries ranked 5-20 with >30 impressions
   const opportunities = scQRows.filter(r =>
     r.position >= 4 && r.position <= 20 && r.impressions >= 30
@@ -463,6 +575,10 @@ async function generateReport() {
   if (scCur.clicks) summaryBullets.push(`Search Console shows **${fmtNum(scCur.clicks)} clicks** from **${fmtNum(scCur.impressions)} impressions** in the last 28 days.`);
   if (scCur.position) summaryBullets.push(`Average search position is **${scCur.position?.toFixed(1)}** — ${scCur.position < 20 ? 'appearing on the first two pages' : 'room for improvement'}.`);
   if (opportunities.length > 0) summaryBullets.push(`**${opportunities.length} keyword opportunities** found ranking between positions 5-20 with decent impressions.`);
+
+  if (cfStats) {
+    summaryBullets.push(`Cloudflare Workers handled **${fmtNum(cfStats.requests)} requests** with a **${fmtPct(cfStats.errorRate)} error rate** (p99 CPU: ${(cfStats.cpuP99 / 1000).toFixed(1)}ms).`);
+  }
 
   // Top traffic source
   const topSource = sources[0];
@@ -565,6 +681,33 @@ ${opportunities.map(r => `| ${r.keys?.[0] ?? '—'} | ${fmtNum(r.clicks)} | ${fm
 
 ---
 
+${cfStats ? `## Cloudflare Workers
+
+### Overview (Last 28 Days)
+
+| Metric | Value |
+|--------|-------|
+| Total Requests | ${fmtNum(cfStats.requests)} |
+| Errors | ${fmtNum(cfStats.errors)} |
+| Error Rate | ${fmtPct(cfStats.errorRate)} |
+| Subrequests | ${fmtNum(cfStats.subrequests)} |
+| CPU Time p50 | ${(cfStats.cpuP50 / 1000).toFixed(1)}ms |
+| CPU Time p75 | ${(cfStats.cpuP75 / 1000).toFixed(1)}ms |
+| CPU Time p99 | ${(cfStats.cpuP99 / 1000).toFixed(1)}ms |
+
+${cfDailyRows.length > 0 ? `### Daily Trend
+
+| Date | Requests | Errors | Error Rate | CPU p50 | CPU p99 |
+|------|----------|--------|------------|---------|---------|
+${cfDailyRows.map(d => `| ${d.date} | ${fmtNum(d.requests)} | ${fmtNum(d.errors)} | ${d.requests > 0 ? fmtPct(d.errors / d.requests) : '—'} | ${(d.cpuP50 / 1000).toFixed(1)}ms | ${(d.cpuP99 / 1000).toFixed(1)}ms |`).join('\n')}` : ''}
+
+---
+` : CF_ENABLED && cfError ? `## Cloudflare Workers
+
+> ⚠️ **Workers analytics unavailable:** ${cfError}
+
+---
+` : ''}
 ## Recommendations
 
 ### Quick Wins
@@ -578,7 +721,7 @@ ${opportunities.slice(0, 5).map((r, i) => `${i + 1}. Improve content for **"${r.
 
 ---
 *Report generated by MemberBook analytics-reporter agent*
-*Data source: GA4 Property ${GA4_PROPERTY} · Search Console ${SC_SITE}*
+*Data source: GA4 Property ${GA4_PROPERTY} · Search Console ${SC_SITE}${cfStats ? ` · Cloudflare Worker ${CF_WORKER_NAME}` : ''}*
 `;
 
   // ── Save report ───────────────────────────────────────────────────────────

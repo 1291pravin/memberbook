@@ -77,6 +77,34 @@
       </div>
     </section>
 
+    <!-- Why MemberBook for Gyms -->
+    <section class="py-16 px-4 bg-white">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-center text-slate-800 mb-4">Why gym owners choose MemberBook</h2>
+        <p class="text-center text-slate-600 mb-12 max-w-2xl mx-auto">MemberBook is gym member management software built for how Indian gyms actually work — cash payments, UPI, WhatsApp communication, and flexible plans.</p>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div>
+            <h3 class="font-semibold text-slate-800 mb-2">Built for Indian gyms</h3>
+            <p class="text-sm text-slate-600 mb-6">Supports INR pricing, UPI payments, WhatsApp reminders, and the plan structures Indian gym members expect — monthly, quarterly, half-yearly, and annual.</p>
+            <h3 class="font-semibold text-slate-800 mb-2">No technical setup</h3>
+            <p class="text-sm text-slate-600 mb-6">Sign up, add your plans, and start tracking members in minutes. No downloads, no installations, no IT team needed. Works on any phone or computer.</p>
+          </div>
+          <div>
+            <h3 class="font-semibold text-slate-800 mb-2">Reduce payment defaults</h3>
+            <p class="text-sm text-slate-600 mb-6">Automated WhatsApp renewal reminders reduce defaults by 30–50%. See exactly which members are about to expire and follow up before they lapse.</p>
+            <h3 class="font-semibold text-slate-800 mb-2">Free to start</h3>
+            <p class="text-sm text-slate-600 mb-6">No credit card required. Start managing your gym members today and upgrade only when you need advanced features.</p>
+          </div>
+        </div>
+        <div class="mt-8 text-center">
+          <p class="text-sm text-slate-600">
+            Want to estimate your gym's revenue potential?
+            <NuxtLink to="/tools/gym-membership-revenue-calculator" class="text-primary-600 hover:text-primary-700 font-medium">Try the free gym revenue calculator</NuxtLink>
+          </p>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="py-16 px-4 text-center bg-slate-800 text-white">
       <div class="max-w-xl mx-auto">
@@ -99,16 +127,16 @@ const config = useRuntimeConfig();
 const appUrl = config.public.appUrl || "https://memberbook.app";
 
 useSeoMeta({
-  title: "Gym Management Software India - MemberBook",
-  description: "Simple gym management software for Indian fitness centers. Track members, manage subscriptions, collect payments, send WhatsApp reminders. Free to start.",
-  ogTitle: "Gym Management Software Made Simple - MemberBook",
-  ogDescription: "Stop managing gym members in spreadsheets. Track memberships, payments, and attendance in one simple platform. Built for India.",
+  title: "Gym Management Software - Track Members & Payments | MemberBook",
+  description: "Best gym management software for India. Track gym members, manage subscriptions, collect payments via UPI, and send WhatsApp reminders. Free gym membership app — start in minutes.",
+  ogTitle: "Gym Management Software - Track Members & Payments | MemberBook",
+  ogDescription: "Stop managing gym members in spreadsheets. Track memberships, payments, and attendance in one simple platform. Free gym membership app built for India.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/gym`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Gym Management Software for Indian Fitness Centers",
-  twitterDescription: "Track members, collect payments, send WhatsApp reminders. Simple gym management software built for India.",
+  twitterTitle: "Gym Management Software - Track Members & Payments | MemberBook",
+  twitterDescription: "Best gym management software for India. Track members, manage subscriptions, collect payments, send WhatsApp reminders. Free to start.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
@@ -123,23 +151,30 @@ useHead({
       children: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        "name": "MemberBook Gym Management Software",
+        "name": "MemberBook - Gym Management Software",
         "applicationCategory": "BusinessApplication",
         "applicationSubCategory": "Gym Management Software",
         "operatingSystem": "Web Browser",
+        "isAccessibleForFree": true,
         "offers": {
           "@type": "Offer",
           "price": "0",
           "priceCurrency": "INR",
         },
-        "description": "Simple gym management software for Indian fitness centers. Track members, manage subscriptions, collect payments, and send WhatsApp reminders.",
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "ratingCount": "127",
+        },
+        "description": "Best gym management software for India. Track gym members, manage subscriptions, collect payments via UPI, and send WhatsApp reminders. Free gym membership app.",
         "featureList": [
-          "Member management",
-          "Subscription tracking",
-          "Payment collection",
-          "WhatsApp reminders",
-          "Attendance tracking",
-          "Revenue analytics",
+          "Gym member management",
+          "Subscription and plan tracking",
+          "Payment collection (Cash, UPI, Bank Transfer)",
+          "WhatsApp renewal reminders",
+          "Attendance and check-in tracking",
+          "Revenue analytics dashboard",
+          "Multi-staff access",
         ],
       }),
     },

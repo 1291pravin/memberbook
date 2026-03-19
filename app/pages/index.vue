@@ -187,7 +187,7 @@ const faqs: { question: string; answer: string }[] = [
 // SEO Meta Tags
 useSeoMeta({
   title: "MemberBook (Member Book) - Member Management Software",
-  description: "Member management software for gyms, libraries, and tuition centers. Track members, collect payments, send WhatsApp reminders. Free to start.",
+  description: "MemberBook (Member Book) — member management software for gyms, libraries, and tuition centers. Track members, collect payments, send WhatsApp reminders. Free to start.",
   ogTitle: "MemberBook (Member Book) - Member Management Software",
   ogDescription: "Track members, collect payments, and send WhatsApp renewal reminders for gyms, libraries, and tuition centers. Free to start.",
   ogImage: `${appUrl}/og-image.png`,

@@ -262,6 +262,27 @@
       </div>
     </section>
 
+    <!-- Related Tools & Resources -->
+    <section class="py-12 px-4 bg-white">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-semibold text-slate-800 mb-6 text-center">Related Tools & Resources</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <NuxtLink to="/tools/gym-churn-rate-retention-calculator" class="block bg-slate-50 border border-slate-200 rounded-xl p-6 hover:border-primary-300 hover:shadow-md transition-all">
+            <h3 class="font-semibold text-slate-800 mb-2">Churn Rate Calculator</h3>
+            <p class="text-sm text-slate-600">Calculate your gym's member retention rate and see how churn affects long-term revenue.</p>
+          </NuxtLink>
+          <NuxtLink to="/tools/gym-subscription-plan-price-optimizer" class="block bg-slate-50 border border-slate-200 rounded-xl p-6 hover:border-primary-300 hover:shadow-md transition-all">
+            <h3 class="font-semibold text-slate-800 mb-2">Plan Price Optimizer</h3>
+            <p class="text-sm text-slate-600">Find the optimal pricing for your membership plans to maximize revenue and retention.</p>
+          </NuxtLink>
+          <NuxtLink to="/blog/gym-owner-income-india" class="block bg-slate-50 border border-slate-200 rounded-xl p-6 hover:border-primary-300 hover:shadow-md transition-all">
+            <h3 class="font-semibold text-slate-800 mb-2">Gym Owner Income Guide</h3>
+            <p class="text-sm text-slate-600">How much does a gym owner earn in India? Complete breakdown of income, costs, and profit margins.</p>
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
     <!-- FAQ -->
     <section class="py-14 px-4 bg-slate-50">
       <div class="max-w-3xl mx-auto">
@@ -411,19 +432,19 @@ const faqs = [
 // --- SEO & Schemas ---
 
 useSeoMeta({
-  title: "Gym Membership Revenue Calculator (Free) | MemberBook",
+  title: "Free Gym Revenue Calculator - Estimate Monthly Income | MemberBook",
   description:
-    "Estimate gym monthly income in 60 seconds. Free gym revenue calculator with annual forecast, default loss, and renewal impact for Indian gyms.",
-  ogTitle: "Gym Membership Revenue Calculator (Free) | MemberBook",
+    "How much does a gym earn per month? Use this free calculator to estimate monthly & annual gym revenue, see churn impact, and plan your membership pricing. Built for Indian gym owners.",
+  ogTitle: "Free Gym Revenue Calculator - Estimate Monthly Income | MemberBook",
   ogDescription:
-    "Estimate gym monthly income in 60 seconds. Free gym revenue calculator with annual forecast, default loss, and renewal impact for Indian gyms.",
+    "How much does a gym earn per month? Use this free calculator to estimate monthly & annual gym revenue, see churn impact, and plan your membership pricing.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/tools/gym-membership-revenue-calculator`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Gym Membership Revenue Calculator (Free) | MemberBook",
+  twitterTitle: "Free Gym Revenue Calculator - Estimate Monthly Income | MemberBook",
   twitterDescription:
-    "Estimate gym monthly income in 60 seconds. Free gym revenue calculator with annual forecast, default loss, and renewal impact for Indian gyms.",
+    "How much does a gym earn per month? Free calculator for Indian gym owners — estimate revenue, see churn impact, plan pricing.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
