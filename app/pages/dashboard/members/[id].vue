@@ -65,8 +65,8 @@
       </div>
     </AppCard>
 
-    <!-- Seat Assignment -->
-    <AppCard title="Seat Assignment">
+    <!-- Seat Assignment (library only) -->
+    <AppCard v-if="isLibrary" title="Seat Assignment">
       <!-- Multiple batch assignments -->
       <div v-if="seatAssignments.length > 0" class="space-y-3">
         <div v-for="assignment in seatAssignments" :key="assignment.id" class="border-b border-slate-100 last:border-0 pb-2 last:pb-0">
@@ -300,8 +300,8 @@
       </form>
     </AppModal>
 
-    <!-- Assign Seat Modal -->
-    <AppModal :open="showSeatModal" title="Assign Seat" @close="showSeatModal = false">
+    <!-- Assign Seat Modal (library only) -->
+    <AppModal v-if="isLibrary" :open="showSeatModal" title="Assign Seat" @close="showSeatModal = false">
       <form class="space-y-4" @submit.prevent="assignSeat">
         <AppSelect
           v-if="seatBatches.length > 0"
@@ -344,7 +344,7 @@ import { validatePhone, normalizePhone, formatPhone } from "~~/shared/utils/phon
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const route = useRoute();
-const { orgId } = useOrg();
+const { orgId, currentOrg } = useOrg();
 const t = useTerminology();
 const { formatCurrency, parseCurrencyToInt } = useFormatCurrency();
 const { formatDate } = useFormatDate();
@@ -352,6 +352,7 @@ const { getWhatsAppLink, getReminderMessage, getPaymentReminderMessage } = useWh
 
 const memberId = route.params.id;
 const cacheVersion = ref(Date.now());
+const isLibrary = computed(() => currentOrg.value?.type === 'library');
 
 interface MemberDetail {
   id: number;
@@ -450,15 +451,16 @@ const removingSeat = ref(false);
 const seatError = ref("");
 const seatForm = reactive({ seatId: "", batchId: "", notes: "" });
 
+// Seat data — only fetch for library orgs
 const { data: seatAssignmentData, refresh: refreshSeatAssignment } = await useFetch<{ assignment: SeatAssignment | null; assignments: SeatAssignment[] }>(
   `/api/orgs/${orgId.value}/members/${memberId}/seat-assignment`,
-  { query: { _v: cacheVersion } },
+  { query: { _v: cacheVersion }, immediate: isLibrary.value },
 );
 const seatAssignments = computed(() => seatAssignmentData.value?.assignments ?? []);
 
-// Fetch seat batches
 const { data: seatBatchesData } = await useFetch<{ batches: SeatBatch[] }>(
   `/api/orgs/${orgId.value}/seat-batches`,
+  { immediate: isLibrary.value },
 );
 const seatBatches = computed(() => (seatBatchesData.value?.batches ?? []).filter(b => b.isActive));
 const batchOptions = computed(() => [
@@ -468,7 +470,7 @@ const batchOptions = computed(() => [
 
 const { data: availableSeatsData } = await useFetch<{ seats: LibrarySeat[] }>(
   `/api/orgs/${orgId.value}/seats`,
-  { query: { status: "all" } },
+  { query: { status: "all" }, immediate: isLibrary.value },
 );
 const availableSeats = computed(() => availableSeatsData.value?.seats ?? []);
 const availableSeatsOptions = computed(() =>
