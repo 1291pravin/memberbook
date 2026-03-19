@@ -1,6 +1,6 @@
 # MemberBook Analytics Report
 **Period:** 2026-02-19 → 2026-03-19 (last 28 days)
-**Generated:** 2026-03-19 05:12:18 UTC
+**Generated:** 2026-03-19 07:04:55 UTC
 
 ---
 
@@ -10,8 +10,8 @@
 - Search Console shows **19 clicks** from **828 impressions** in the last 28 days.
 - Average search position is **4.1** — appearing on the first two pages.
 - **1 keyword opportunities** found ranking between positions 5-20 with decent impressions.
-- Cloudflare Workers handled **5,090 requests** with a **0.0% error rate** (p99 CPU: 116.3ms).
-- Top traffic source: **Organic Search** (43 sessions).
+- Cloudflare Workers handled **5,093 requests** with a **0.0% error rate** (p99 CPU: 116.7ms).
+- Top traffic source: **Organic Search** (44 sessions).
 
 ---
 
@@ -24,9 +24,9 @@
 | Sessions | 88 | 28 | +214.3% |
 | Active Users | 34 | 11 | +209.1% |
 | New Users | 29 | 11 | +163.6% |
-| Page Views | 783 | 198 | +295.5% |
-| Bounce Rate | 44.3% | 25.0% | 🟡 Normal |
-| Avg. Session Duration | 12m 21s | 8m 53s | — |
+| Page Views | 787 | 198 | +297.5% |
+| Bounce Rate | 43.2% | 25.0% | 🟡 Normal |
+| Avg. Session Duration | 12m 10s | 8m 53s | — |
 
 > **Week-over-week:** Last 7 days had **27 sessions** vs 19 the prior 7 days (+42.1%).
 
@@ -34,26 +34,25 @@
 
 | Channel | Sessions | Users |
 |---------|----------|-------|
-| Organic Search | 43 | 15 |
+| Organic Search | 44 | 15 |
 | Direct | 25 | 15 |
 | Referral | 17 | 2 |
 | Organic Social | 2 | 2 |
-| Unassigned | 2 | 2 |
 
 ### Top Pages
 
 | Page | Views | Users | Bounce Rate |
 |------|-------|-------|-------------|
-| `/` | 134 | 29 | 38.4% |
-| `/dashboard/seats` | 122 | 3 | 9.5% |
-| `/dashboard` | 100 | 5 | 14.7% |
-| `/dashboard/members` | 78 | 4 | 4.5% |
-| `/dashboard/check-ins` | 44 | 3 | 0.0% |
+| `/` | 135 | 29 | 37.8% |
+| `/dashboard/seats` | 122 | 3 | 4.8% |
+| `/dashboard` | 100 | 5 | 11.8% |
+| `/dashboard/members` | 78 | 4 | 0.0% |
+| `/dashboard/check-ins` | 45 | 3 | 0.0% |
 | `/tools` | 33 | 6 | 0.0% |
-| `/dashboard/plans` | 26 | 3 | 9.1% |
+| `/dashboard/plans` | 26 | 3 | 0.0% |
 | `/contact` | 20 | 5 | 12.5% |
-| `/login` | 20 | 7 | 8.3% |
-| `/dashboard/payments` | 16 | 4 | 10.0% |
+| `/login` | 20 | 7 | 0.0% |
+| `/dashboard/payments` | 16 | 4 | 0.0% |
 
 ### Device Breakdown
 
@@ -142,13 +141,13 @@ These queries have impressions but rank below the top 4 — good candidates for 
 
 | Metric | Value |
 |--------|-------|
-| Total Requests | 5,090 |
+| Total Requests | 5,093 |
 | Errors | 0 |
 | Error Rate | 0.0% |
 | Subrequests | 10 |
-| CPU Time p50 | 18.8ms |
+| CPU Time p50 | 18.9ms |
 | CPU Time p75 | 52.9ms |
-| CPU Time p99 | 116.3ms |
+| CPU Time p99 | 116.7ms |
 
 ### Daily Trend
 
@@ -182,7 +181,7 @@ These queries have impressions but rank below the top 4 — good candidates for 
 | 2026-03-16 | 274 | 0 | 0.0% | 11.8ms | 116.3ms |
 | 2026-03-17 | 117 | 0 | 0.0% | 14.8ms | 131.7ms |
 | 2026-03-18 | 861 | 0 | 0.0% | 5.7ms | 89.5ms |
-| 2026-03-19 | 5 | 0 | 0.0% | 70.7ms | 132.8ms |
+| 2026-03-19 | 8 | 0 | 0.0% | 70.7ms | 132.8ms |
 
 ---
 

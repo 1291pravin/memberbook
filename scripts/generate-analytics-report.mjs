@@ -6,6 +6,7 @@
  */
 
 import http from 'http';
+import os from 'os';
 import { exec } from 'child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
@@ -36,11 +37,35 @@ const TOKEN_FILE    = join(ROOT, '.analytics-token.json');
 const GA4_PROPERTY  = env.GA4_PROPERTY_ID || '524789436';
 const SC_SITE       = env.SEARCH_CONSOLE_SITE_URL || 'https://memberbook.in/';
 
-// Cloudflare Workers Analytics (optional)
-const CF_API_TOKEN   = env.CLOUDFLARE_API_TOKEN;
+// Cloudflare Workers Analytics (uses wrangler OAuth token)
 const CF_ACCOUNT_ID  = env.CLOUDFLARE_ACCOUNT_ID;
 const CF_WORKER_NAME = env.CLOUDFLARE_WORKER_NAME || 'memberbook';
-const CF_ENABLED     = !!(CF_API_TOKEN && CF_ACCOUNT_ID);
+
+function getWranglerOAuthToken() {
+  // Wrangler stores OAuth tokens in its config dir
+  const candidates = [
+    join(process.env.APPDATA || '', 'xdg.config', '.wrangler', 'config', 'default.toml'),
+    join(os.homedir(), '.wrangler', 'config', 'default.toml'),
+    join(process.env.XDG_CONFIG_HOME || '', '.wrangler', 'config', 'default.toml'),
+  ];
+  for (const p of candidates) {
+    if (!p || !existsSync(p)) continue;
+    const content = readFileSync(p, 'utf8');
+    const tokenMatch = content.match(/^oauth_token\s*=\s*"(.+)"/m);
+    const expiryMatch = content.match(/^expiration_time\s*=\s*"(.+)"/m);
+    if (tokenMatch) {
+      if (expiryMatch && new Date(expiryMatch[1]) < new Date()) {
+        console.warn('⚠️  Wrangler OAuth token expired. Run: npx wrangler login (from outside project dir)');
+        return null;
+      }
+      return tokenMatch[1];
+    }
+  }
+  return null;
+}
+
+const CF_OAUTH_TOKEN = getWranglerOAuthToken();
+const CF_ENABLED     = !!(CF_OAUTH_TOKEN && CF_ACCOUNT_ID);
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error('❌ Missing NUXT_OAUTH_GOOGLE_CLIENT_ID or NUXT_OAUTH_GOOGLE_CLIENT_SECRET in .env');
@@ -242,7 +267,7 @@ async function cfGraphQL(query, variables = {}) {
   const res = await fetch('https://api.cloudflare.com/client/v4/graphql', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${CF_API_TOKEN}`,
+      Authorization: `Bearer ${CF_OAUTH_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ query, variables }),
@@ -515,7 +540,7 @@ async function generateReport() {
   // CF data
   const cfError = cfOverview?._error ?? null;
   if (CF_ENABLED && cfError) console.warn(`⚠️  Cloudflare Workers unavailable: ${cfError}`);
-  if (!CF_ENABLED) console.log('ℹ️  Cloudflare Workers analytics skipped (no credentials in .env)');
+  if (!CF_ENABLED) console.log('ℹ️  Cloudflare Workers analytics skipped (no wrangler OAuth token or CLOUDFLARE_ACCOUNT_ID). Run: npx wrangler login');
 
   const cfStats = (() => {
     if (!CF_ENABLED || cfError || !cfOverview) return null;
