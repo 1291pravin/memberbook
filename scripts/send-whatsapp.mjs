@@ -4,6 +4,12 @@
  *
  * Usage:
  *   node scripts/send-whatsapp.mjs outreach/2026-03-14-vashi-gym/raw.json
+ *   node scripts/send-whatsapp.mjs outreach/2026-03-14-vashi-gym/raw.json --messages messages.json --auto --limit 15
+ *
+ * Flags:
+ *   --messages <file>  JSON map of { phone: message } for custom per-lead messages
+ *   --auto             Skip interactive confirmation prompt
+ *   --limit <n>        Daily send cap (default: 15)
  *
  * First run shows a QR code — scan with WhatsApp to link.
  * Session persists in outreach/.wa-session/
@@ -29,7 +35,22 @@ import { generateMessages } from './lib/messages.mjs';
 const ROOT = resolve(fileURLToPath(import.meta.url), '../..');
 const SESSION_DIR = join(ROOT, 'outreach', '.wa-session');
 const SENT_LOG_PATH = join(ROOT, 'outreach', 'sent-log.json');
-const DELAY_BETWEEN_MS = 8_000; // 8s between messages to avoid spam detection
+const DEFAULT_LIMIT = 15;
+const DELAY_MIN_MS = 8_000;
+const DELAY_MAX_MS = 15_000;
+
+// ── CLI parsing ─────────────────────────────────────────────────────────────
+function parseFlags(argv) {
+  const flags = { messagesFile: null, auto: false, limit: DEFAULT_LIMIT };
+  for (let i = 3; i < argv.length; i++) {
+    switch (argv[i]) {
+      case '--messages': flags.messagesFile = argv[++i] || null; break;
+      case '--auto': flags.auto = true; break;
+      case '--limit': flags.limit = parseInt(argv[++i], 10) || DEFAULT_LIMIT; break;
+    }
+  }
+  return flags;
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -50,14 +71,32 @@ function phoneToJid(normalizedPhone) {
   return normalizedPhone.replace('+', '') + '@s.whatsapp.net';
 }
 
+function randomDelay() {
+  return DELAY_MIN_MS + Math.floor(Math.random() * (DELAY_MAX_MS - DELAY_MIN_MS));
+}
+
+async function loadCustomMessages(filePath) {
+  if (!filePath) return null;
+  const resolved = resolve(filePath);
+  if (!existsSync(resolved)) {
+    console.error(`Custom messages file not found: ${filePath}`);
+    process.exit(1);
+  }
+  const raw = await readFile(resolved, 'utf-8');
+  return JSON.parse(raw);
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
   const leadsFile = process.argv[2];
   if (!leadsFile) {
-    console.error('Usage: node scripts/send-whatsapp.mjs <leads-file.json>');
+    console.error('Usage: node scripts/send-whatsapp.mjs <leads-file.json> [--messages <file>] [--auto] [--limit <n>]');
     process.exit(1);
   }
+
+  const flags = parseFlags(process.argv);
+  const customMessages = await loadCustomMessages(flags.messagesFile);
 
   // Load leads
   const leadsPath = resolve(leadsFile);
@@ -84,6 +123,12 @@ async function main() {
   if (toSend.length === 0) {
     console.log('All leads already contacted. Nothing to send.');
     process.exit(0);
+  }
+
+  // Apply daily limit
+  const capped = toSend.slice(0, flags.limit);
+  if (capped.length < toSend.length) {
+    console.log(`Daily limit: sending ${capped.length}/${toSend.length} (--limit ${flags.limit})`);
   }
 
   // Connect to WhatsApp first (needed to check existing chats)
@@ -130,7 +175,7 @@ async function main() {
   const newLeads = [];
   const skippedChat = [];
 
-  for (const lead of toSend) {
+  for (const lead of capped) {
     const phone = lead.phone_normalized || normalizeIndianPhone(lead.phone);
     const jid = phoneToJid(phone);
     try {
@@ -157,41 +202,57 @@ async function main() {
 
   console.log(`\nReady to send: ${newLeads.length} messages\n`);
 
+  // Resolve message for each lead (custom or template)
+  const resolvedMessages = newLeads.map((lead) => {
+    const phone = lead.phone_normalized || normalizeIndianPhone(lead.phone);
+    if (customMessages && customMessages[phone]) {
+      return { message: customMessages[phone], source: 'ai' };
+    }
+    const { whatsapp } = generateMessages(lead);
+    return { message: whatsapp, source: 'template' };
+  });
+
   // Preview messages
   for (let i = 0; i < newLeads.length; i++) {
     const lead = newLeads[i];
     const phone = lead.phone_normalized || normalizeIndianPhone(lead.phone);
-    const { whatsapp } = generateMessages(lead);
-    console.log(`--- ${i + 1}. ${lead.name} (${phone}) ---`);
-    console.log(whatsapp);
+    const { message, source } = resolvedMessages[i];
+    console.log(`--- ${i + 1}. ${lead.name} (${phone}) [${source}] ---`);
+    console.log(message);
     console.log('');
   }
 
-  // Confirm
-  const readline = await import('readline');
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const answer = await new Promise((r) => rl.question('Send all? (yes/no): ', r));
-  rl.close();
+  // Confirm (skip if --auto)
+  if (!flags.auto) {
+    const readline = await import('readline');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise((r) => rl.question('Send all? (yes/no): ', r));
+    rl.close();
 
-  if (answer.trim().toLowerCase() !== 'yes') {
-    console.log('Aborted.');
-    sock.end();
-    process.exit(0);
+    if (answer.trim().toLowerCase() !== 'yes') {
+      console.log('Aborted.');
+      sock.end();
+      process.exit(0);
+    }
+  } else {
+    console.log('--auto mode: skipping confirmation\n');
   }
 
   // Send messages
   let sent = 0;
   let failed = 0;
+  let consecutiveFailures = 0;
 
   for (let i = 0; i < newLeads.length; i++) {
     const lead = newLeads[i];
     const phone = lead.phone_normalized || normalizeIndianPhone(lead.phone);
-    const { whatsapp: message } = generateMessages(lead);
+    const { message, source } = resolvedMessages[i];
     const jid = phoneToJid(phone);
 
     try {
       await sock.sendMessage(jid, { text: message });
       sent++;
+      consecutiveFailures = 0;
       console.log(`✓ [${sent}/${newLeads.length}] Sent to ${lead.name} (${phone})`);
 
       await appendSentLog({
@@ -201,16 +262,27 @@ async function main() {
         city: lead.city,
         sentAt: new Date().toISOString(),
         leadsFile,
+        messageSource: source,
+        messageSent: message,
       });
 
-      // Delay between messages (skip after last)
+      // Random delay between messages (skip after last)
       if (i < newLeads.length - 1) {
-        console.log(`  Waiting ${DELAY_BETWEEN_MS / 1000}s...`);
-        await delay(DELAY_BETWEEN_MS);
+        const delayMs = randomDelay();
+        console.log(`  Waiting ${(delayMs / 1000).toFixed(1)}s...`);
+        await delay(delayMs);
       }
     } catch (err) {
       failed++;
+      consecutiveFailures++;
       console.error(`✗ Failed: ${lead.name} (${phone}) — ${err.message}`);
+
+      // Circuit breaker: stop after 2 consecutive failures
+      if (consecutiveFailures >= 2) {
+        console.error('\n⚠ 2 consecutive failures — stopping to avoid WhatsApp throttling.');
+        console.error('Try again later or check your WhatsApp connection.');
+        break;
+      }
     }
   }
 

@@ -20,11 +20,19 @@ Sending is handled by a standalone Baileys script, NOT an MCP server. Your job i
 - Loads leads from the given JSON file
 - Filters to mobile numbers only (using `isMobileNumber()`)
 - Deduplicates against `outreach/sent-log.json`
+- Applies daily send cap (`--limit`, default 15)
 - Previews all messages in terminal
-- Asks for confirmation (yes/no)
+- Asks for confirmation (yes/no) unless `--auto` is passed
 - On first run, shows a QR code to link WhatsApp
-- Sends with 8s delay between messages
-- Logs each sent message to `outreach/sent-log.json`
+- Sends with random 8-15s delay between messages
+- Stops after 2 consecutive failures (circuit breaker)
+- Logs each sent message to `outreach/sent-log.json` with `messageSource` and `messageSent`
+
+## Script Flags
+
+- `--messages <file>` — JSON map of `{ phone: message }` for custom per-lead messages (falls back to template)
+- `--auto` — skip interactive confirmation prompt
+- `--limit <n>` — daily send cap (default: 15)
 
 ## Files Referenced
 
