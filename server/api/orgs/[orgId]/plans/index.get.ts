@@ -31,7 +31,7 @@ export default cachedEventHandler(async (event) => {
     .select()
     .from(schema.subscriptionPlans)
     .where(eq(schema.subscriptionPlans.orgId, access.orgId))
-    .orderBy(schema.subscriptionPlans.name);
+    .orderBy(schema.subscriptionPlans.id);
 
   const plansWithCount = plans.map((plan) => ({
     ...plan,

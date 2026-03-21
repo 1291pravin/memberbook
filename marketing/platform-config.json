@@ -1,0 +1,114 @@
+{
+  "dailyLimits": {
+    "reddit": 10,
+    "linkedin": 7,
+    "quora": 3,
+    "twitter": 3,
+    "facebook": 3,
+    "youtube": 3,
+    "instagram": 3,
+    "indiehackers": 2
+  },
+  "reddit": {
+    "mode": "draft",
+    "subreddits": [
+      "r/gymowner", "r/personaltraining", "r/fitness",
+      "r/smallbusiness", "r/SaaS", "r/startups",
+      "r/india", "r/indianstartups", "r/Entrepreneur",
+      "r/crossfit", "r/librarians", "r/tutoring"
+    ],
+    "keywords": [
+      "gym management software", "gym membership tracking",
+      "membership management app", "gym billing software",
+      "fitness studio management", "library management software",
+      "tuition center billing", "member payment tracking",
+      "gym CRM", "small gym software"
+    ],
+    "maxThreadAgeDays": 7
+  },
+  "linkedin": {
+    "mode": "draft",
+    "keywords": [
+      "gym management", "membership management software",
+      "fitness business software", "gym owner"
+    ],
+    "connectionSearchTerms": [
+      "gym owner Mumbai", "fitness studio founder India",
+      "gym owner India", "fitness entrepreneur"
+    ],
+    "maxThreadAgeDays": 14
+  },
+  "quora": {
+    "mode": "auto",
+    "sessionName": "quora",
+    "accountCreated": "2026-03-19",
+    "warmupUntil": null,
+    "keywords": [
+      "best gym management software", "how to manage gym memberships",
+      "gym membership tracking", "library management system India",
+      "tuition center software", "billing software for gym"
+    ],
+    "maxQuestionAgeDays": 30
+  },
+  "twitter": {
+    "mode": "auto",
+    "sessionName": "quora",
+    "accountCreated": null,
+    "warmupUntil": null,
+    "keywords": [
+      "gym management software", "gym billing app",
+      "membership tracking", "gym software India"
+    ],
+    "maxThreadAgeDays": 3
+  },
+  "facebook": {
+    "mode": "auto",
+    "sessionName": "quora",
+    "accountCreated": null,
+    "warmupUntil": null,
+    "groups": [
+      "gym owners india", "fitness business india",
+      "small business owners india", "gym trainers india"
+    ],
+    "keywords": [
+      "gym management", "member tracking", "billing software",
+      "membership management", "gym software"
+    ],
+    "maxThreadAgeDays": 7
+  },
+  "youtube": {
+    "mode": "auto",
+    "sessionName": "quora",
+    "accountCreated": null,
+    "warmupUntil": null,
+    "keywords": [
+      "gym management tips", "how to run a gym",
+      "gym business india", "fitness business tips",
+      "gym member management"
+    ],
+    "maxThreadAgeDays": 30
+  },
+  "instagram": {
+    "mode": "auto",
+    "sessionName": "quora",
+    "accountCreated": null,
+    "warmupUntil": null,
+    "hashtags": [
+      "gymowner", "gymownersofinstagram", "fitnessbusiness",
+      "gymbusiness", "gymmanagement", "fitnessenterpreneur",
+      "indiangym", "gymownerlife"
+    ],
+    "maxPostAgeDays": 7
+  },
+  "indiehackers": {
+    "mode": "auto",
+    "sessionName": "quora",
+    "accountCreated": null,
+    "warmupUntil": null,
+    "keywords": [
+      "gym software", "membership management",
+      "fitness SaaS", "micro SaaS India"
+    ],
+    "maxThreadAgeDays": 14
+  }
+}

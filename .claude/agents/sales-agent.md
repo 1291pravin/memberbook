@@ -25,44 +25,13 @@ Check if a raw.json already exists for this area. Look for any folder matching `
 
 If raw.json already exists (from a prior run or partial send), use the existing file.
 
-If NO raw.json exists, find leads using **browser-based Google Maps scraping** (free, no API key needed):
+If NO raw.json exists, find leads using the script:
 
-1. Open Google Maps and search for "gym in <area name>, Mumbai"
-2. Click through each result to extract: name, phone, address, rating, reviews, website, Google Maps URL
-3. Collect up to 20-25 leads
-4. Normalize phone numbers using the same format as existing raw.json files
-5. Save results to `outreach/<today-date>-<area-slug>-gym/raw.json`
-
-**How to search Google Maps via browser:**
-```bash
-playwright-cli open "https://www.google.com/maps/search/gym+in+<area>+Mumbai"
-playwright-cli snapshot
-# Click each listing, extract details, click back, repeat
-playwright-cli click <ref>
-playwright-cli snapshot
-```
-
-**raw.json format** (match existing format exactly):
-```json
-[{
-  "name": "FitZone Gym",
-  "phone": "098765 43210",
-  "phone_normalized": "+919876543210",
-  "address": "123 MG Road, Andheri West, Mumbai 400058",
-  "city": "Andheri West, Mumbai",
-  "category": "gym",
-  "rating": 4.2,
-  "reviews": null,
-  "scale": "established",
-  "website": "https://fitzone.com",
-  "google_maps_url": "https://www.google.com/maps/place/..."
-}]
-```
-
-**Fallback:** If `GOOGLE_MAPS_API_KEY` is set in `.env`, you can use the faster API-based approach:
 ```bash
 node scripts/find-leads.mjs --city "Mumbai" --area "<area name>" --category gym --limit 25
 ```
+
+This uses the Google Maps Places API (`GOOGLE_MAPS_API_KEY` in `.env`) to fetch structured lead data and saves results to `outreach/<today-date>-<area-slug>-gym/raw.json`.
 
 ### Step 3: Filter to Unsent Mobile Leads
 
@@ -97,29 +66,44 @@ Generate a unique WhatsApp message for EACH lead. You ARE the AI — generate th
    - Their rating or review count if notable
    - Their gym concept if inferable from the name (CrossFit, 24/7, etc.)
 5. **Briefly introduce what MemberBook does** — member tracking, payment management, WhatsApp renewal reminders
-6. **Offer to set it up for them** — this is the key hook. Remove all friction. "Just share your plans and pricing, I'll set up everything for you." This makes it effortless for them.
-7. **Every message MUST end with a simple question** — easy to say yes to
-   - "Would that be helpful?"
+6. **Always emphasize it is completely free** — this is the zero-risk hook. Use phrases like "completely free — no fees, no credit card, no commitment" or "nothing to lose". Make it clear there is no catch.
+7. **Offer to set it up for them** — remove all friction. "Just share your plans and pricing, I'll set everything up for you from scratch."
+8. **Every message MUST end with a simple question** — easy to say yes to
+   - "Nothing to lose. Want to give it a shot?"
    - "Would you like to give it a try?"
    - "Interested?"
-8. **4-6 lines max** — concise and easy to read on a phone
-9. **Vary structure across leads** — don't start every message the same way
-   - Vary the opening, the specific reference, and the closing question
-10. **Include memberbook.in link naturally** in the middle, not as a CTA at the end
+9. **4-6 lines max** — concise and easy to read on a phone
+10. **Vary structure across leads** — don't start every message the same way
+    - Vary the opening, the specific reference, and the closing question
+11. **Include memberbook.in link naturally** in the middle, not as a CTA at the end
+
+**FORMATTING RULE (CRITICAL):** Each paragraph must be separated by `\n\n` (double newline) in the JSON — NOT `\n`. WhatsApp renders `\n` as a single line break which looks cramped. Use `\n\n` for a proper blank line between paragraphs.
 
 **Example messages (for reference — generate UNIQUE ones, never copy these):**
 
 > Hi, I came across your gym near Lokhandwala — 4.1 stars with 280 reviews, clearly a well-established place.
-> I run MemberBook (memberbook.in) — it helps gym owners track member payments, renewals, and send automated WhatsApp reminders.
-> If you're interested, just share your current plans and fee structure, and I'll set everything up for you — no effort on your end. Would that be helpful?
+>
+> I run MemberBook (memberbook.in) — built for gym owners to track members, manage payments, and automate renewal reminders on WhatsApp.
+>
+> It's completely free — no fees, no credit card, no commitment. I'll set it up for you from scratch. Just share your membership plans and pricing and I'll have it ready.
+>
+> Nothing to lose. Want to give it a shot?
 
 > Hello, I noticed your 24/7 gym on Veera Desai Road — 4.8 stars, that's impressive.
-> I've built MemberBook (memberbook.in) specifically for gyms — it handles member tracking, payment reminders via WhatsApp, and renewal management.
-> Happy to set it up for you completely free. Just send me your membership plans and I'll have it ready. Would you like to give it a try?
+>
+> I run MemberBook (memberbook.in) — it handles member tracking, payment records, and automated WhatsApp reminders when renewals are due.
+>
+> Completely free to use — no trial period, no catch. I'll personally set it up for you. Just send me your membership plans and that's it.
+>
+> Would you like to give it a try?
 
-> Hi, I saw your gym in Andheri West — 4.6 stars and growing, great work.
-> I run MemberBook (memberbook.in) — a simple tool for gyms to manage members, track payments, and send WhatsApp reminders for renewals.
-> If you'd like to try it, just share your plans and pricing — I'll set up everything for you. No effort needed from your side. Interested?
+> Hi, I saw your gym in Andheri West — growing steadily with great reviews.
+>
+> I run MemberBook (memberbook.in) — a free tool for gyms to manage members, track payments, and send WhatsApp renewal reminders automatically.
+>
+> No fees, no credit card, no commitment. I'll set up everything for you from scratch — just share your plans and pricing.
+>
+> Interested?
 
 ### Step 6: Write messages.json
 
@@ -163,8 +147,7 @@ After sending completes:
 
 ## Important Notes
 
-- **Primary method: browser scraping** — uses Playwright to scrape Google Maps directly. Free, no API key needed.
-- **Fallback: `find-leads.mjs`** — faster but requires `GOOGLE_MAPS_API_KEY` in `.env`. Only use if the key is available.
+- **Lead finding: `find-leads.mjs`** — always use this script. It requires `GOOGLE_MAPS_API_KEY` in `.env`.
 - Always check for existing raw.json before finding leads — don't duplicate work.
 - The send script handles WhatsApp connection, QR code, delays, and logging automatically.
 - If the user asks about a specific area, override the automatic area selection.

@@ -76,22 +76,21 @@ const FRAMEWORKS = {
 // ── Message templates ─────────────────────────────────────────────────────────
 
 function whatsappMessage(lead, framework) {
-  const name = lead.name || 'there';
-  const category = lead.category === 'tuition' ? 'tuition center' : lead.category;
-  const ratingLine = lead.rating ? ` — ${lead.rating} stars, great going!` : '';
+  const locationHint = lead.address
+    ? lead.address.split(',').slice(0, 2).join(',').trim()
+    : lead.city || 'Mumbai';
+  const ratingLine =
+    lead.rating && lead.reviews
+      ? ` — ${lead.rating} stars with ${lead.reviews} reviews`
+      : lead.rating
+        ? ` — ${lead.rating} stars`
+        : '';
   return [
-    `Hi ${name},`,
-    ``,
-    `Saw your ${category} on Google Maps${ratingLine}`,
-    ``,
-    `Quick question — how do you currently track member payments and renewals? Register or Excel?`,
-    ``,
-    `We built *MemberBook* specifically for ${category}s — ${framework.promise.charAt(0).toLowerCase() + framework.promise.slice(1)}.`,
-    ``,
-    `${framework.proof}.`,
-    ``,
-    `It's free to try and takes 2 minutes to set up: https://memberbook.in`,
-  ].join('\n');
+    `Hi, I came across your gym in ${locationHint}${ratingLine}.`,
+    `I run MemberBook (memberbook.in) — built for gym owners to track members, manage payments, and automate renewal reminders on WhatsApp.`,
+    `It's completely free — no fees, no credit card, no commitment. I'll set it up for you from scratch. Just send me your membership plans and pricing and I'll have it ready.`,
+    `Nothing to lose. Want to give it a shot?`,
+  ].join('\n\n');
 }
 
 function emailSubject(lead, framework) {
