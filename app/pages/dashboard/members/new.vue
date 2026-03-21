@@ -107,7 +107,7 @@
           v-model="form.planId"
           label="Plan"
           :options="planOptionsWithNone"
-          placeholder="No plan"
+          placeholder="Select plan"
         />
         <template v-if="form.planId">
           <AppInput v-model="form.startDate" label="Start Date" type="date" required class="mt-3" />

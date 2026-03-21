@@ -82,7 +82,7 @@
 
         <!-- Record a payment -->
         <NuxtLink
-          to="/dashboard/payments/pending"
+          to="/dashboard/payments"
           class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow group"
         >
           <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
