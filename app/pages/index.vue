@@ -1,38 +1,96 @@
 <template>
   <div>
     <!-- Hero -->
-    <section class="relative overflow-hidden py-20 px-4 text-center">
-      <!-- Gradient background -->
-      <div class="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-accent-50" />
-      <!-- Subtle decorative shapes -->
-      <div class="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-primary-100/40 blur-3xl" />
-      <div class="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-accent-100/40 blur-3xl" />
-
-      <div class="relative max-w-3xl mx-auto">
-        <div class="inline-flex items-center gap-2 rounded-full bg-primary-50 border border-primary-200/60 px-4 py-1.5 text-sm font-medium text-primary-700 mb-6">
+    <section class="bg-white px-4 py-14 sm:py-16">
+      <div class="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full bg-primary-50 border border-primary-200/60 px-4 py-1.5 text-sm font-medium text-primary-700 mb-6">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
-          Free to start
+          Free setup for Indian membership businesses
         </div>
-        <h1 class="text-4xl font-bold text-slate-800 sm:text-5xl leading-tight">
-          Member Management Software for
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-500">Gyms, Libraries, and Tuition Centers</span>
+        <h1 class="max-w-3xl text-4xl font-bold leading-tight text-slate-800 sm:text-5xl">
+          Gym, Library, and Tuition Management Software for India
         </h1>
-        <p class="mt-5 text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
-          Track members, collect payments, and send WhatsApp renewal reminders in one place. Free to start and built for India.
+        <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
+          Replace registers and spreadsheets with one dashboard for members, plans, payments, renewals, check-ins, and WhatsApp follow-ups.
         </p>
-        <p class="mt-3 text-sm text-slate-600">
+        <div class="mt-6 grid gap-3 text-sm text-slate-700 sm:grid-cols-3">
+          <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <span class="block font-semibold text-slate-800">Payments</span>
+            Pending dues and renewal dates
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <span class="block font-semibold text-slate-800">Members</span>
+            Profiles, plans, and status
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            <span class="block font-semibold text-slate-800">WhatsApp</span>
+            Ready-to-send reminders
+          </div>
+        </div>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <NuxtLink to="/register" @click="trackCtaClick('home_hero_start_free')">
+            <AppButton size="lg">Start Free</AppButton>
+          </NuxtLink>
+          <NuxtLink to="/contact" @click="trackCtaClick('home_hero_contact_demo')">
+            <AppButton size="lg" variant="secondary">Get Setup Help</AppButton>
+          </NuxtLink>
+          <a
+            href="https://wa.me/919137849812?text=Hi%20MemberBook%2C%20I%20want%20help%20setting%20up%20my%20membership%20business."
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-base font-medium text-slate-700 transition-all hover:bg-slate-50 hover:shadow-sm"
+            @click="trackCtaClick('home_hero_whatsapp')"
+          >
+            WhatsApp Us
+          </a>
+        </div>
+        <p class="mt-5 text-sm text-slate-600">
           Looking for "Member Book" software?
           <NuxtLink to="/member-book" class="font-medium text-primary-700 hover:text-primary-800 underline decoration-primary-300 underline-offset-2">
             See why MemberBook is the right fit.
           </NuxtLink>
         </p>
-        <div class="mt-8 flex gap-3 justify-center">
-          <NuxtLink to="/register" @click="trackCtaClick('home_hero_start_free')">
-            <AppButton size="lg">Start Free</AppButton>
-          </NuxtLink>
-          <NuxtLink to="/login">
-            <AppButton size="lg" variant="secondary">Sign In</AppButton>
-          </NuxtLink>
+      </div>
+
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+          <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div>
+                <p class="text-sm font-semibold text-slate-800">Today's Workspace</p>
+                <p class="text-xs text-slate-600">FitZone Gym</p>
+              </div>
+              <span class="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">Live</span>
+            </div>
+            <div class="mt-5 grid grid-cols-2 gap-3">
+              <div class="rounded-lg bg-primary-50 p-4">
+                <p class="text-xs font-medium text-primary-700">Active Members</p>
+                <p class="mt-2 text-2xl font-bold text-slate-800">148</p>
+              </div>
+              <div class="rounded-lg bg-amber-50 p-4">
+                <p class="text-xs font-medium text-amber-700">Pending Dues</p>
+                <p class="mt-2 text-2xl font-bold text-slate-800">₹18,500</p>
+              </div>
+              <div class="rounded-lg bg-slate-50 p-4">
+                <p class="text-xs font-medium text-slate-700">Renewals</p>
+                <p class="mt-2 text-2xl font-bold text-slate-800">12</p>
+              </div>
+              <div class="rounded-lg bg-green-50 p-4">
+                <p class="text-xs font-medium text-green-700">Collected</p>
+                <p class="mt-2 text-2xl font-bold text-slate-800">₹92k</p>
+              </div>
+            </div>
+            <div class="mt-5 space-y-3">
+              <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+                <span class="text-sm font-medium text-slate-700">Rahul Sharma</span>
+                <span class="text-xs text-slate-600">Renewal due tomorrow</span>
+              </div>
+              <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+                <span class="text-sm font-medium text-slate-700">Priya Fitness</span>
+                <span class="text-xs text-slate-600">Payment recorded</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -128,12 +186,8 @@
     </section>
 
     <!-- CTA -->
-    <section class="relative overflow-hidden py-20 px-4 text-center">
-      <div class="absolute inset-0 bg-gradient-to-br from-primary-600 to-primary-700" />
-      <div class="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/5 blur-2xl" />
-      <div class="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-white/5 blur-2xl" />
-
-      <div class="relative max-w-xl mx-auto">
+    <section class="bg-primary-700 py-20 px-4 text-center">
+      <div class="max-w-xl mx-auto">
         <h2 class="text-2xl font-bold text-white">Ready to get organized?</h2>
         <p class="mt-3 text-primary-100">Set up your workspace in under a minute.</p>
         <p class="mt-3 text-sm text-primary-200">
@@ -186,16 +240,16 @@ const faqs: { question: string; answer: string }[] = [
 
 // SEO Meta Tags
 useSeoMeta({
-  title: "MemberBook (Member Book) - Member Management Software",
-  description: "MemberBook (Member Book) — member management software for gyms, libraries, and tuition centers. Track members, collect payments, send WhatsApp reminders. Free to start.",
-  ogTitle: "MemberBook (Member Book) - Member Management Software",
-  ogDescription: "Track members, collect payments, and send WhatsApp renewal reminders for gyms, libraries, and tuition centers. Free to start.",
+  title: "Gym, Library and Tuition Management Software India | MemberBook",
+  description: "MemberBook is free member management software for Indian gyms, libraries, and tuition centers. Track members, collect payments, manage plans, and send WhatsApp renewal reminders.",
+  ogTitle: "Gym, Library and Tuition Management Software India | MemberBook",
+  ogDescription: "Track members, collect payments, manage plans, and send WhatsApp renewal reminders for Indian gyms, libraries, and tuition centers.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: appUrl,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "MemberBook (Member Book) - Member Management Software",
-  twitterDescription: "Track members, collect payments, and send WhatsApp renewal reminders for gyms, libraries, and tuition centers.",
+  twitterTitle: "Gym, Library and Tuition Management Software India | MemberBook",
+  twitterDescription: "Track members, collect payments, manage plans, and send WhatsApp renewal reminders for Indian gyms, libraries, and tuition centers.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
@@ -267,21 +321,11 @@ useHead({
 
 const featuredPosts = blogPosts.slice(0, 2);
 
+const { trackCtaClick } = useAnalytics();
+
 const openFaqIndex = ref<number | null>(null);
 function toggleFaq(index: number) {
   openFaqIndex.value = openFaqIndex.value === index ? null : index;
-}
-
-function trackCtaClick(label: string) {
-  if (typeof window === "undefined") return;
-  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
-  if (!gtag) return;
-  gtag("event", "seo_cta_click", {
-    event_category: "SEO",
-    event_label: label,
-    page_location: window.location.href,
-    page_path: window.location.pathname,
-  });
 }
 
 // SVG icon render helpers

@@ -236,6 +236,7 @@ const route = useRoute();
 const { orgId, currentOrg } = useOrg();
 const { api } = useApi();
 const { progress, loadProgress, markStepComplete } = useOnboarding();
+const { trackFunnelStep } = useAnalytics();
 
 const currentStep = computed(() => route.params.step as string);
 
@@ -264,6 +265,10 @@ const inviteUrl = ref("");
 const inviteLoading = ref(false);
 const copied = ref(false);
 
+interface InviteResponse {
+  inviteUrl: string
+}
+
 // Plan creation state
 const planForm = reactive({
   name: "",
@@ -278,6 +283,10 @@ onMounted(async () => {
   await loadProgress();
   if (currentStep.value === 'complete') {
     await markStepComplete('dashboardTourCompleted');
+    trackFunnelStep("onboarding_completed", {
+      org_id: orgId.value,
+      business_type: currentOrg.value?.type,
+    });
   }
 });
 
@@ -286,7 +295,7 @@ async function generateInvite() {
   if (!orgId.value) return;
   inviteLoading.value = true;
   try {
-    const res = await api<any>(`/api/orgs/${orgId.value}/invites`, {
+    const res = await api<InviteResponse>(`/api/orgs/${orgId.value}/invites`, {
       method: 'POST',
     });
     inviteUrl.value = res.inviteUrl;

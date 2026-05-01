@@ -37,9 +37,21 @@ const TOKEN_FILE    = join(ROOT, '.analytics-token.json');
 const GA4_PROPERTY  = env.GA4_PROPERTY_ID || '524789436';
 const SC_SITE       = env.SEARCH_CONSOLE_SITE_URL || 'https://memberbook.in/';
 
-// Cloudflare Workers Analytics (uses wrangler OAuth token)
+// Cloudflare Analytics and D1 reporting.
+// Prefer an explicit API token for automation; fall back to Wrangler OAuth for local runs.
 const CF_ACCOUNT_ID  = env.CLOUDFLARE_ACCOUNT_ID;
 const CF_WORKER_NAME = env.CLOUDFLARE_WORKER_NAME || 'memberbook';
+const CF_API_TOKEN   = env.CLOUDFLARE_API_TOKEN || env.CF_API_TOKEN;
+
+function getWranglerD1DatabaseId() {
+  const wranglerPath = join(ROOT, 'wrangler.jsonc');
+  if (!existsSync(wranglerPath)) return null;
+  const content = readFileSync(wranglerPath, 'utf8');
+  return content.match(/"database_id"\s*:\s*"([^"]+)"/)?.[1] ?? null;
+}
+
+const CF_D1_DATABASE_ID = env.CLOUDFLARE_D1_DATABASE_ID || env.D1_DATABASE_ID || getWranglerD1DatabaseId();
+const TEST_ORG_NAME_PATTERN = new RegExp(env.ANALYTICS_TEST_ORG_PATTERN || '\\b(test|demo|sample)\\b', 'i');
 
 function getWranglerOAuthToken() {
   // Wrangler stores OAuth tokens in its config dir
@@ -64,8 +76,9 @@ function getWranglerOAuthToken() {
   return null;
 }
 
-const CF_OAUTH_TOKEN = getWranglerOAuthToken();
+const CF_OAUTH_TOKEN = CF_API_TOKEN || getWranglerOAuthToken();
 const CF_ENABLED     = !!(CF_OAUTH_TOKEN && CF_ACCOUNT_ID);
+const CF_D1_ENABLED  = !!(CF_OAUTH_TOKEN && CF_ACCOUNT_ID && CF_D1_DATABASE_ID);
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   console.error('❌ Missing NUXT_OAUTH_GOOGLE_CLIENT_ID or NUXT_OAUTH_GOOGLE_CLIENT_SECRET in .env');
@@ -284,19 +297,33 @@ async function cfGraphQLSafe(query, variables = {}) {
   catch (e) { return { _error: e.message }; }
 }
 
-// ── Data helpers ──────────────────────────────────────────────────────────────
-
-function parseGA4Overview(report) {
-  const metricHeaders = report.metricHeaders.map(h => h.name);
-  const rows = {};
-  for (const dr of (report.rows || [])) {
-    const rangeName = dr.dimensionValues?.[0]?.value ?? 'unknown';
-    const vals = {};
-    dr.metricValues.forEach((v, i) => { vals[metricHeaders[i]] = parseFloat(v.value); });
-    rows[rangeName] = vals;
+async function cfRequest(path, body) {
+  const res = await fetch(`https://api.cloudflare.com/client/v4${path}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${CF_OAUTH_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!data.success) {
+    const message = data.errors?.map(e => e.message).join('; ') || `HTTP ${res.status}`;
+    throw new Error(`Cloudflare API: ${message}`);
   }
-  return rows;
+  return data.result;
 }
+
+async function cfD1Query(sql) {
+  return cfRequest(`/accounts/${CF_ACCOUNT_ID}/d1/database/${CF_D1_DATABASE_ID}/query`, { sql });
+}
+
+async function cfD1QuerySafe(sql) {
+  try { return await cfD1Query(sql); }
+  catch (e) { return { _error: e.message }; }
+}
+
+// ── Data helpers ──────────────────────────────────────────────────────────────
 
 function parseGA4DimMetric(report) {
   const metricHeaders = report.metricHeaders.map(h => h.name);
@@ -352,12 +379,14 @@ async function generateReport() {
     ga4Devices,
     ga4Countries,
     ga4Daily,
+    ga4FunnelEvents,
     scOverview,
     scQueries,
     scPages,
     scDevices,
     cfOverview,
     cfDaily,
+    d1CustomerData,
   ] = await Promise.all([
     // GA4: Overview current period (last 28 days)
     ga4Report(token, {
@@ -424,6 +453,31 @@ async function generateReport() {
       metrics: [{ name: 'sessions' }, { name: 'activeUsers' }],
       dimensions: [{ name: 'date' }],
       orderBys: [{ dimension: { dimensionName: 'date' } }],
+    }),
+
+    // GA4: Funnel event counts
+    ga4Report(token, {
+      dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+      metrics: [{ name: 'eventCount' }, { name: 'totalUsers' }],
+      dimensions: [{ name: 'eventName' }],
+      dimensionFilter: {
+        filter: {
+          fieldName: 'eventName',
+          inListFilter: {
+            values: [
+              'primary_cta_click',
+              'register_page_view',
+              'registration_submit',
+              'registration_success',
+              'organization_created',
+              'onboarding_completed',
+              'contact_submit',
+              'contact_submission_success',
+            ],
+          },
+        },
+      },
+      orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
     }),
 
     // Search Console: Overview (last 28d vs prev 28d)
@@ -500,6 +554,59 @@ async function generateReport() {
           },
         })
       : Promise.resolve(null),
+
+    // D1: Customer and product-activity reporting
+    CF_D1_ENABLED
+      ? cfD1QuerySafe(`
+          SELECT
+            (SELECT COUNT(*) FROM users) AS users_total,
+            (SELECT COUNT(*) FROM users WHERE created_at >= datetime('now','-28 days')) AS users_last_28d,
+            (SELECT COUNT(*) FROM users WHERE created_at >= datetime('now','-56 days') AND created_at < datetime('now','-28 days')) AS users_prev_28d,
+            (SELECT COUNT(*) FROM organizations) AS orgs_total,
+            (SELECT COUNT(*) FROM organizations WHERE created_at >= datetime('now','-28 days')) AS orgs_last_28d,
+            (SELECT COUNT(*) FROM organizations WHERE created_at >= datetime('now','-56 days') AND created_at < datetime('now','-28 days')) AS orgs_prev_28d,
+            (SELECT COUNT(*) FROM organizations WHERE demo_data_ids IS NULL AND lower(name) NOT LIKE '%test%' AND lower(name) NOT LIKE '%demo%' AND lower(name) NOT LIKE '%sample%') AS real_orgs_total,
+            (SELECT COUNT(*) FROM organizations WHERE demo_data_ids IS NULL AND lower(name) NOT LIKE '%test%' AND lower(name) NOT LIKE '%demo%' AND lower(name) NOT LIKE '%sample%' AND created_at >= datetime('now','-28 days')) AS real_orgs_last_28d,
+            (SELECT COUNT(*) FROM organizations WHERE demo_data_ids IS NULL AND lower(name) NOT LIKE '%test%' AND lower(name) NOT LIKE '%demo%' AND lower(name) NOT LIKE '%sample%' AND created_at >= datetime('now','-56 days') AND created_at < datetime('now','-28 days')) AS real_orgs_prev_28d,
+            (SELECT COUNT(*) FROM contact_submissions) AS contact_submissions_total,
+            (SELECT COUNT(*) FROM contact_submissions WHERE created_at >= datetime('now','-28 days')) AS contact_submissions_last_28d,
+            (SELECT COUNT(*) FROM members) AS members_total,
+            (SELECT COUNT(*) FROM members WHERE created_at >= datetime('now','-28 days')) AS members_last_28d,
+            (SELECT COUNT(*) FROM payments) AS payments_total,
+            (SELECT COUNT(*) FROM payments WHERE created_at >= datetime('now','-28 days')) AS payments_last_28d,
+            (SELECT COUNT(*) FROM subscription_plans) AS plans_total,
+            (SELECT COUNT(*) FROM subscription_plans WHERE created_at >= datetime('now','-28 days')) AS plans_last_28d,
+            (SELECT COUNT(*) FROM check_ins) AS checkins_total,
+            (SELECT COUNT(*) FROM check_ins WHERE created_at >= datetime('now','-28 days')) AS checkins_last_28d;
+          SELECT date(created_at) AS date, COUNT(*) AS new_real_orgs
+          FROM organizations
+          WHERE demo_data_ids IS NULL AND lower(name) NOT LIKE '%test%' AND lower(name) NOT LIKE '%demo%' AND lower(name) NOT LIKE '%sample%' AND created_at >= datetime('now','-56 days')
+          GROUP BY date(created_at)
+          ORDER BY date;
+          SELECT type, COUNT(*) AS real_orgs
+          FROM organizations
+          WHERE demo_data_ids IS NULL AND lower(name) NOT LIKE '%test%' AND lower(name) NOT LIKE '%demo%' AND lower(name) NOT LIKE '%sample%'
+          GROUP BY type
+          ORDER BY real_orgs DESC;
+          SELECT
+            o.id,
+            o.name,
+            o.type,
+            date(o.created_at) AS created_date,
+            CASE WHEN o.demo_data_ids IS NOT NULL OR lower(o.name) LIKE '%test%' OR lower(o.name) LIKE '%demo%' OR lower(o.name) LIKE '%sample%' THEN 1 ELSE 0 END AS is_test_or_demo,
+            COUNT(DISTINCT m.id) AS members,
+            COUNT(DISTINCT p.id) AS payments,
+            COUNT(DISTINCT sp.id) AS plans,
+            COUNT(DISTINCT ci.id) AS checkins
+          FROM organizations o
+          LEFT JOIN members m ON m.org_id = o.id
+          LEFT JOIN payments p ON p.org_id = o.id
+          LEFT JOIN subscription_plans sp ON sp.org_id = o.id
+          LEFT JOIN check_ins ci ON ci.org_id = o.id
+          GROUP BY o.id
+          ORDER BY o.created_at DESC;
+        `)
+      : Promise.resolve(null),
   ]);
 
   console.log('✓ All data fetched\n');
@@ -523,6 +630,7 @@ async function generateReport() {
   const devices  = parseGA4DimMetric(ga4Devices);
   const countries = parseGA4DimMetric(ga4Countries);
   const daily    = parseGA4DimMetric(ga4Daily);
+  const funnelEvents = parseGA4DimMetric(ga4FunnelEvents);
 
   // Last 7 days vs prev 7 days from daily data
   const last7  = daily.slice(-7).reduce((s, d) => s + (d.sessions || 0), 0);
@@ -540,7 +648,7 @@ async function generateReport() {
   // CF data
   const cfError = cfOverview?._error ?? null;
   if (CF_ENABLED && cfError) console.warn(`⚠️  Cloudflare Workers unavailable: ${cfError}`);
-  if (!CF_ENABLED) console.log('ℹ️  Cloudflare Workers analytics skipped (no wrangler OAuth token or CLOUDFLARE_ACCOUNT_ID). Run: npx wrangler login');
+  if (!CF_ENABLED) console.log('ℹ️  Cloudflare analytics skipped (no CLOUDFLARE_API_TOKEN/Wrangler OAuth token or CLOUDFLARE_ACCOUNT_ID). Run: npx wrangler login or set CLOUDFLARE_API_TOKEN');
 
   const cfStats = (() => {
     if (!CF_ENABLED || cfError || !cfOverview) return null;
@@ -571,6 +679,26 @@ async function generateReport() {
     }));
   })();
 
+  const d1Error = d1CustomerData?._error ?? null;
+  if (CF_D1_ENABLED && d1Error) console.warn(`⚠️  D1 customer reporting unavailable: ${d1Error}`);
+  if (!CF_D1_ENABLED) console.log('ℹ️  D1 customer reporting skipped (missing Cloudflare token/account/database id)');
+
+  const customerStats = (() => {
+    if (!CF_D1_ENABLED || d1Error || !Array.isArray(d1CustomerData)) return null;
+    const overview = d1CustomerData[0]?.results?.[0];
+    if (!overview) return null;
+    const recentOrgs = d1CustomerData[3]?.results ?? [];
+    return {
+      ...overview,
+      newRealOrgsByDate: d1CustomerData[1]?.results ?? [],
+      realOrgsByType: d1CustomerData[2]?.results ?? [],
+      recentOrgs,
+      activeRealOrgs: recentOrgs.filter(org =>
+        !org.is_test_or_demo && ((org.members ?? 0) > 0 || (org.payments ?? 0) > 0 || (org.plans ?? 0) > 0 || (org.checkins ?? 0) > 0)
+      ).length,
+    };
+  })();
+
   // Opportunities: queries ranked 5-20 with >30 impressions
   const opportunities = scQRows.filter(r =>
     r.position >= 4 && r.position <= 20 && r.impressions >= 30
@@ -594,7 +722,6 @@ async function generateReport() {
   const summaryBullets = [];
   const sessionTrend = pct(cur.sessions, prv.sessions);
   if (sessionTrend !== 'N/A') {
-    const dir = cur.sessions >= prv.sessions ? 'up' : 'down';
     summaryBullets.push(`Sessions are **${sessionTrend}** period-over-period (${fmtNum(cur.sessions)} vs ${fmtNum(prv.sessions)}).`);
   }
   if (scCur.clicks) summaryBullets.push(`Search Console shows **${fmtNum(scCur.clicks)} clicks** from **${fmtNum(scCur.impressions)} impressions** in the last 28 days.`);
@@ -603,6 +730,10 @@ async function generateReport() {
 
   if (cfStats) {
     summaryBullets.push(`Cloudflare Workers handled **${fmtNum(cfStats.requests)} requests** with a **${fmtPct(cfStats.errorRate)} error rate** (p99 CPU: ${(cfStats.cpuP99 / 1000).toFixed(1)}ms).`);
+  }
+
+  if (customerStats) {
+    summaryBullets.push(`D1 shows **${fmtNum(customerStats.real_orgs_last_28d)} new real organization(s)** this period (${fmtNum(customerStats.real_orgs_prev_28d)} in the previous 28 days).`);
   }
 
   // Top traffic source
@@ -663,6 +794,38 @@ ${(() => {
 |---------|----------|-------|
 ${countries.map(c => `| ${c.dim} | ${fmtNum(c.sessions)} | ${fmtNum(c.activeUsers)} |`).join('\n')}
 
+### Funnel Events
+
+| Event | Count | Users |
+|-------|-------|-------|
+${(() => {
+  const expectedEvents = [
+    'primary_cta_click',
+    'register_page_view',
+    'registration_submit',
+    'registration_success',
+    'organization_created',
+    'onboarding_completed',
+    'contact_submit',
+    'contact_submission_success',
+  ];
+  const eventMap = new Map(funnelEvents.map(event => [event.dim, event]));
+  return expectedEvents.map(eventName => {
+    const event = eventMap.get(eventName);
+    return `| \`${eventName}\` | ${fmtNum(event?.eventCount ?? 0)} | ${fmtNum(event?.totalUsers ?? 0)} |`;
+  }).join('\n');
+})()}
+
+${(() => {
+  const eventMap = new Map(funnelEvents.map(event => [event.dim, event]));
+  const ctaClicks = eventMap.get('primary_cta_click')?.eventCount ?? 0;
+  const registerViews = eventMap.get('register_page_view')?.eventCount ?? 0;
+  const registrationSuccess = eventMap.get('registration_success')?.eventCount ?? 0;
+  const orgCreated = eventMap.get('organization_created')?.eventCount ?? 0;
+  const rate = (part, whole) => whole > 0 ? ((part / whole) * 100).toFixed(1) + '%' : 'N/A';
+  return `> **Funnel rates:** CTA to register view ${rate(registerViews, ctaClicks)} · register view to signup ${rate(registrationSuccess, registerViews)} · signup to organization created ${rate(orgCreated, registrationSuccess)}.`;
+})()}
+
 ---
 
 ## Google Search Console
@@ -704,7 +867,49 @@ These queries have impressions but rank below the top 4 — good candidates for 
 |-------|--------|-------------|-----|----------|
 ${opportunities.map(r => `| ${r.keys?.[0] ?? '—'} | ${fmtNum(r.clicks)} | ${fmtNum(r.impressions)} | ${fmtPct(r.ctr)} | ${r.position.toFixed(1)} |`).join('\n')}` : ''}`}
 
+--- 
+
+${customerStats ? `## Customer and Product Activity
+
+### Overview from D1
+
+| Metric | Value |
+|--------|-------|
+| Total users | ${fmtNum(customerStats.users_total)} |
+| New users, last 28 days | ${fmtNum(customerStats.users_last_28d)} |
+| New users, previous 28 days | ${fmtNum(customerStats.users_prev_28d)} |
+| Total organizations | ${fmtNum(customerStats.orgs_total)} |
+| Real organizations | ${fmtNum(customerStats.real_orgs_total)} |
+| New real organizations, last 28 days | ${fmtNum(customerStats.real_orgs_last_28d)} |
+| New real organizations, previous 28 days | ${fmtNum(customerStats.real_orgs_prev_28d)} |
+| Active real organizations | ${fmtNum(customerStats.activeRealOrgs)} |
+| Contact submissions, last 28 days | ${fmtNum(customerStats.contact_submissions_last_28d)} |
+| Members added, last 28 days | ${fmtNum(customerStats.members_last_28d)} |
+| Payments recorded, last 28 days | ${fmtNum(customerStats.payments_last_28d)} |
+| Plans created, last 28 days | ${fmtNum(customerStats.plans_last_28d)} |
+| Check-ins, last 28 days | ${fmtNum(customerStats.checkins_last_28d)} |
+
+### Real Organizations by Type
+
+| Type | Organizations |
+|------|---------------|
+${customerStats.realOrgsByType.map(row => `| ${row.type} | ${fmtNum(row.real_orgs)} |`).join('\n') || '| - | 0 |'}
+
+### Recent Organizations
+
+| Created | Organization | Type | Real/Test | Members | Payments | Plans | Check-ins |
+|---------|--------------|------|-----------|---------|----------|-------|-----------|
+${customerStats.recentOrgs.slice(0, 10).map(org => `| ${org.created_date} | ${org.name} | ${org.type} | ${org.is_test_or_demo ? 'test/demo' : 'real'} | ${fmtNum(org.members)} | ${fmtNum(org.payments)} | ${fmtNum(org.plans)} | ${fmtNum(org.checkins)} |`).join('\n')}
+
+> Real organization reporting excludes seeded demo data and organization names matching \`${TEST_ORG_NAME_PATTERN.source}\`.
+
 ---
+` : CF_D1_ENABLED && d1Error ? `## Customer and Product Activity
+
+> ⚠️ **D1 customer reporting unavailable:** ${d1Error}
+
+---
+` : ''}
 
 ${cfStats ? `## Cloudflare Workers
 

@@ -14,9 +14,9 @@ export default defineNuxtConfig({
       },
       charset: "utf-8",
       viewport: "width=device-width, initial-scale=1",
-      title: "MemberBook - Simple Member Management for Gyms, Libraries & Tuition Centers",
+      title: "MemberBook - Gym, Library and Tuition Management Software India",
       meta: [
-        { name: "description", content: "Manage memberships, subscriptions and payments for your gym, library or tuition center. Built for Indian small businesses. Free to start." },
+        { name: "description", content: "Manage memberships, subscriptions, payments, check-ins and WhatsApp reminders for your gym, library or tuition center. Built for Indian small businesses. Free to start." },
         { name: "format-detection", content: "telephone=no" },
         // Open Graph defaults
         { property: "og:type", content: "website" },
@@ -70,6 +70,8 @@ export default defineNuxtConfig({
       { loc: "/blog", changefreq: "weekly", priority: 0.8 },
       { loc: "/blog/how-to-manage-gym-members", changefreq: "monthly", priority: 0.7 },
       { loc: "/blog/reduce-membership-payment-defaults", changefreq: "monthly", priority: 0.7 },
+      { loc: "/blog/gym-owner-income-india", changefreq: "monthly", priority: 0.8 },
+      { loc: "/blog/gym-bill-receipt-generator-india", changefreq: "monthly", priority: 0.8 },
       { loc: "/tools", changefreq: "weekly", priority: 0.9 },
       { loc: "/tools/whatsapp-gym-renewal-reminder", changefreq: "monthly", priority: 0.8 },
       { loc: "/tools/tuition-fee-receipt-generator", changefreq: "monthly", priority: 0.8 },

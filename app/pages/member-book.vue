@@ -67,18 +67,7 @@ definePageMeta({ layout: "default" });
 const config = useRuntimeConfig();
 const appUrl = config.public.appUrl || "https://memberbook.app";
 const pageUrl = `${appUrl}/member-book`;
-
-function trackCtaClick(label: string) {
-  if (typeof window === "undefined") return;
-  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
-  if (!gtag) return;
-  gtag("event", "seo_cta_click", {
-    event_category: "SEO",
-    event_label: label,
-    page_location: window.location.href,
-    page_path: window.location.pathname,
-  });
-}
+const { trackCtaClick } = useAnalytics();
 
 useSeoMeta({
   title: "Member Book Software (Free) | MemberBook",

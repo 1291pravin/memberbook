@@ -75,7 +75,7 @@
               <p class="mt-3 text-sm text-primary-100">
                 We can show you how to manage plans, payments, and reminders for your specific workflow.
               </p>
-              <NuxtLink to="/register" class="mt-5 inline-flex">
+              <NuxtLink to="/register" class="mt-5 inline-flex" @click="trackCtaClick('contact_start_free')">
                 <AppButton size="md" variant="secondary">Start Free & Explore</AppButton>
               </NuxtLink>
             </div>
@@ -131,6 +131,7 @@ const errors = reactive({
 const successMessage = ref("");
 const submitError = ref("");
 const submitting = ref(false);
+const { trackCtaClick, trackFunnelStep } = useAnalytics();
 
 function resetErrors() {
   errors.name = "";
@@ -184,6 +185,9 @@ async function submitContact() {
   submitError.value = "";
 
   try {
+    trackFunnelStep("contact_submit", {
+      source_page: "/contact",
+    });
     await $fetch("/api/contact", {
       method: "POST",
       body: {
@@ -196,6 +200,9 @@ async function submitContact() {
     });
 
     successMessage.value = "Thanks, your message has been saved. We will contact you soon.";
+    trackFunnelStep("contact_submission_success", {
+      source_page: "/contact",
+    });
     form.name = "";
     form.phone = "";
     form.email = "";

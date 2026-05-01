@@ -43,6 +43,7 @@ const { fetch: refreshSession } = useUserSession();
 const form = reactive({ name: "", type: "" });
 const error = ref("");
 const loading = ref(false);
+const { trackFunnelStep } = useAnalytics();
 
 const businessTypes = [
   { value: "gym", label: "Gym / Fitness Center" },
@@ -55,9 +56,13 @@ async function handleCreate() {
   error.value = "";
   loading.value = true;
   try {
-    await $fetch("/api/orgs", {
+    const res = await $fetch<{ org: { id: number, type: string } }>("/api/orgs", {
       method: "POST",
       body: { name: form.name, type: form.type },
+    });
+    trackFunnelStep("organization_created", {
+      org_id: res.org.id,
+      business_type: res.org.type,
     });
     await refreshSession();
     navigateTo("/onboarding/wizard/staff");

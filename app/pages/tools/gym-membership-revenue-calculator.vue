@@ -271,9 +271,9 @@
             <h3 class="font-semibold text-slate-800 mb-2">Churn Rate Calculator</h3>
             <p class="text-sm text-slate-600">Calculate your gym's member retention rate and see how churn affects long-term revenue.</p>
           </NuxtLink>
-          <NuxtLink to="/tools/gym-subscription-plan-price-optimizer" class="block bg-slate-50 border border-slate-200 rounded-xl p-6 hover:border-primary-300 hover:shadow-md transition-all">
-            <h3 class="font-semibold text-slate-800 mb-2">Plan Price Optimizer</h3>
-            <p class="text-sm text-slate-600">Find the optimal pricing for your membership plans to maximize revenue and retention.</p>
+          <NuxtLink to="/blog/gym-bill-receipt-generator-india" class="block bg-slate-50 border border-slate-200 rounded-xl p-6 hover:border-primary-300 hover:shadow-md transition-all">
+            <h3 class="font-semibold text-slate-800 mb-2">Gym Bill & Receipt Guide</h3>
+            <p class="text-sm text-slate-600">See what to include in gym membership bills, receipts, and payment records.</p>
           </NuxtLink>
           <NuxtLink to="/blog/gym-owner-income-india" class="block bg-slate-50 border border-slate-200 rounded-xl p-6 hover:border-primary-300 hover:shadow-md transition-all">
             <h3 class="font-semibold text-slate-800 mb-2">Gym Owner Income Guide</h3>
@@ -317,6 +317,7 @@ definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
 const appUrl = config.public.appUrl || "https://memberbook.app";
+const { trackCtaClick } = useAnalytics();
 
 // --- Reactive state ---
 
@@ -377,18 +378,6 @@ function whatIfRecovery(reduceBy: number): number {
   return Math.round(currentDefaultRevenue * (reduceBy / defaultRate.value) * 12);
 }
 
-function trackCtaClick(label: string) {
-  if (typeof window === "undefined") return;
-  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
-  if (!gtag) return;
-  gtag("event", "seo_cta_click", {
-    event_category: "SEO",
-    event_label: label,
-    page_location: window.location.href,
-    page_path: window.location.pathname,
-  });
-}
-
 const whatIfReductions = computed(() => {
   const reductions = [10, 20, 50];
   return reductions
@@ -432,19 +421,19 @@ const faqs = [
 // --- SEO & Schemas ---
 
 useSeoMeta({
-  title: "Free Gym Revenue Calculator - Estimate Monthly Income | MemberBook",
+  title: "Gym Income Calculator India - Monthly Revenue & Profit | MemberBook",
   description:
-    "How much does a gym earn per month? Use this free calculator to estimate monthly & annual gym revenue, see churn impact, and plan your membership pricing. Built for Indian gym owners.",
-  ogTitle: "Free Gym Revenue Calculator - Estimate Monthly Income | MemberBook",
+    "Free gym income calculator for India. Estimate monthly gym revenue, annual profit, member churn loss, and owner earnings from membership plans.",
+  ogTitle: "Gym Income Calculator India - Monthly Revenue & Profit | MemberBook",
   ogDescription:
-    "How much does a gym earn per month? Use this free calculator to estimate monthly & annual gym revenue, see churn impact, and plan your membership pricing.",
+    "Estimate monthly gym revenue, annual profit, member churn loss, and owner earnings from membership plans.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/tools/gym-membership-revenue-calculator`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Free Gym Revenue Calculator - Estimate Monthly Income | MemberBook",
+  twitterTitle: "Gym Income Calculator India - Monthly Revenue & Profit | MemberBook",
   twitterDescription:
-    "How much does a gym earn per month? Free calculator for Indian gym owners — estimate revenue, see churn impact, plan pricing.",
+    "Free calculator for Indian gym owners: estimate monthly revenue, owner income, churn loss, and membership plan pricing.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 

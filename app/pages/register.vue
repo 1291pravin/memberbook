@@ -50,6 +50,7 @@
       <a
         href="/auth/google"
         class="flex items-center justify-center gap-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        @click="trackFunnelStep('registration_submit', { method: 'google' })"
       >
         <svg class="w-5 h-5" viewBox="0 0 24 24">
           <path
@@ -97,17 +98,26 @@ const { fetch: refreshSession } = useUserSession();
 const form = reactive({ name: "", email: "", password: "" });
 const error = ref("");
 const loading = ref(false);
+const { trackFunnelStep } = useAnalytics();
 
 const route = useRoute();
+
+onMounted(() => {
+  trackFunnelStep("register_page_view", {
+    redirect: typeof route.query.redirect === "string" ? route.query.redirect : undefined,
+  });
+});
 
 async function handleRegister() {
   error.value = "";
   loading.value = true;
   try {
+    trackFunnelStep("registration_submit", { method: "email" });
     await $fetch("/api/auth/register", {
       method: "POST",
       body: { name: form.name, email: form.email, password: form.password },
     });
+    trackFunnelStep("registration_success", { method: "email" });
     await refreshSession();
 
     // Handle redirect parameter

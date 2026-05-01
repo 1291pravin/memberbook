@@ -275,6 +275,70 @@ export const blogPosts: BlogPost[] = [
 <p><a href="/register">Start with MemberBook free today</a> — set up your gym in under 5 minutes, add your members, and start seeing exactly where your revenue stands. No credit card required.</p>
     `,
   },
+  {
+    slug: "gym-bill-receipt-generator-india",
+    title: "Gym Bill and Receipt Format in India: What to Include and How to Track Payments",
+    excerpt:
+      "Create cleaner gym bills and receipts for Indian members. Learn what details to include, how to handle UPI and cash payments, and how MemberBook keeps every payment linked to a member.",
+    category: "Gym Billing",
+    date: "May 1, 2026",
+    dateISO: "2026-05-01",
+    readTime: "6 min",
+    emoji: "🧾",
+    image: "/blog/reduce-membership-payment-defaults.png",
+    author: "MemberBook Team",
+    keywords: [
+      "gym bill generator",
+      "gym receipt generator",
+      "gym invoice generator India",
+      "gym payment receipt format",
+      "gym membership bill",
+      "gym fees receipt",
+    ],
+    content: `
+<h2>Why Gym Bills and Receipts Matter</h2>
+<p>Most Indian gyms collect payments through a mix of cash, UPI, bank transfer, and sometimes card payments. If these payments are only written in a notebook or remembered over WhatsApp, it becomes difficult to answer simple questions: who paid, when did they pay, which plan did they renew, and what is still pending?</p>
+<p>A clear gym bill or receipt gives your member confidence and gives your staff a reliable record. It also helps when members renew late, pay partially, or switch plans mid-cycle.</p>
+
+<h2>What to Include in a Gym Receipt</h2>
+<p>A practical gym receipt in India should include:</p>
+<ul>
+  <li><strong>Gym name and contact details:</strong> Include your business name, phone number, and address.</li>
+  <li><strong>Member name and phone number:</strong> This keeps the receipt linked to the right person.</li>
+  <li><strong>Receipt number:</strong> Use a simple sequence so records are easy to search later.</li>
+  <li><strong>Payment date:</strong> The date money was collected.</li>
+  <li><strong>Plan and duration:</strong> For example, Monthly Gym Membership from 1 May to 31 May.</li>
+  <li><strong>Amount paid:</strong> Show the exact amount in INR.</li>
+  <li><strong>Payment method:</strong> Cash, UPI, card, or bank transfer.</li>
+  <li><strong>Balance due:</strong> Important when you accept partial payments.</li>
+</ul>
+
+<h2>Simple Gym Receipt Format</h2>
+<p>Here is a simple format you can use:</p>
+<pre><code>Receipt No: GYM-2026-001
+Gym: PowerFit Gym
+Member: Rahul Sharma
+Phone: 98765 43210
+Plan: Monthly Membership
+Period: 1 May 2026 to 31 May 2026
+Amount Paid: Rs. 1,500
+Payment Method: UPI
+Balance Due: Rs. 0
+Received By: Staff Name</code></pre>
+
+<h2>Receipt vs Invoice for Gyms</h2>
+<p>For most small gyms, a receipt is enough to confirm that a member paid for a membership plan. An invoice is more formal and may be needed when you bill companies, personal training clients, or GST-registered customers. If your gym is GST-registered, speak with your accountant about invoice numbering, GST rate, and tax details.</p>
+
+<h2>How to Avoid Billing Confusion</h2>
+<p>The biggest billing mistakes happen when payment records are separated from member records. A member might pay in cash, then message the owner later, while a staff member updates a register separately. After a few weeks, nobody is fully sure what happened.</p>
+<p>Use one system for members, plans, payments, and renewals. Every payment should be tied to a member and, when possible, to a subscription period. This makes pending dues, renewal dates, and payment history easy to verify.</p>
+
+<h2>How MemberBook Helps</h2>
+<p><a href="/">MemberBook</a> lets Indian gyms record payments by member, method, amount, and date. You can see pending dues, review payment history, and send WhatsApp reminders before a membership expires.</p>
+<p>Before setting prices, use the <a href="/tools/gym-membership-revenue-calculator">gym income calculator</a> to estimate monthly revenue and churn loss. Then use MemberBook to track the real payments as they come in.</p>
+<p><a href="/register">Start free with MemberBook</a> and keep your gym billing organized from day one.</p>
+    `,
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {

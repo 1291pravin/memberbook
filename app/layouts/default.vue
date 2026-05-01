@@ -19,7 +19,7 @@
           </template>
           <template v-else>
             <NuxtLink to="/login" class="rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900 ml-1">Login</NuxtLink>
-            <NuxtLink to="/register" class="ml-1">
+            <NuxtLink to="/register" class="ml-1" @click="trackCtaClick('nav_get_started')">
               <AppButton size="sm">Get Started</AppButton>
             </NuxtLink>
           </template>
@@ -62,7 +62,7 @@
               <button class="rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 cursor-pointer" @click="mobileMenuOpen = false; logout()">Logout</button>
             </template>
             <template v-else>
-              <NuxtLink to="/register" class="rounded-lg px-3 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50 hover:text-primary-700" @click="mobileMenuOpen = false">Get Started</NuxtLink>
+              <NuxtLink to="/register" class="rounded-lg px-3 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50 hover:text-primary-700" @click="mobileMenuOpen = false; trackCtaClick('mobile_nav_get_started')">Get Started</NuxtLink>
             </template>
           </div>
         </div>
@@ -98,6 +98,7 @@
 const route = useRoute();
 const { loggedIn, clear } = useUserSession();
 const mobileMenuOpen = ref(false);
+const { trackCtaClick } = useAnalytics();
 
 watch(() => route.path, () => {
   mobileMenuOpen.value = false;
