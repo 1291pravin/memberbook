@@ -226,3 +226,14 @@ export const contactSubmissions = sqliteTable("contact_submissions", {
   sourcePage: text("source_page"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
+
+export const adminAuditLogs = sqliteTable("admin_audit_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  action: text("action").notNull(),
+  targetUserId: integer("target_user_id").references(() => users.id),
+  targetOrgId: integer("target_org_id").references(() => organizations.id),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  metadata: text("metadata"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
