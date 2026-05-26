@@ -19,7 +19,7 @@
             <span class="block font-semibold text-primary-700">Payments</span>
             <span class="text-slate-600">Pending dues and renewal dates</span>
           </div>
-          <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <div class="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3">
             <span class="block font-semibold text-slate-800">Members</span>
             <span class="text-slate-600">Profiles, plans, and status</span>
           </div>
