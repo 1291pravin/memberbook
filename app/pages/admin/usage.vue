@@ -34,7 +34,7 @@
     </div>
 
     <template v-else-if="data">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <AppCard title="New signups">
           <p class="text-3xl font-bold text-slate-800">{{ formatNumber(data.periodTotals.real_orgs_new) }}</p>
           <p class="mt-1 text-sm text-slate-600">
@@ -59,6 +59,18 @@
             {{ formatNumber(data.periodTotals.payments_recorded) }} payments recorded
           </p>
         </AppCard>
+        <AppCard title="Inquiries">
+          <p class="text-3xl font-bold text-slate-800">{{ formatNumber(data.periodTotals.inquiries_created) }}</p>
+          <p class="mt-1 text-sm text-slate-600">
+            {{ formatNumber(data.totals.inquiries_total) }} total
+          </p>
+        </AppCard>
+        <AppCard title="Check-ins">
+          <p class="text-3xl font-bold text-slate-800">{{ formatNumber(data.periodTotals.checkins) }}</p>
+          <p class="mt-1 text-sm text-slate-600">
+            {{ formatNumber(data.totals.checkins_total) }} total
+          </p>
+        </AppCard>
       </div>
 
       <div class="grid gap-6 xl:grid-cols-[1fr_1.2fr]">
@@ -73,19 +85,21 @@
                   <th class="whitespace-nowrap px-2 py-2 font-semibold">Members</th>
                   <th class="whitespace-nowrap px-2 py-2 font-semibold">Payments</th>
                   <th class="whitespace-nowrap px-2 py-2 font-semibold">Check-ins</th>
+                  <th class="whitespace-nowrap px-2 py-2 font-semibold">Inquiries</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 text-slate-700">
-                <tr v-for="row in data.daily.slice().reverse().slice(0, 14)" :key="row.date">
+                <tr v-for="row in data.daily.slice().reverse().slice(0, days)" :key="row.date">
                   <td class="whitespace-nowrap px-2 py-2">{{ row.date }}</td>
                   <td class="px-2 py-2">{{ formatNumber(row.organizations) }}</td>
                   <td class="px-2 py-2">{{ formatNumber(row.users) }}</td>
                   <td class="px-2 py-2">{{ formatNumber(row.members) }}</td>
                   <td class="px-2 py-2">{{ formatNumber(row.payments) }}</td>
                   <td class="px-2 py-2">{{ formatNumber(row.checkIns) }}</td>
+                  <td class="px-2 py-2">{{ formatNumber(row.inquiries) }}</td>
                 </tr>
                 <tr v-if="data.daily.length === 0">
-                  <td class="px-2 py-4 text-slate-600" colspan="6">No activity in this period.</td>
+                  <td class="px-2 py-4 text-slate-600" colspan="7">No activity in this period.</td>
                 </tr>
               </tbody>
             </table>
@@ -107,14 +121,17 @@
                 <tr v-for="org in data.recentSignups" :key="`signup-${org.id}-${org.owner_id}`">
                   <td class="px-2 py-3">
                     <p class="font-semibold text-slate-800">{{ org.name }}</p>
-                    <p class="text-xs text-slate-600">{{ org.type }}, {{ formatDate(org.created_at) }}</p>
+                    <div class="mt-0.5 flex items-center gap-1.5">
+                      <span :class="orgTypeColor(org.type)" class="inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium">{{ org.type }}</span>
+                      <span class="text-xs text-slate-500">{{ formatDate(org.created_at) }}</span>
+                    </div>
                   </td>
                   <td class="px-2 py-3">
                     <p class="font-medium text-slate-800">{{ org.owner_name || "No owner" }}</p>
                     <p class="text-xs text-slate-600">{{ org.owner_email || "No email" }}</p>
                   </td>
                   <td class="whitespace-nowrap px-2 py-3 text-xs text-slate-600">
-                    {{ formatNumber(org.members) }} members, {{ formatNumber(org.payments) }} payments
+                    {{ formatNumber(org.members) }} members, {{ formatNumber(org.payments) }} payments, {{ formatNumber(org.inquiries) }} inquiries
                   </td>
                   <td class="px-2 py-3">
                     <AppButton
@@ -147,7 +164,9 @@
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Members</th>
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Plans</th>
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Payments</th>
+                <th class="whitespace-nowrap px-2 py-2 font-semibold">Volume</th>
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Check-ins</th>
+                <th class="whitespace-nowrap px-2 py-2 font-semibold">Inquiries</th>
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Last active</th>
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Action</th>
               </tr>
@@ -156,7 +175,7 @@
               <tr v-for="org in data.activeOrganizations" :key="`active-${org.id}-${org.owner_id}`">
                 <td class="px-2 py-3">
                   <p class="font-semibold text-slate-800">{{ org.name }}</p>
-                  <p class="text-xs text-slate-600">{{ org.type }}</p>
+                  <span :class="orgTypeColor(org.type)" class="mt-0.5 inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium">{{ org.type }}</span>
                 </td>
                 <td class="px-2 py-3">
                   <p class="font-medium text-slate-800">{{ org.owner_name || "No owner" }}</p>
@@ -165,7 +184,9 @@
                 <td class="px-2 py-3">{{ formatNumber(org.members) }}</td>
                 <td class="px-2 py-3">{{ formatNumber(org.plans) }}</td>
                 <td class="px-2 py-3">{{ formatNumber(org.payments) }}</td>
+                <td class="whitespace-nowrap px-2 py-3">{{ formatCurrency(org.payment_volume) }}</td>
                 <td class="px-2 py-3">{{ formatNumber(org.checkins) }}</td>
+                <td class="px-2 py-3">{{ formatNumber(org.inquiries) }}</td>
                 <td class="whitespace-nowrap px-2 py-3">{{ formatDate(org.last_activity_at) }}</td>
                 <td class="px-2 py-3">
                   <AppButton
@@ -180,7 +201,7 @@
                 </td>
               </tr>
               <tr v-if="data.activeOrganizations.length === 0">
-                <td class="px-2 py-4 text-slate-600" colspan="8">No active organizations yet.</td>
+                <td class="px-2 py-4 text-slate-600" colspan="10">No active organizations yet.</td>
               </tr>
             </tbody>
           </table>
@@ -204,9 +225,18 @@ type AdminOrg = {
   members: number;
   plans: number;
   payments: number;
+  payment_volume: number;
   checkins: number;
+  inquiries: number;
   last_activity_at: string;
 };
+
+function orgTypeColor(type: string) {
+  if (type === "gym") return "bg-green-100 text-green-700";
+  if (type === "library") return "bg-blue-100 text-blue-700";
+  if (type === "tuition") return "bg-amber-100 text-amber-700";
+  return "bg-slate-100 text-slate-600";
+}
 
 type AdminUsage = {
   totals: Record<string, number>;
