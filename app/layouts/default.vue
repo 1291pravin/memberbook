@@ -71,22 +71,16 @@
     <main>
       <slot />
     </main>
-    <footer class="border-t border-slate-200 bg-white py-10 text-center">
+    <footer class="border-t border-slate-200 bg-slate-50 py-10 text-center">
       <div class="max-w-4xl mx-auto px-4">
-        <p class="text-sm font-medium text-slate-700 mb-3">
-          MemberBook &mdash; Simple member management for small businesses.
-        </p>
-        <div class="flex gap-4 justify-center flex-wrap text-sm text-slate-600">
+        <p class="text-sm font-semibold text-slate-800 mb-1">MemberBook</p>
+        <p class="text-sm text-slate-600 mb-5">Simple member management for gyms, libraries, and tuition centers.</p>
+        <div class="flex gap-6 justify-center flex-wrap text-sm text-slate-600">
           <NuxtLink to="/features" class="hover:text-primary-600 transition-colors">Features</NuxtLink>
-          <span class="text-slate-300">&middot;</span>
           <NuxtLink to="/blog" class="hover:text-primary-600 transition-colors">Blog</NuxtLink>
-          <span class="text-slate-300">&middot;</span>
           <NuxtLink to="/about" class="hover:text-primary-600 transition-colors">About</NuxtLink>
-          <span class="text-slate-300">&middot;</span>
           <NuxtLink to="/contact" class="hover:text-primary-600 transition-colors">Contact</NuxtLink>
-          <span class="text-slate-300">&middot;</span>
           <NuxtLink to="/privacy" class="hover:text-primary-600 transition-colors">Privacy Policy</NuxtLink>
-          <span class="text-slate-300">&middot;</span>
           <NuxtLink to="/terms" class="hover:text-primary-600 transition-colors">Terms of Service</NuxtLink>
         </div>
       </div>

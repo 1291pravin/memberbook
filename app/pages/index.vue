@@ -14,18 +14,18 @@
         <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
           Replace registers and spreadsheets with one dashboard for members, plans, payments, renewals, check-ins, and WhatsApp follow-ups.
         </p>
-        <div class="mt-6 grid gap-3 text-sm text-slate-700 sm:grid-cols-3">
-          <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-            <span class="block font-semibold text-slate-800">Payments</span>
-            Pending dues and renewal dates
+        <div class="mt-6 grid gap-3 text-sm sm:grid-cols-3">
+          <div class="rounded-lg border border-primary-200 bg-primary-50 px-4 py-3">
+            <span class="block font-semibold text-primary-700">Payments</span>
+            <span class="text-slate-600">Pending dues and renewal dates</span>
           </div>
-          <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+          <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
             <span class="block font-semibold text-slate-800">Members</span>
-            Profiles, plans, and status
+            <span class="text-slate-600">Profiles, plans, and status</span>
           </div>
-          <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-            <span class="block font-semibold text-slate-800">WhatsApp</span>
-            Ready-to-send reminders
+          <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+            <span class="block font-semibold text-green-700">WhatsApp</span>
+            <span class="text-slate-600">Ready-to-send reminders</span>
           </div>
         </div>
         <div class="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -97,21 +97,45 @@
 
     <!-- Features -->
     <section class="py-20 px-4 bg-white">
-      <div class="max-w-4xl mx-auto">
+      <div class="max-w-5xl mx-auto">
         <p class="text-sm font-semibold text-primary-600 text-center tracking-wide uppercase mb-2">Features</p>
-        <h2 class="text-2xl font-bold text-center text-slate-800 mb-4">Everything you need</h2>
-        <p class="text-center text-slate-600 max-w-lg mx-auto mb-12">Simple tools to manage your membership business without the complexity.</p>
-        <div class="grid md:grid-cols-3 gap-6">
-          <div
-            v-for="feature in features"
-            :key="feature.title"
-            class="group text-center rounded-xl border border-slate-100 bg-slate-50/50 p-6 transition-all duration-200 hover:border-primary-200 hover:bg-white hover:shadow-lg hover:shadow-primary-500/5"
-          >
-            <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-4 transition-colors duration-200 group-hover:bg-primary-600 group-hover:text-white text-primary-600">
-              <component :is="feature.icon" class="w-6 h-6" />
+        <h2 class="text-3xl font-bold text-center text-slate-800 mb-4">Built for how you actually work</h2>
+        <p class="text-center text-slate-600 max-w-lg mx-auto mb-14">Simple tools to run your membership business, without the complexity.</p>
+
+        <!-- Two spotlight features -->
+        <div class="grid md:grid-cols-2 gap-5 mb-5">
+          <div class="rounded-2xl bg-primary-50 border border-primary-100 p-8">
+            <div class="w-11 h-11 bg-primary-600 rounded-xl flex items-center justify-center mb-5 text-white">
+              <component :is="features[0].icon" class="w-6 h-6" />
             </div>
-            <h3 class="font-semibold text-slate-800">{{ feature.title }}</h3>
-            <p class="text-sm text-slate-600 mt-2 leading-relaxed">{{ feature.desc }}</p>
+            <h3 class="text-xl font-semibold text-slate-800 mb-2">{{ features[0].title }}</h3>
+            <p class="text-slate-600 leading-relaxed">{{ features[0].desc }}</p>
+          </div>
+          <div class="rounded-2xl bg-slate-900 p-8">
+            <div class="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center mb-5 text-white">
+              <component :is="features[4].icon" class="w-6 h-6" />
+            </div>
+            <h3 class="text-xl font-semibold text-white mb-2">{{ features[4].title }}</h3>
+            <p class="text-slate-400 leading-relaxed">{{ features[4].desc }}</p>
+          </div>
+        </div>
+
+        <!-- Supporting features: list layout, not a card grid -->
+        <div class="rounded-2xl border border-slate-200 bg-slate-50/40 px-8 py-7">
+          <div class="grid sm:grid-cols-2 gap-x-10 gap-y-6">
+            <div
+              v-for="feature in [features[1], features[2], features[3], features[5]]"
+              :key="feature.title"
+              class="flex items-start gap-4"
+            >
+              <div class="w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center shrink-0 text-primary-600 shadow-sm">
+                <component :is="feature.icon" class="w-4 h-4" />
+              </div>
+              <div>
+                <h3 class="font-semibold text-slate-800 text-sm">{{ feature.title }}</h3>
+                <p class="text-sm text-slate-600 mt-0.5 leading-relaxed">{{ feature.desc }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -149,17 +149,17 @@
     </div>
 
     <!-- Mobile Bottom Tab Bar -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex justify-around py-2 z-40">
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex justify-around z-40" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom));">
       <NuxtLink
         v-for="item in mobileNavItems"
         :key="item.to"
         :to="item.to"
-        class="relative flex flex-col items-center gap-0.5 px-2 py-1 text-xs"
+        class="relative flex flex-col items-center gap-0.5 px-3 py-2 text-xs min-w-[44px] min-h-[44px] justify-center"
         :class="isActive(item.to) ? 'text-primary-600' : 'text-slate-600'"
       >
         <span
           v-if="isActive(item.to)"
-          class="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-primary-500 rounded-full"
+          class="absolute -top-px left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary-500 rounded-full"
         />
         <component :is="item.icon" class="w-5 h-5" />
         {{ item.label }}
@@ -167,13 +167,13 @@
 
       <!-- More Button -->
       <button
-        class="relative flex flex-col items-center gap-0.5 px-2 py-1 text-xs"
+        class="relative flex flex-col items-center gap-0.5 px-3 py-2 text-xs min-w-[44px] min-h-[44px] justify-center"
         :class="moreMenuOpen ? 'text-primary-600' : 'text-slate-600'"
         @click="moreMenuOpen = !moreMenuOpen"
       >
         <span
           v-if="moreMenuOpen"
-          class="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-primary-500 rounded-full"
+          class="absolute -top-px left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary-500 rounded-full"
         />
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />

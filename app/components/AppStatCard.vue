@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
+  <div class="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300/80">
     <div class="flex items-start justify-between">
       <div>
         <p class="text-sm text-slate-600">{{ label }}</p>
@@ -13,7 +13,7 @@
         <slot name="icon" />
       </div>
     </div>
-    <p v-if="subtitle" class="text-xs text-slate-500 mt-2">{{ subtitle }}</p>
+    <p v-if="subtitle" class="text-xs text-slate-600 mt-2">{{ subtitle }}</p>
   </div>
 </template>
 
