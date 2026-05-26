@@ -86,7 +86,11 @@ export default defineNuxtConfig({
     },
   },
   css: ["~/assets/css/main.css"],
+  nitro: {
+    preset: "cloudflare-module",
+  },
   hub: {
+    hosting: "cloudflare",
     db: "sqlite",
     cache: true,
   },
