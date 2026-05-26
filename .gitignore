@@ -46,6 +46,9 @@ outreach/.wa-session/
 test-results/
 playwright-report/
 
+# Audit screenshots (ephemeral, generated during browser sessions)
+screenshots/
+
 # MCP server config (may contain local paths)
 .mcp.json
 
