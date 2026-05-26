@@ -6,6 +6,10 @@ declare module '#auth-utils' {
   }
 
   interface UserSession {
+    admin?: {
+      authenticated: boolean
+      loggedInAt: string
+    }
     currentOrg?: {
       orgId: number
       name: string

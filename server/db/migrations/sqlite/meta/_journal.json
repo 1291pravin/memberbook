@@ -50,6 +50,13 @@
       "when": 1773984000000,
       "tag": "0006_demo_data",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1779753600000,
+      "tag": "0007_admin_usage",
+      "breakpoints": true
     }
   ]
 }

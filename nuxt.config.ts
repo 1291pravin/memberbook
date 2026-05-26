@@ -91,6 +91,8 @@ export default defineNuxtConfig({
     cache: true,
   },
   runtimeConfig: {
+    adminApiToken: "",
+    adminPasswords: "",
     session: {
       maxAge: 60 * 60 * 24 * 365, // 1 year — effectively "no timeout"
     },
