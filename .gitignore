@@ -42,6 +42,10 @@ outreach/.wa-session/
 # Local Claude/Codex skill and Playwright CLI runtime artifacts
 .playwright-cli/
 
+# Playwright test artifacts (traces, screenshots, error reports)
+test-results/
+playwright-report/
+
 # MCP server config (may contain local paths)
 .mcp.json
 
