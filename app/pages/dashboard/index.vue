@@ -152,6 +152,36 @@
       </AppStatCard>
     </div>
 
+    <!-- Mini trend charts (only when populated) -->
+    <div v-if="stats.activeMembers > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <AppCard title="Revenue (last 30 days)">
+        <ClientOnly>
+          <ChartLine
+            :chart-data="revenueChartData"
+            :chart-options="sparklineOptions"
+            :height="140"
+            empty-message="No payments yet — record one to see your revenue trend."
+          />
+          <template #fallback>
+            <div class="h-[140px] bg-slate-50 animate-pulse rounded" />
+          </template>
+        </ClientOnly>
+      </AppCard>
+      <AppCard :title="`${t.member} Growth`">
+        <ClientOnly>
+          <ChartLine
+            :chart-data="memberGrowthChartData"
+            :chart-options="memberGrowthOptions"
+            :height="140"
+            :empty-message="`No ${t.membersLower} yet — add your first ${t.memberLower} to track growth.`"
+          />
+          <template #fallback>
+            <div class="h-[140px] bg-slate-50 animate-pulse rounded" />
+          </template>
+        </ClientOnly>
+      </AppCard>
+    </div>
+
     <!-- Quick Actions -->
     <div class="flex gap-2 flex-wrap">
       <NuxtLink to="/dashboard/members/new">
@@ -211,6 +241,7 @@ const { formatDate } = useFormatDate();
 const { orgId } = useOrg();
 const t = useTerminology();
 const { getWhatsAppLink, getReminderMessage } = useWhatsApp();
+const { colors, baseOptions, formatRevenueLabel, formatDateLabel, formatMonthLabel } = useCharts();
 
 interface DashboardData {
   stats: {
@@ -244,6 +275,16 @@ const { data: plansData } = await useFetch<{ plans: Array<{ id: number }> }>(
   `/api/orgs/${orgId.value}/plans`,
 );
 
+// Mini trend charts (reuse the analytics endpoints — no blocking, lazy fetch)
+const { data: revenueTrendData } = useFetch<{ data: Array<{ date: string; revenue: number }> }>(
+  `/api/orgs/${orgId.value}/analytics/revenue-trend`,
+  { query: { period: "daily" }, lazy: true },
+);
+const { data: memberGrowthData } = useFetch<{ data: Array<{ month: string; count: number }> }>(
+  `/api/orgs/${orgId.value}/analytics/member-growth`,
+  { lazy: true },
+);
+
 const stats = computed(
   () =>
     dashData.value?.stats ?? {
@@ -258,6 +299,85 @@ const stats = computed(
 const recentPayments = computed(() => dashData.value?.recentPayments ?? []);
 const expiring = computed(() => expiringData.value?.expiring ?? []);
 const plansCount = computed(() => plansData.value?.plans?.length ?? 0);
+
+// Revenue (30 days) sparkline
+const revenueChartData = computed(() => {
+  const data = revenueTrendData.value?.data ?? [];
+  return {
+    labels: data.map((d) => formatDateLabel(d.date, "daily")),
+    datasets: [
+      {
+        label: "Revenue",
+        data: data.map((d) => d.revenue),
+        borderColor: colors.blue,
+        backgroundColor: colors.blueAlpha,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        borderWidth: 2,
+      },
+    ],
+  };
+});
+
+const memberGrowthChartData = computed(() => {
+  const data = memberGrowthData.value?.data ?? [];
+  return {
+    labels: data.map((d) => formatMonthLabel(d.month)),
+    datasets: [
+      {
+        label: `New ${t.value.members}`,
+        data: data.map((d) => d.count),
+        borderColor: colors.green,
+        backgroundColor: colors.greenAlpha,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        borderWidth: 2,
+      },
+    ],
+  };
+});
+
+const sparklineOptions = computed(() => ({
+  ...baseOptions,
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { color: "#6B7280", font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
+    },
+    y: {
+      grid: { color: "rgba(0, 0, 0, 0.05)" },
+      ticks: {
+        color: "#6B7280",
+        font: { size: 10 },
+        callback: (value: number | string) => formatRevenueLabel(Number(value)),
+      },
+    },
+  },
+  plugins: {
+    ...baseOptions.plugins,
+    legend: { display: false },
+  },
+}));
+
+const memberGrowthOptions = computed(() => ({
+  ...baseOptions,
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { color: "#6B7280", font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
+    },
+    y: {
+      grid: { color: "rgba(0, 0, 0, 0.05)" },
+      ticks: { color: "#6B7280", font: { size: 10 }, precision: 0 },
+    },
+  },
+  plugins: {
+    ...baseOptions.plugins,
+    legend: { display: false },
+  },
+}));
 
 // Demo data
 const { data: demoStatus, refresh: refreshDemoStatus } = await useFetch<{ hasDemoData: boolean }>(
