@@ -118,3 +118,4 @@ Required in `.env`:
 ## Git
 
 - Do not use claude as the commit author
+- Always commit and push directly to `master`. Do not create feature branches.
