@@ -25,8 +25,8 @@
     <section class="py-16 px-4 bg-slate-50">
       <div class="max-w-4xl mx-auto">
         <h2 class="text-3xl font-bold text-center text-slate-800 mb-12">Tired of managing your gym manually?</h2>
-        <div class="grid md:grid-cols-2 gap-6">
-          <div v-for="problem in problems" :key="problem.title" class="bg-white rounded-xl p-6 border-l-4 border-red-500">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div v-for="problem in problems" :key="problem.title" class="bg-red-50 rounded-xl p-6 border border-red-100">
             <h3 class="font-semibold text-slate-800 mb-2">❌ {{ problem.title }}</h3>
             <p class="text-sm text-slate-600">{{ problem.description }}</p>
           </div>
@@ -38,13 +38,15 @@
     <section class="py-16 px-4">
       <div class="max-w-5xl mx-auto">
         <h2 class="text-3xl font-bold text-center text-slate-800 mb-12">Everything your gym needs</h2>
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div v-for="feature in gymFeatures" :key="feature.title" class="text-center">
-            <div class="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span class="text-3xl">{{ feature.emoji }}</span>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div v-for="feature in gymFeatures" :key="feature.title" class="flex items-start gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+            <div class="w-10 h-10 bg-primary-50 border border-primary-100 rounded-xl flex items-center justify-center shrink-0 text-xl">
+              {{ feature.emoji }}
             </div>
-            <h3 class="font-semibold text-slate-800 mb-2">{{ feature.title }}</h3>
-            <p class="text-sm text-slate-600">{{ feature.description }}</p>
+            <div>
+              <h3 class="font-semibold text-slate-800 mb-1">{{ feature.title }}</h3>
+              <p class="text-sm text-slate-600">{{ feature.description }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -65,13 +67,13 @@
     </section>
 
     <!-- Social Proof -->
-    <section class="py-16 px-4">
-      <div class="max-w-3xl mx-auto text-center">
-        <h2 class="text-3xl font-bold text-slate-800 mb-8">Join gym owners across India</h2>
-        <div class="grid md:grid-cols-3 gap-8">
-          <div v-for="stat in stats" :key="stat.label">
-            <div class="text-4xl font-bold text-primary-600 mb-2">{{ stat.value }}</div>
-            <div class="text-slate-600">{{ stat.label }}</div>
+    <section class="py-16 px-4 bg-slate-50">
+      <div class="max-w-3xl mx-auto">
+        <h2 class="text-2xl font-bold text-slate-800 mb-8">Join gym owners across India</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div v-for="stat in stats" :key="stat.label" class="flex items-baseline gap-2">
+            <span class="text-3xl font-bold text-slate-800">{{ stat.value }}</span>
+            <span class="text-slate-600 text-sm">{{ stat.label }}</span>
           </div>
         </div>
       </div>

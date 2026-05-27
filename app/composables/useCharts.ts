@@ -11,9 +11,16 @@ export function useCharts() {
     purple: "rgb(168, 85, 247)",
     red: "rgb(239, 68, 68)",
     amber: "rgb(245, 158, 11)",
+    orange: "rgb(249, 115, 22)",
+    pink: "rgb(236, 72, 153)",
+    indigo: "rgb(99, 102, 241)",
+    cyan: "rgb(6, 182, 212)",
     gray: "rgb(107, 114, 128)",
     blueAlpha: "rgba(59, 130, 246, 0.1)",
     greenAlpha: "rgba(16, 185, 129, 0.1)",
+    purpleAlpha: "rgba(168, 85, 247, 0.1)",
+    amberAlpha: "rgba(245, 158, 11, 0.1)",
+    indigoAlpha: "rgba(99, 102, 241, 0.1)",
   };
 
   // Base chart options

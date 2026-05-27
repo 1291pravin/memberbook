@@ -1,9 +1,10 @@
 <template>
   <div class="min-h-[80vh] flex items-center justify-center px-4">
     <div class="w-full max-w-sm">
-      <h1 class="text-2xl font-bold text-slate-800 text-center mb-8">
-        Sign in to MemberBook
-      </h1>
+      <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-slate-800 mb-1">Sign in to MemberBook</h1>
+        <p class="text-sm text-slate-600">Members, payments, and renewals in one place</p>
+      </div>
 
       <div
         v-if="error"

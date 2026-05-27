@@ -34,42 +34,122 @@
     </div>
 
     <template v-else-if="data">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <AppCard title="New signups">
-          <p class="text-3xl font-bold text-slate-800">{{ formatNumber(data.periodTotals.real_orgs_new) }}</p>
-          <p class="mt-1 text-sm text-slate-600">
-            {{ formatNumber(data.periodTotals.users_new) }} new users
-          </p>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <AppStatCard
+          label="New signups"
+          :value="formatNumber(data.periodTotals.real_orgs_new)"
+          :subtitle="`${formatNumber(data.periodTotals.users_new)} new users`"
+          icon-color="primary"
+        >
+          <template #icon>
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+            </svg>
+          </template>
+        </AppStatCard>
+        <AppStatCard
+          label="Active organizations"
+          :value="formatNumber(data.activeOrganizations.length)"
+          :subtitle="`${formatNumber(data.totals.real_orgs_total)} real orgs total`"
+          icon-color="info"
+        >
+          <template #icon>
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+            </svg>
+          </template>
+        </AppStatCard>
+        <AppStatCard
+          label="Members added"
+          :value="formatNumber(data.periodTotals.members_added)"
+          :subtitle="`${formatNumber(data.periodTotals.plans_created)} plans created`"
+          icon-color="success"
+        >
+          <template #icon>
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
+          </template>
+        </AppStatCard>
+        <AppStatCard
+          label="Payments"
+          :value="formatCurrency(data.periodTotals.payment_volume)"
+          :subtitle="`${formatNumber(data.periodTotals.payments_recorded)} recorded`"
+          icon-color="success"
+        >
+          <template #icon>
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+            </svg>
+          </template>
+        </AppStatCard>
+        <AppStatCard
+          label="Inquiries"
+          :value="formatNumber(data.periodTotals.inquiries_created)"
+          :subtitle="`${formatNumber(data.totals.inquiries_total)} total`"
+          icon-color="warning"
+        >
+          <template #icon>
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+            </svg>
+          </template>
+        </AppStatCard>
+        <AppStatCard
+          label="Check-ins"
+          :value="formatNumber(data.periodTotals.checkins)"
+          :subtitle="`${formatNumber(data.totals.checkins_total)} total`"
+          icon-color="info"
+        >
+          <template #icon>
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </template>
+        </AppStatCard>
+      </div>
+
+      <div class="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+        <AppCard title="Platform activity">
+          <div class="space-y-4">
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="s in activitySeries"
+                :key="s.key"
+                class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+                :class="activeSeries[s.key] ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                @click="toggleSeries(s.key)"
+              >
+                <span class="h-2 w-2 rounded-full" :style="{ backgroundColor: s.color }" />
+                {{ s.label }}
+              </button>
+            </div>
+            <ClientOnly>
+              <ChartLine
+                :chart-data="activityChartData"
+                :chart-options="activityChartOptions"
+                :height="260"
+                empty-message="No activity in this period. Pick a series above or widen the date range."
+              />
+              <template #fallback>
+                <div class="h-[260px] bg-slate-50 animate-pulse rounded" />
+              </template>
+            </ClientOnly>
+          </div>
         </AppCard>
-        <AppCard title="Active organizations">
-          <p class="text-3xl font-bold text-slate-800">{{ formatNumber(data.activeOrganizations.length) }}</p>
-          <p class="mt-1 text-sm text-slate-600">
-            {{ formatNumber(data.totals.real_orgs_total) }} real organizations total
-          </p>
-        </AppCard>
-        <AppCard title="Members added">
-          <p class="text-3xl font-bold text-slate-800">{{ formatNumber(data.periodTotals.members_added) }}</p>
-          <p class="mt-1 text-sm text-slate-600">
-            {{ formatNumber(data.periodTotals.plans_created) }} plans created
-          </p>
-        </AppCard>
-        <AppCard title="Payments">
-          <p class="text-3xl font-bold text-slate-800">{{ formatCurrency(data.periodTotals.payment_volume) }}</p>
-          <p class="mt-1 text-sm text-slate-600">
-            {{ formatNumber(data.periodTotals.payments_recorded) }} payments recorded
-          </p>
-        </AppCard>
-        <AppCard title="Inquiries">
-          <p class="text-3xl font-bold text-slate-800">{{ formatNumber(data.periodTotals.inquiries_created) }}</p>
-          <p class="mt-1 text-sm text-slate-600">
-            {{ formatNumber(data.totals.inquiries_total) }} total
-          </p>
-        </AppCard>
-        <AppCard title="Check-ins">
-          <p class="text-3xl font-bold text-slate-800">{{ formatNumber(data.periodTotals.checkins) }}</p>
-          <p class="mt-1 text-sm text-slate-600">
-            {{ formatNumber(data.totals.checkins_total) }} total
-          </p>
+
+        <AppCard title="New organizations">
+          <ClientOnly>
+            <ChartBar
+              :chart-data="signupsChartData"
+              :chart-options="signupsChartOptions"
+              :height="260"
+              empty-message="No new organizations in this period."
+            />
+            <template #fallback>
+              <div class="h-[260px] bg-slate-50 animate-pulse rounded" />
+            </template>
+          </ClientOnly>
         </AppCard>
       </div>
 
@@ -254,6 +334,83 @@ const { data, pending, error } = await useAsyncData<AdminUsage>(
   () => $fetch("/api/admin/usage", { query: { days: days.value } }),
   { watch: [days] },
 );
+
+const { colors, baseOptions, formatDateLabel } = useCharts();
+
+const activitySeries = [
+  { key: "organizations", label: "Orgs", color: colors.indigo, alpha: colors.indigoAlpha },
+  { key: "members", label: "Members", color: colors.green, alpha: colors.greenAlpha },
+  { key: "payments", label: "Payments", color: colors.blue, alpha: colors.blueAlpha },
+  { key: "checkIns", label: "Check-ins", color: colors.purple, alpha: colors.purpleAlpha },
+  { key: "inquiries", label: "Inquiries", color: colors.amber, alpha: colors.amberAlpha },
+] as const;
+
+const activeSeries = ref<Record<string, boolean>>({
+  organizations: true,
+  members: true,
+  payments: false,
+  checkIns: false,
+  inquiries: false,
+});
+
+function toggleSeries(key: string) {
+  activeSeries.value = { ...activeSeries.value, [key]: !activeSeries.value[key] };
+}
+
+const dailyRows = computed(() => data.value?.daily ?? []);
+
+const activityChartData = computed(() => ({
+  labels: dailyRows.value.map((row) => formatDateLabel(String(row.date), "daily")),
+  datasets: activitySeries
+    .filter((s) => activeSeries.value[s.key])
+    .map((s) => ({
+      label: s.label,
+      data: dailyRows.value.map((row) => Number(row[s.key] ?? 0)),
+      borderColor: s.color,
+      backgroundColor: s.alpha,
+      fill: true,
+      tension: 0.3,
+      pointRadius: 0,
+      borderWidth: 2,
+    })),
+}));
+
+const timeAxisOptions = {
+  x: {
+    grid: { display: false },
+    ticks: { color: "#6B7280", font: { size: 11 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+  },
+  y: {
+    grid: { color: "rgba(0, 0, 0, 0.05)" },
+    ticks: { color: "#6B7280", font: { size: 11 }, precision: 0 },
+    beginAtZero: true,
+  },
+};
+
+const activityChartOptions = computed(() => ({
+  ...baseOptions,
+  interaction: { mode: "index" as const, intersect: false },
+  scales: timeAxisOptions,
+}));
+
+const signupsChartData = computed(() => ({
+  labels: dailyRows.value.map((row) => formatDateLabel(String(row.date), "daily")),
+  datasets: [
+    {
+      label: "New organizations",
+      data: dailyRows.value.map((row) => Number(row.organizations ?? 0)),
+      backgroundColor: colors.indigo,
+      borderRadius: 4,
+      maxBarThickness: 28,
+    },
+  ],
+}));
+
+const signupsChartOptions = computed(() => ({
+  ...baseOptions,
+  plugins: { ...baseOptions.plugins, legend: { display: false } },
+  scales: timeAxisOptions,
+}));
 
 const numberFormatter = new Intl.NumberFormat("en-IN");
 const currencyFormatter = new Intl.NumberFormat("en-IN", {

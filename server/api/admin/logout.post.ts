@@ -3,6 +3,7 @@ export default defineEventHandler(async (event) => {
   await setUserSession(event, {
     user: session.user,
     currentOrg: session.currentOrg,
+    admin: undefined,
   });
 
   await recordAdminAuditLog(event, "admin_logout");
