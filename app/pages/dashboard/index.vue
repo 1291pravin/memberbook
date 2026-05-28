@@ -1,12 +1,28 @@
 <template>
-  <div class="p-4 space-y-6">
+  <div class="p-4 lg:p-6 space-y-6">
     <OnboardingProgressWidget />
 
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Dashboard</h1>
-      <NuxtLink to="/dashboard/analytics" class="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors">
-        View detailed analytics &rarr;
-      </NuxtLink>
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:p-6">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Today</p>
+          <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-800">Your desk is ready.</h1>
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            Start with renewals, dues, and payment follow-ups. The rest can wait until the counter is quiet.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <NuxtLink to="/dashboard/members/new">
+            <AppButton size="sm">{{ t.addMember }}</AppButton>
+          </NuxtLink>
+          <NuxtLink to="/dashboard/payments/pending">
+            <AppButton size="sm" variant="secondary">Pending Payments</AppButton>
+          </NuxtLink>
+          <NuxtLink to="/dashboard/analytics">
+            <AppButton size="sm" variant="ghost">Analytics</AppButton>
+          </NuxtLink>
+        </div>
+      </div>
     </div>
 
     <!-- Demo Data Banner (shown when viewing sample data) -->
@@ -120,37 +136,40 @@
       </button>
     </AppCard>
 
-    <!-- Stats Cards (shown when user has active members) -->
-    <div v-else class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <AppStatCard :label="`Active ${t.members}`" :value="stats.activeMembers" icon-color="primary">
-        <template #icon>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-          </svg>
-        </template>
-      </AppStatCard>
-      <AppStatCard label="Expiring Soon" :value="stats.expiringSoon" icon-color="warning">
-        <template #icon>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </template>
-      </AppStatCard>
-      <AppStatCard label="Pending Payments" :value="stats.pendingPayments" icon-color="danger">
-        <template #icon>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-          </svg>
-        </template>
-      </AppStatCard>
-      <AppStatCard label="This Month Revenue" :value="formatCurrency(stats.monthRevenue)" icon-color="success">
-        <template #icon>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-          </svg>
-        </template>
-      </AppStatCard>
+    <!-- Today command center (shown when user has active members) -->
+    <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <NuxtLink
+        v-for="card in priorityCards"
+        :key="card.label"
+        :to="card.to"
+        class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-md"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{{ card.label }}</p>
+            <p class="mt-3 text-2xl font-bold tracking-tight text-slate-800">{{ card.value }}</p>
+            <p class="mt-1 text-sm text-slate-600">{{ card.helper }}</p>
+          </div>
+          <span class="rounded-xl p-2" :class="card.tone">
+            <component :is="card.icon" class="h-5 w-5" />
+          </span>
+        </div>
+      </NuxtLink>
     </div>
+
+    <AppCard v-if="stats.activeMembers > 0" title="Action Queue" class="border-slate-200 bg-white">
+      <div class="divide-y divide-slate-100">
+        <div v-for="item in actionQueue" :key="item.title" class="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm font-semibold text-slate-800">{{ item.title }}</p>
+            <p class="mt-1 text-xs text-slate-600">{{ item.description }}</p>
+          </div>
+          <NuxtLink :to="item.to" class="text-sm font-semibold text-primary-600 hover:text-primary-700">
+            {{ item.action }}
+          </NuxtLink>
+        </div>
+      </div>
+    </AppCard>
 
     <!-- Mini trend charts (only when populated) -->
     <div v-if="stats.activeMembers > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -180,19 +199,6 @@
           </template>
         </ClientOnly>
       </AppCard>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="flex gap-2 flex-wrap">
-      <NuxtLink to="/dashboard/members/new">
-        <AppButton size="sm">{{ t.addMember }}</AppButton>
-      </NuxtLink>
-      <NuxtLink to="/dashboard/inquiries/new">
-        <AppButton size="sm" variant="secondary">New Inquiry</AppButton>
-      </NuxtLink>
-      <NuxtLink to="/dashboard/payments/pending">
-        <AppButton size="sm" variant="secondary">Pending Payments</AppButton>
-      </NuxtLink>
     </div>
 
     <!-- Expiring Soon -->
@@ -234,6 +240,8 @@
 </template>
 
 <script setup lang="ts">
+import { h } from "vue";
+
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const { formatCurrency } = useFormatCurrency();
@@ -299,6 +307,100 @@ const stats = computed(
 const recentPayments = computed(() => dashData.value?.recentPayments ?? []);
 const expiring = computed(() => expiringData.value?.expiring ?? []);
 const plansCount = computed(() => plansData.value?.plans?.length ?? 0);
+
+const iconProps = {
+  class: "h-5 w-5",
+  fill: "none",
+  stroke: "currentColor",
+  "stroke-width": "1.7",
+  "stroke-linecap": "round",
+  "stroke-linejoin": "round",
+  viewBox: "0 0 24 24",
+};
+
+const MembersIcon = () => h("svg", iconProps, [
+  h("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+  h("circle", { cx: "9", cy: "7", r: "4" }),
+  h("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87" }),
+  h("path", { d: "M16 3.13a4 4 0 0 1 0 7.75" }),
+]);
+const ClockIcon = () => h("svg", iconProps, [
+  h("circle", { cx: "12", cy: "12", r: "9" }),
+  h("path", { d: "M12 7v5l3 2" }),
+]);
+const AlertIcon = () => h("svg", iconProps, [
+  h("path", { d: "M12 9v4" }),
+  h("path", { d: "M12 17h.01" }),
+  h("path", { d: "M10.3 3.9 2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" }),
+]);
+const RupeeIcon = () => h("svg", iconProps, [
+  h("path", { d: "M7 5h10" }),
+  h("path", { d: "M7 9h10" }),
+  h("path", { d: "M7 9c4 0 6 1.5 6 4s-2 4-6 4l8 5" }),
+]);
+
+const priorityCards = computed(() => [
+  {
+    label: "Collected this month",
+    value: formatCurrency(stats.value.monthRevenue),
+    helper: recentPayments.value.length > 0 ? `${recentPayments.value.length} recent payments visible` : "Record a payment to start the trend",
+    to: "/dashboard/payments",
+    icon: RupeeIcon,
+    tone: "bg-success-100 text-success-700",
+  },
+  {
+    label: "Pending payments",
+    value: String(stats.value.pendingPayments),
+    helper: stats.value.pendingPayments > 0 ? "Follow up before the day gets busy" : "No pending dues right now",
+    to: "/dashboard/payments/pending",
+    icon: AlertIcon,
+    tone: "bg-danger-100 text-danger-700",
+  },
+  {
+    label: "Expiring soon",
+    value: String(stats.value.expiringSoon),
+    helper: expiring.value.length > 0 ? "WhatsApp reminders are one tap away" : "No urgent renewals this week",
+    to: "/dashboard/members",
+    icon: ClockIcon,
+    tone: "bg-warning-100 text-warning-700",
+  },
+  {
+    label: `Active ${t.value.members}`,
+    value: String(stats.value.activeMembers),
+    helper: "Your live member base",
+    to: "/dashboard/members",
+    icon: MembersIcon,
+    tone: "bg-primary-100 text-primary-700",
+  },
+]);
+
+const actionQueue = computed(() => {
+  const firstExpiring = expiring.value[0];
+  return [
+    {
+      title: firstExpiring ? `Remind ${firstExpiring.memberName}` : "Review renewal reminders",
+      description: firstExpiring
+        ? `${firstExpiring.planName} expires ${formatDate(firstExpiring.endDate)}. Send a WhatsApp nudge while it is fresh.`
+        : "No urgent expiry yet. Keep your reminder list clean for the week.",
+      action: firstExpiring?.memberPhone ? "Remind" : "Open members",
+      to: firstExpiring ? `/dashboard/members/${firstExpiring.memberId}` : "/dashboard/members",
+    },
+    {
+      title: "Close pending dues",
+      description: stats.value.pendingPayments > 0
+        ? `${stats.value.pendingPayments} payment follow-up${stats.value.pendingPayments === 1 ? "" : "s"} should be handled before evening.`
+        : "Payments are clear. New collections will appear here automatically.",
+      action: "Open dues",
+      to: "/dashboard/payments/pending",
+    },
+    {
+      title: "Add today's walk-in",
+      description: "Capture the member and first payment while the person is still at the counter.",
+      action: t.value.addMember,
+      to: "/dashboard/members/new",
+    },
+  ];
+});
 
 // Revenue (30 days) sparkline
 const revenueChartData = computed(() => {

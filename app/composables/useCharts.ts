@@ -3,24 +3,24 @@ import type { ChartOptions } from "chart.js";
 export function useCharts() {
   const { formatCurrency } = useFormatCurrency();
 
-  // Color palette based on Tailwind CSS
+  // Quiet Jamun Plum palette tuned for the dark operator dashboard.
   const colors = {
-    blue: "rgb(59, 130, 246)",
-    green: "rgb(16, 185, 129)",
-    yellow: "rgb(234, 179, 8)",
-    purple: "rgb(168, 85, 247)",
-    red: "rgb(239, 68, 68)",
-    amber: "rgb(245, 158, 11)",
-    orange: "rgb(249, 115, 22)",
-    pink: "rgb(236, 72, 153)",
-    indigo: "rgb(99, 102, 241)",
-    cyan: "rgb(6, 182, 212)",
-    gray: "rgb(107, 114, 128)",
-    blueAlpha: "rgba(59, 130, 246, 0.1)",
-    greenAlpha: "rgba(16, 185, 129, 0.1)",
-    purpleAlpha: "rgba(168, 85, 247, 0.1)",
-    amberAlpha: "rgba(245, 158, 11, 0.1)",
-    indigoAlpha: "rgba(99, 102, 241, 0.1)",
+    blue: "oklch(72% 0.095 245)",
+    green: "oklch(72% 0.11 150)",
+    yellow: "oklch(78% 0.12 82)",
+    purple: "oklch(68% 0.095 315)",
+    red: "oklch(72% 0.115 24)",
+    amber: "oklch(75% 0.11 86)",
+    orange: "oklch(70% 0.11 56)",
+    pink: "oklch(70% 0.10 350)",
+    indigo: "oklch(68% 0.095 315)",
+    cyan: "oklch(74% 0.09 210)",
+    gray: "oklch(66% 0.022 315)",
+    blueAlpha: "oklch(72% 0.095 245 / 0.14)",
+    greenAlpha: "oklch(72% 0.11 150 / 0.14)",
+    purpleAlpha: "oklch(68% 0.095 315 / 0.16)",
+    amberAlpha: "oklch(75% 0.11 86 / 0.16)",
+    indigoAlpha: "oklch(68% 0.095 315 / 0.16)",
   };
 
   // Base chart options
@@ -32,13 +32,13 @@ export function useCharts() {
         display: true,
         position: "bottom",
         labels: {
-          font: { family: "Inter, system-ui", size: 12 },
-          color: "#6B7280",
+          font: { family: "-apple-system, BlinkMacSystemFont, Segoe UI, system-ui", size: 12 },
+          color: "oklch(75% 0.024 315)",
           padding: 12,
         },
       },
       tooltip: {
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        backgroundColor: "oklch(18% 0.018 315)",
         padding: 12,
         cornerRadius: 8,
         titleFont: { size: 14, weight: "bold" },

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 lg:flex">
+  <div class="dashboard-shell min-h-screen bg-slate-50 lg:flex">
     <!-- Desktop Sidebar -->
     <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-gradient-to-b lg:from-slate-800 lg:to-slate-900 lg:fixed lg:inset-y-0">
       <div class="p-4 border-b border-slate-700/50">

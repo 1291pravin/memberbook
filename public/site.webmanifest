@@ -4,8 +4,8 @@
   "description": "Simple subscription and member management for gyms, libraries, and tuition centers in India",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#6366f1",
+  "background_color": "#faf6ed",
+  "theme_color": "#202033",
   "orientation": "portrait",
   "icons": [
     {

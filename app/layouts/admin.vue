@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50">
+  <div class="dashboard-shell min-h-screen bg-slate-50">
     <header class="border-b border-slate-200 bg-white">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <NuxtLink to="/admin/usage" class="text-base font-bold text-slate-800">
