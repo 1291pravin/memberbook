@@ -2,28 +2,24 @@
   <div class="p-4 lg:p-6 space-y-6">
     <OnboardingProgressWidget />
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:p-6">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Today</p>
-          <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-800">Your desk is ready.</h1>
-          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Start with renewals, dues, and payment follow-ups. The rest can wait until the counter is quiet.
-          </p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <NuxtLink to="/dashboard/members/new">
-            <AppButton size="sm">{{ t.addMember }}</AppButton>
-          </NuxtLink>
-          <NuxtLink to="/dashboard/payments/pending">
-            <AppButton size="sm" variant="secondary">Pending Payments</AppButton>
-          </NuxtLink>
-          <NuxtLink to="/dashboard/analytics">
-            <AppButton size="sm" variant="ghost">Analytics</AppButton>
-          </NuxtLink>
-        </div>
+    <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-700">Today at a glance</p>
+        <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-slate-800">Dashboard</h1>
+        <p class="mt-1 text-sm text-slate-600">Focus on the follow-ups that keep your day moving.</p>
       </div>
-    </div>
+      <div class="flex flex-wrap gap-2">
+        <NuxtLink to="/dashboard/members/new">
+          <AppButton size="sm">{{ t.addMember }}</AppButton>
+        </NuxtLink>
+        <NuxtLink to="/dashboard/payments">
+          <AppButton size="sm" variant="secondary">Record Payment</AppButton>
+        </NuxtLink>
+        <NuxtLink to="/dashboard/payments/pending">
+          <AppButton size="sm" variant="ghost">View Dues</AppButton>
+        </NuxtLink>
+      </div>
+    </header>
 
     <!-- Demo Data Banner (shown when viewing sample data) -->
     <div v-if="hasDemoData && stats.activeMembers > 0" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 flex items-center justify-between gap-3">
@@ -157,85 +153,101 @@
       </NuxtLink>
     </div>
 
-    <AppCard v-if="stats.activeMembers > 0" title="Action Queue" class="border-slate-200 bg-white">
-      <div class="divide-y divide-slate-100">
-        <div v-for="item in actionQueue" :key="item.title" class="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p class="text-sm font-semibold text-slate-800">{{ item.title }}</p>
-            <p class="mt-1 text-xs text-slate-600">{{ item.description }}</p>
+    <div v-if="stats.activeMembers > 0" class="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)]">
+      <div class="space-y-4">
+        <AppCard class="border-primary-200 bg-white">
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary-700">Needs attention</p>
+              <h2 class="mt-1 text-base font-semibold text-slate-800">Your next best actions</h2>
+            </div>
+            <NuxtLink to="/dashboard/members" class="text-xs font-semibold text-primary-700 hover:text-primary-800">View members</NuxtLink>
           </div>
-          <NuxtLink :to="item.to" class="text-sm font-semibold text-primary-600 hover:text-primary-700">
-            {{ item.action }}
-          </NuxtLink>
+          <div class="divide-y divide-slate-100">
+            <div v-for="(item, index) in actionQueue" :key="item.title" class="flex gap-3 py-3 first:pt-0 last:pb-0">
+              <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-bold text-primary-700">{{ index + 1 }}</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-slate-800">{{ item.title }}</p>
+                <p class="mt-1 text-xs leading-5 text-slate-600">{{ item.description }}</p>
+              </div>
+              <NuxtLink :to="item.to" class="shrink-0 text-sm font-semibold text-primary-700 hover:text-primary-800">
+                {{ item.action }}
+              </NuxtLink>
+            </div>
+          </div>
+        </AppCard>
+
+        <!-- Mini trend charts (only when populated) -->
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <AppCard title="Revenue (last 30 days)">
+            <ClientOnly>
+              <ChartLine
+                :chart-data="revenueChartData"
+                :chart-options="sparklineOptions"
+                :height="140"
+                empty-message="No payments yet — record one to see your revenue trend."
+              />
+              <template #fallback>
+                <div class="h-[140px] bg-slate-50 animate-pulse rounded" />
+              </template>
+            </ClientOnly>
+          </AppCard>
+          <AppCard :title="`${t.member} Growth`">
+            <ClientOnly>
+              <ChartLine
+                :chart-data="memberGrowthChartData"
+                :chart-options="memberGrowthOptions"
+                :height="140"
+                :empty-message="`No ${t.membersLower} yet — add your first ${t.memberLower} to track growth.`"
+              />
+              <template #fallback>
+                <div class="h-[140px] bg-slate-50 animate-pulse rounded" />
+              </template>
+            </ClientOnly>
+          </AppCard>
         </div>
       </div>
-    </AppCard>
 
-    <!-- Mini trend charts (only when populated) -->
-    <div v-if="stats.activeMembers > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <AppCard title="Revenue (last 30 days)">
-        <ClientOnly>
-          <ChartLine
-            :chart-data="revenueChartData"
-            :chart-options="sparklineOptions"
-            :height="140"
-            empty-message="No payments yet — record one to see your revenue trend."
-          />
-          <template #fallback>
-            <div class="h-[140px] bg-slate-50 animate-pulse rounded" />
-          </template>
-        </ClientOnly>
-      </AppCard>
-      <AppCard :title="`${t.member} Growth`">
-        <ClientOnly>
-          <ChartLine
-            :chart-data="memberGrowthChartData"
-            :chart-options="memberGrowthOptions"
-            :height="140"
-            :empty-message="`No ${t.membersLower} yet — add your first ${t.memberLower} to track growth.`"
-          />
-          <template #fallback>
-            <div class="h-[140px] bg-slate-50 animate-pulse rounded" />
-          </template>
-        </ClientOnly>
-      </AppCard>
+      <aside class="space-y-4">
+        <!-- Expiring Soon -->
+        <AppCard v-if="expiring.length > 0" title="Expiring This Week">
+          <div class="divide-y divide-slate-100">
+            <div v-for="item in expiring" :key="item.memberId" class="py-3 first:pt-0 last:pb-0">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium text-slate-800">{{ item.memberName }}</p>
+                  <p class="mt-0.5 text-xs text-slate-600">{{ item.planName }} &mdash; {{ formatDate(item.endDate) }}</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                  <a
+                    v-if="item.memberPhone"
+                    :href="getWhatsAppLink(item.memberPhone, getReminderMessage(item.memberName, item.planName, item.endDate))"
+                    target="_blank"
+                    class="text-xs font-semibold text-green-700 hover:text-green-800"
+                  >
+                    Remind
+                  </a>
+                  <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="text-xs font-semibold text-primary-700 hover:text-primary-800">View</NuxtLink>
+                </div>
+              </div>
+            </div>
+          </div>
+        </AppCard>
+
+        <!-- Recent Payments -->
+        <AppCard v-if="recentPayments.length > 0" title="Recent Payments">
+          <div class="divide-y divide-slate-100">
+            <div v-for="p in recentPayments" :key="p.id" class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+              <div class="min-w-0">
+                <p class="truncate text-sm font-medium text-slate-800">{{ p.memberName }}</p>
+                <p class="mt-0.5 text-xs text-slate-600">{{ formatDate(p.date) }}</p>
+              </div>
+              <p class="shrink-0 text-sm font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
+            </div>
+          </div>
+        </AppCard>
+      </aside>
     </div>
-
-    <!-- Expiring Soon -->
-    <AppCard v-if="expiring.length > 0" title="Expiring This Week">
-      <div class="space-y-2">
-        <div v-for="item in expiring" :key="item.memberId" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-          <div>
-            <p class="text-sm font-medium text-slate-800">{{ item.memberName }}</p>
-            <p class="text-xs text-slate-600">{{ item.planName }} &mdash; expires {{ formatDate(item.endDate) }}</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <a
-              v-if="item.memberPhone"
-              :href="getWhatsAppLink(item.memberPhone, getReminderMessage(item.memberName, item.planName, item.endDate))"
-              target="_blank"
-              class="text-green-600 hover:text-green-700 text-xs font-medium"
-            >
-              Remind
-            </a>
-            <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="text-primary-600 text-xs font-medium">View</NuxtLink>
-          </div>
-        </div>
-      </div>
-    </AppCard>
-
-    <!-- Recent Payments -->
-    <AppCard v-if="recentPayments.length > 0" title="Recent Payments">
-      <div class="space-y-2">
-        <div v-for="p in recentPayments" :key="p.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-          <div>
-            <p class="text-sm font-medium text-slate-800">{{ p.memberName }}</p>
-            <p class="text-xs text-slate-600">{{ formatDate(p.date) }}</p>
-          </div>
-          <p class="text-sm font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
-        </div>
-      </div>
-    </AppCard>
   </div>
 </template>
 
