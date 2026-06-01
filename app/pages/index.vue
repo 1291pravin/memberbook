@@ -1,5 +1,5 @@
 <template>
-  <div class="mb">
+  <div ref="homeRef" class="mb" :class="{ 'scroll-reveal-ready': scrollRevealReady }">
     <!-- ───────────────────────── Hero ───────────────────────── -->
     <section class="hero">
       <div class="wrap">
@@ -80,13 +80,13 @@
 
     <!-- ───────────────────── Features ───────────────────── -->
     <section class="section story-section">
-      <div class="wrap">
+      <div class="wrap" data-scroll-reveal>
         <MarketingStorySlider :slides="storySlides" />
       </div>
     </section>
 
     <section id="features" class="section" style="background: var(--paper);">
-      <div class="wrap">
+      <div class="wrap" data-scroll-reveal>
         <div class="sec-head">
           <div>
             <span class="eyebrow">Built for the day-to-day</span>
@@ -238,7 +238,7 @@
     </section>
 
     <section class="section audience-section">
-      <div class="wrap">
+      <div class="wrap" data-scroll-reveal>
         <div class="audience-grid">
           <div class="audience-copy">
             <span class="eyebrow">One book, three everyday businesses</span>
@@ -275,7 +275,7 @@
 
     <!-- ───────────────────── WhatsApp ───────────────────── -->
     <section id="whatsapp" class="section" style="background: var(--paper-2);">
-      <div class="wrap">
+      <div class="wrap" data-scroll-reveal>
         <div class="wa-grid">
           <div>
             <span class="eyebrow"><IcWhatsapp :size="11" color="currentColor" /> WhatsApp built in</span>
@@ -329,7 +329,7 @@
     <!-- ───────────────────── Big quote ───────────────────── -->
     <section class="section" style="padding-top: 0;">
       <div class="wrap">
-        <div class="bigquote">
+        <div class="bigquote" data-scroll-reveal>
           <div class="qmark">&ldquo;</div>
           <div>
             <blockquote>
@@ -350,7 +350,7 @@
 
     <!-- ───────────────────── Testimonials ───────────────────── -->
     <section id="testimonials" class="section" style="background: var(--paper);">
-      <div class="wrap">
+      <div class="wrap" data-scroll-reveal>
         <div class="sec-head">
           <div>
             <span class="eyebrow">From owners like you</span>
@@ -392,7 +392,7 @@
 
     <!-- ───────────────────── Pricing ───────────────────── -->
     <section id="pricing" class="section" style="background: var(--paper-2);">
-      <div class="wrap">
+      <div class="wrap" data-scroll-reveal>
         <div class="sec-head">
           <div>
             <span class="eyebrow">Honest pricing</span>
@@ -449,7 +449,7 @@
 
     <!-- ───────────────────── FAQ ───────────────────── -->
     <section id="faq" class="section" style="background: var(--paper);">
-      <div class="wrap">
+      <div class="wrap" data-scroll-reveal>
         <div class="sec-head">
           <div>
             <span class="eyebrow">Questions</span>
@@ -469,7 +469,7 @@
     <!-- ───────────────────── CTA panel ───────────────────── -->
     <section class="section">
       <div class="wrap">
-        <div class="cta-panel">
+        <div class="cta-panel" data-scroll-reveal>
           <div>
             <span class="eyebrow" style="color: var(--paper-3);">Ready when you are</span>
             <h2 style="margin-top: 18px;">
@@ -503,6 +503,39 @@ definePageMeta({ layout: "default" });
 const config = useRuntimeConfig();
 const appUrl = config.public.appUrl || "https://memberbook.app";
 const { trackCtaClick } = useAnalytics();
+const homeRef = ref<HTMLElement | null>(null);
+const scrollRevealReady = ref(false);
+let scrollRevealObserver: IntersectionObserver | undefined;
+
+onMounted(async () => {
+  const home = homeRef.value;
+  if (!home) return;
+
+  const revealTargets = home.querySelectorAll<HTMLElement>("[data-scroll-reveal]");
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (prefersReducedMotion || !("IntersectionObserver" in window)) return;
+
+  scrollRevealReady.value = true;
+  await nextTick();
+
+  scrollRevealObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      entry.target.classList.add("is-visible");
+      scrollRevealObserver?.unobserve(entry.target);
+    }
+  }, {
+    threshold: 0.12,
+    rootMargin: "0px 0px -12% 0px",
+  });
+
+  revealTargets.forEach(target => scrollRevealObserver?.observe(target));
+});
+
+onBeforeUnmount(() => {
+  scrollRevealObserver?.disconnect();
+});
 
 /* ── Inline warm icon set (line-style, currentColor) ───────────────── */
 type IconProps = { size?: number; color?: string };
