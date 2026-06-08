@@ -81,7 +81,7 @@
             </p>
           </div>
           <div class="mt-1">
-            <AppButton size="sm" variant="ghost" @click="removeBatchSeatAssignment(assignment.batchId)" :loading="removingSeat">
+            <AppButton size="sm" variant="ghost" :loading="removingSeat" @click="removeBatchSeatAssignment(assignment.batchId)">
               Remove
             </AppButton>
           </div>
@@ -140,6 +140,14 @@
                 v-if="sub.id === latestSubscriptionId"
                 size="sm"
                 variant="ghost"
+                @click="openChangePlan(sub)"
+              >
+                Change Plan
+              </AppButton>
+              <AppButton
+                v-if="sub.id === latestSubscriptionId"
+                size="sm"
+                variant="ghost"
                 @click="renewSubscription(sub)"
               >
                 Renew
@@ -149,9 +157,8 @@
         </div>
         <div v-if="subscriptions.length === 0" class="text-sm text-slate-600 py-2">No subscriptions</div>
       </div>
-      <div class="mt-3">
-        <AppButton v-if="hasActiveSubscription" size="sm" variant="secondary" @click="openChangePlan">Change Plan</AppButton>
-        <AppButton v-else size="sm" @click="openAssignPlan">Assign Plan</AppButton>
+      <div v-if="subscriptions.length === 0" class="mt-3">
+        <AppButton size="sm" @click="openAssignPlan">Assign Plan</AppButton>
       </div>
     </AppCard>
 
@@ -163,7 +170,11 @@
             <p class="text-sm font-medium text-slate-800">{{ formatCurrency(payment.amount) }}</p>
             <p class="text-xs text-slate-600">{{ formatDate(payment.date) }} &middot; {{ payment.method }}</p>
           </div>
-          <p v-if="payment.notes" class="text-xs text-slate-600 max-w-[200px] truncate">{{ payment.notes }}</p>
+          <div class="flex items-center gap-1">
+            <p v-if="payment.notes" class="text-xs text-slate-600 max-w-[160px] truncate">{{ payment.notes }}</p>
+            <AppButton size="sm" variant="ghost" @click="openEditPayment(payment)">Edit</AppButton>
+            <AppButton v-if="isOwner" size="sm" variant="danger" :loading="deletingPaymentId === payment.id" @click="deletePayment(payment)">Delete</AppButton>
+          </div>
         </div>
         <div v-if="payments.length === 0" class="text-sm text-slate-600 py-2">No payments recorded</div>
       </div>
@@ -181,7 +192,7 @@
             <p v-else class="text-xs text-green-600 font-medium">Currently checked in</p>
           </div>
           <div class="flex items-center gap-1">
-            <AppBadge :color="(ci.subscriptionStatus === 'active' ? 'green' : ci.subscriptionStatus === 'expired' ? 'red' : 'yellow') as 'green' | 'red' | 'yellow'" class="text-xs">
+            <AppBadge :color="subscriptionStatusColor(ci.subscriptionStatus)" class="text-xs">
               {{ ci.subscriptionStatus }}
             </AppBadge>
             <AppBadge v-if="ci.autoCheckedOut" color="yellow" class="text-xs">auto</AppBadge>
@@ -213,7 +224,7 @@
     <AppModal :open="showAssignModal" :title="isChangingPlan ? 'Change Plan' : 'Assign Subscription'" @close="showAssignModal = false">
       <form class="space-y-4" @submit.prevent="assignPlan">
         <p v-if="isChangingPlan" class="text-sm text-slate-600">
-          The current active plan will be cancelled and replaced with the new one.
+          This updates the selected subscription while keeping its payment history and status linked.
         </p>
         <AppSelect
           v-model="assignForm.planId"
@@ -227,7 +238,7 @@
         <!-- Inline Payment -->
         <div class="border-t border-slate-200 pt-3">
           <label class="flex items-center gap-2 cursor-pointer">
-            <input v-model="assignForm.recordPayment" type="checkbox" class="rounded border-slate-300 text-primary-600 focus:ring-primary-500" />
+            <input v-model="assignForm.recordPayment" type="checkbox" class="rounded border-slate-300 text-primary-600 focus:ring-primary-500">
             <span class="text-sm font-medium text-slate-700">Record payment now</span>
           </label>
           <div v-if="assignForm.recordPayment" class="mt-3 space-y-3 pl-6">
@@ -240,6 +251,9 @@
           </div>
         </div>
 
+        <div v-if="assignError" class="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <p class="text-sm text-red-700">{{ assignError }}</p>
+        </div>
         <div class="flex gap-2 justify-end">
           <AppButton variant="secondary" @click="showAssignModal = false">Cancel</AppButton>
           <AppButton type="submit" :loading="assigning">{{ isChangingPlan ? 'Change' : 'Assign' }}</AppButton>
@@ -261,6 +275,24 @@
         <div class="flex gap-2 justify-end">
           <AppButton variant="secondary" @click="showPaymentModal = false">Cancel</AppButton>
           <AppButton type="submit" :loading="recordingPayment">Save</AppButton>
+        </div>
+      </form>
+    </AppModal>
+
+    <!-- Edit Payment Modal -->
+    <AppModal :open="showEditPaymentModal" title="Edit Payment" @close="showEditPaymentModal = false">
+      <form class="space-y-4" @submit.prevent="savePaymentEdit">
+        <AppInput v-model="editPaymentForm.amount" label="Amount (Rupees)" type="number" required />
+        <AppInput v-model="editPaymentForm.date" label="Date" type="date" required />
+        <AppSelect v-model="editPaymentForm.method" label="Payment Method" :options="paymentMethods" />
+        <AppSelect v-model="editPaymentForm.subscriptionId" label="Subscription" :options="subscriptionOptions" />
+        <AppInput v-model="editPaymentForm.notes" label="Notes" placeholder="Optional" />
+        <div v-if="editPaymentError" class="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <p class="text-sm text-red-700">{{ editPaymentError }}</p>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <AppButton variant="secondary" @click="showEditPaymentModal = false">Cancel</AppButton>
+          <AppButton type="submit" :loading="savingPaymentEdit">Save Changes</AppButton>
         </div>
       </form>
     </AppModal>
@@ -353,6 +385,7 @@ const { getWhatsAppLink, getReminderMessage, getPaymentReminderMessage } = useWh
 const memberId = route.params.id;
 const cacheVersion = ref(Date.now());
 const isLibrary = computed(() => currentOrg.value?.type === 'library');
+const isOwner = computed(() => currentOrg.value?.role === 'owner');
 
 interface MemberDetail {
   id: number;
@@ -387,6 +420,7 @@ interface Payment {
   date: string;
   method: string;
   notes: string | null;
+  subscriptionId: number | null;
 }
 
 interface Plan {
@@ -398,14 +432,21 @@ interface Plan {
 
 const showAssignModal = ref(false);
 const showPaymentModal = ref(false);
+const showEditPaymentModal = ref(false);
 const assigning = ref(false);
 const recordingPayment = ref(false);
 const isChangingPlan = ref(false);
+const changingSubscriptionId = ref<number | null>(null);
+const savingPaymentEdit = ref(false);
+const deletingPaymentId = ref<number | null>(null);
+const editPaymentError = ref("");
+const assignError = ref("");
 const errorMessage = ref("");
 
 const today = new Date().toISOString().split("T")[0];
 const assignForm = reactive({ planId: "", startDate: today, recordPayment: false, paymentAmount: "", paymentMethod: "cash" });
 const paymentForm = reactive({ amount: "", date: today, method: "cash", notes: "", subscriptionId: "" });
+const editPaymentForm = reactive({ id: 0, amount: "", date: today, method: "cash", notes: "", subscriptionId: "" });
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
@@ -544,9 +585,10 @@ const latestSubscriptionId = computed(() => {
     sub.endDate > latest.endDate ? sub : latest,
   ).id;
 });
-const hasActiveSubscription = computed(() =>
-  subscriptions.value.some(s => s.status === "active" && s.endDate >= today),
-);
+const subscriptionOptions = computed(() => [
+  { value: "", label: "Not linked to a subscription" },
+  ...subscriptions.value.map(s => ({ value: String(s.id), label: `${s.planName} (${formatDate(s.startDate)} - ${formatDate(s.endDate)})` })),
+]);
 const payments = computed(() => memberData.value?.payments ?? []);
 
 // WhatsApp helpers
@@ -651,9 +693,9 @@ watch(() => assignForm.planId, (planId) => {
   const plan = plans.value.find(p => p.id === Number(planId));
   if (plan) {
     assignForm.paymentAmount = String(plan.price / 100);
-    assignForm.recordPayment = true;
   }
   else {
+    assignForm.paymentAmount = "";
     assignForm.recordPayment = false;
   }
 });
@@ -667,6 +709,12 @@ function formatDuration(durationType: string, durationValue: number): string {
   };
   const [singular, plural] = labels[durationType] ?? ["Unit", "Units"];
   return `${durationValue} ${durationValue === 1 ? singular : plural}`;
+}
+
+function subscriptionStatusColor(status: string): "green" | "red" | "yellow" {
+  if (status === "active") return "green";
+  if (status === "expired") return "red";
+  return "yellow";
 }
 
 function paymentStatusColor(status: string): string {
@@ -688,6 +736,7 @@ function resetPaymentFields() {
 }
 
 function renewSubscription(sub: Subscription) {
+  assignError.value = "";
   // Reset planId first so the watcher fires even for the same plan
   assignForm.planId = "";
   nextTick(() => {
@@ -706,6 +755,7 @@ function renewSubscription(sub: Subscription) {
 }
 
 function openAssignPlan() {
+  assignError.value = "";
   assignForm.planId = "";
   assignForm.startDate = today;
   isChangingPlan.value = false;
@@ -713,9 +763,11 @@ function openAssignPlan() {
   showAssignModal.value = true;
 }
 
-function openChangePlan() {
-  assignForm.planId = "";
-  assignForm.startDate = today;
+function openChangePlan(sub: Subscription) {
+  assignError.value = "";
+  changingSubscriptionId.value = sub.id;
+  assignForm.planId = String(sub.planId);
+  assignForm.startDate = sub.startDate;
   isChangingPlan.value = true;
   resetPaymentFields();
   showAssignModal.value = true;
@@ -807,12 +859,13 @@ async function saveEditMember() {
 
 async function assignPlan() {
   assigning.value = true;
-  errorMessage.value = "";
+  assignError.value = "";
   try {
     const body: Record<string, unknown> = {
       planId: Number(assignForm.planId),
       startDate: assignForm.startDate,
       changePlan: isChangingPlan.value,
+      subscriptionId: isChangingPlan.value ? changingSubscriptionId.value : undefined,
     };
     if (assignForm.recordPayment && assignForm.paymentAmount) {
       body.payment = {
@@ -827,6 +880,7 @@ async function assignPlan() {
     });
     showAssignModal.value = false;
     isChangingPlan.value = false;
+    changingSubscriptionId.value = null;
     assignForm.planId = "";
     assignForm.startDate = today;
     assignForm.recordPayment = false;
@@ -836,7 +890,7 @@ async function assignPlan() {
     await refreshMember();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
-    errorMessage.value = e.data?.statusMessage || e.message || "Failed to assign plan";
+    assignError.value = e.data?.statusMessage || e.message || "Failed to assign plan";
   } finally {
     assigning.value = false;
   }
@@ -880,4 +934,56 @@ function openInlinePayment(sub: Subscription) {
   paymentForm.notes = "";
   showPaymentModal.value = true;
 }
+function openEditPayment(payment: Payment) {
+  editPaymentForm.id = payment.id;
+  editPaymentForm.amount = String(payment.amount / 100);
+  editPaymentForm.date = payment.date;
+  editPaymentForm.method = payment.method;
+  editPaymentForm.notes = payment.notes || "";
+  editPaymentForm.subscriptionId = payment.subscriptionId ? String(payment.subscriptionId) : "";
+  editPaymentError.value = "";
+  showEditPaymentModal.value = true;
+}
+
+async function savePaymentEdit() {
+  savingPaymentEdit.value = true;
+  editPaymentError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/payments/${editPaymentForm.id}`, {
+      method: "PUT",
+      body: {
+        amount: parseCurrencyToInt(Number(editPaymentForm.amount)),
+        date: editPaymentForm.date,
+        method: editPaymentForm.method,
+        notes: editPaymentForm.notes || null,
+        subscriptionId: editPaymentForm.subscriptionId ? Number(editPaymentForm.subscriptionId) : null,
+      },
+    });
+    showEditPaymentModal.value = false;
+    cacheVersion.value = Date.now();
+    await refreshMember();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    editPaymentError.value = e.data?.statusMessage || e.message || "Failed to update payment";
+  } finally {
+    savingPaymentEdit.value = false;
+  }
+}
+
+async function deletePayment(payment: Payment) {
+  if (!confirm(`Delete the ${formatCurrency(payment.amount)} payment? This cannot be undone.`)) return;
+  deletingPaymentId.value = payment.id;
+  errorMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/payments/${payment.id}`, { method: "DELETE" });
+    cacheVersion.value = Date.now();
+    await refreshMember();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to delete payment";
+  } finally {
+    deletingPaymentId.value = null;
+  }
+}
+
 </script>

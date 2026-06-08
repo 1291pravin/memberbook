@@ -19,6 +19,7 @@ export default cachedEventHandler(async (event) => {
       method: schema.payments.method,
       notes: schema.payments.notes,
       memberId: schema.payments.memberId,
+      subscriptionId: schema.payments.subscriptionId,
       memberName: schema.members.name,
       memberPhone: schema.members.phone,
     })
