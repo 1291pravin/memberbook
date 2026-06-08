@@ -1,88 +1,47 @@
-import { eq, and, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const body = await readBody(event);
-  const { memberId, amount, date, method, notes, subscriptionId } = body;
+  const memberId = Number(body.memberId);
+  const amount = parsePaymentAmount(body.amount);
 
-  if (!memberId || !amount || !date) {
-    throw createError({ statusCode: 400, statusMessage: "Member, amount, and date are required" });
+  if (!Number.isInteger(memberId) || memberId <= 0 || !amount || !isIsoDate(body.date)) {
+    throw createError({ statusCode: 400, statusMessage: "Member, positive amount, and valid date are required" });
+  }
+  if (body.method !== undefined && !isPaymentMethod(body.method)) {
+    throw createError({ statusCode: 400, statusMessage: "Invalid payment method" });
   }
 
-  const newAmount = Number(amount);
+  const [member] = await db
+    .select({ id: schema.members.id })
+    .from(schema.members)
+    .where(and(eq(schema.members.id, memberId), eq(schema.members.orgId, access.orgId)))
+    .limit(1);
+  if (!member) throw createError({ statusCode: 404, statusMessage: "Member not found" });
 
-  // Validate against fully-paid subscriptions
-  if (subscriptionId) {
-    const subRows = await db
-      .select()
-      .from(schema.memberSubscriptions)
-      .where(and(
-        eq(schema.memberSubscriptions.id, Number(subscriptionId)),
-        eq(schema.memberSubscriptions.orgId, access.orgId),
-      ))
-      .limit(1);
-
-    const sub = subRows[0];
-    if (!sub) {
-      throw createError({ statusCode: 404, statusMessage: "Subscription not found" });
-    }
-
-    // Get total already paid for this subscription
-    const [paidResult] = await db
-      .select({ total: sql<number>`COALESCE(SUM(${schema.payments.amount}), 0)` })
-      .from(schema.payments)
-      .where(and(
-        eq(schema.payments.subscriptionId, Number(subscriptionId)),
-        eq(schema.payments.orgId, access.orgId),
-      ));
-
-    const totalPaid = paidResult.total;
-    if (totalPaid >= sub.amount) {
-      throw createError({ statusCode: 400, statusMessage: "This subscription is already fully paid" });
+  const subscription = body.subscriptionId ? await getPaymentSubscription(body.subscriptionId, memberId, access.orgId) : null;
+  if (body.subscriptionId && !subscription) {
+    throw createError({ statusCode: 400, statusMessage: "Subscription does not belong to this member" });
+  }
+  if (subscription) {
+    const totalPaid = await getSubscriptionPaidTotal(subscription.id, access.orgId);
+    if (totalPaid + amount > subscription.amount) {
+      throw createError({ statusCode: 400, statusMessage: "Payment exceeds the remaining subscription balance" });
     }
   }
 
-  const result = await db.insert(schema.payments).values({
+  const [payment] = await db.insert(schema.payments).values({
     orgId: access.orgId,
-    memberId: Number(memberId),
-    amount: newAmount,
-    date,
-    method: method || "cash",
-    notes: notes || null,
-    subscriptionId: subscriptionId ? Number(subscriptionId) : null,
+    memberId,
+    amount,
+    date: body.date,
+    method: body.method || "cash",
+    notes: typeof body.notes === "string" ? body.notes.trim() || null : null,
+    subscriptionId: subscription?.id ?? null,
   }).returning();
 
-  // Update subscription payment status if linked
-  if (subscriptionId) {
-    const subRows = await db
-      .select()
-      .from(schema.memberSubscriptions)
-      .where(and(
-        eq(schema.memberSubscriptions.id, Number(subscriptionId)),
-        eq(schema.memberSubscriptions.orgId, access.orgId),
-      ))
-      .limit(1);
-
-    const sub = subRows[0];
-    if (sub) {
-      const [paidResult] = await db
-        .select({ total: sql<number>`COALESCE(SUM(${schema.payments.amount}), 0)` })
-        .from(schema.payments)
-        .where(and(
-          eq(schema.payments.subscriptionId, Number(subscriptionId)),
-          eq(schema.payments.orgId, access.orgId),
-        ));
-
-      const totalPaid = paidResult.total;
-      const newStatus = totalPaid >= sub.amount ? "paid" : "partial";
-
-      await db
-        .update(schema.memberSubscriptions)
-        .set({ paymentStatus: newStatus })
-        .where(eq(schema.memberSubscriptions.id, Number(subscriptionId)));
-    }
-  }
-
+  await recalculateSubscriptionPaymentStatus(payment.subscriptionId, access.orgId);
   await invalidateCache(access.orgId);
-  return { payment: result[0] };
+  return { payment };
 });

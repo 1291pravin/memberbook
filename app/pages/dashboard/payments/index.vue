@@ -11,6 +11,11 @@
       </div>
     </div>
 
+    <div v-if="pageError" class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between">
+      <p class="text-sm text-red-700">{{ pageError }}</p>
+      <button type="button" class="text-sm font-medium text-red-700 hover:text-red-800" @click="pageError = ''">Dismiss</button>
+    </div>
+
     <div v-if="payments.length === 0">
       <AppEmptyState title="No payments recorded" description="Payments will appear here when you record them from a member's page." />
     </div>
@@ -23,7 +28,11 @@
             <p class="text-xs text-slate-600">{{ formatDate(p.date) }} &middot; {{ p.method }}</p>
             <p v-if="p.notes" class="text-xs text-slate-600 mt-1">{{ p.notes }}</p>
           </div>
-          <p class="font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
+          <div class="flex items-center gap-1">
+            <p class="font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
+            <AppButton v-if="isOwner" size="sm" variant="ghost" @click="openEditPayment(p)">Edit</AppButton>
+            <AppButton v-if="isOwner" size="sm" variant="danger" :loading="deletingPaymentId === p.id" @click="deletePayment(p)">Delete</AppButton>
+          </div>
         </div>
       </AppCard>
     </div>
@@ -92,13 +101,29 @@
         </div>
       </form>
     </AppModal>
+
+    <AppModal :open="showEditModal" title="Edit Payment" @close="showEditModal = false">
+      <form class="space-y-4" @submit.prevent="savePaymentEdit">
+        <p class="text-sm text-slate-600">Payment for <strong class="text-slate-800">{{ editingPayment?.memberName }}</strong></p>
+        <AppInput v-model="editForm.amount" label="Amount (Rupees)" type="number" required />
+        <AppInput v-model="editForm.date" label="Date" type="date" required />
+        <AppSelect v-model="editForm.method" label="Payment Method" :options="paymentMethodOptions" />
+        <AppInput v-model="editForm.notes" label="Notes" placeholder="Optional" />
+        <div v-if="editError" class="bg-red-50 border border-red-200 rounded-lg px-3 py-2"><p class="text-sm text-red-700">{{ editError }}</p></div>
+        <div class="flex gap-2 justify-end">
+          <AppButton variant="secondary" @click="showEditModal = false">Cancel</AppButton>
+          <AppButton type="submit" :loading="savingEdit">Save Changes</AppButton>
+        </div>
+      </form>
+    </AppModal>
   </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
-const { orgId } = useOrg();
+const { orgId, currentOrg } = useOrg();
+const isOwner = computed(() => currentOrg.value?.role === "owner");
 const { formatCurrency } = useFormatCurrency();
 const { formatDate } = useFormatDate();
 
@@ -113,6 +138,8 @@ interface PaymentRow {
   method: string;
   notes: string | null;
   memberName: string;
+  memberId: number;
+  subscriptionId: number | null;
 }
 
 interface PaginationMeta {
@@ -128,7 +155,7 @@ const query = computed(() => {
   return { page: pagination._page.value };
 });
 
-const { data: paymentsData } = await useFetch<{ payments: PaymentRow[]; pagination: PaginationMeta }>(
+const { data: paymentsData, refresh: refreshPayments } = await useFetch<{ payments: PaymentRow[]; pagination: PaginationMeta }>(
   `/api/orgs/${orgId.value}/payments`,
   { query },
 );
@@ -145,6 +172,12 @@ const memberResults = ref<{ id: number; name: string; phone: string | null }[]>(
 const selectedMember = ref<{ id: number; name: string } | null>(null);
 const submittingPayment = ref(false);
 const paymentError = ref("");
+const pageError = ref("");
+const showEditModal = ref(false);
+const editingPayment = ref<PaymentRow | null>(null);
+const savingEdit = ref(false);
+const deletingPaymentId = ref<number | null>(null);
+const editError = ref("");
 
 const today = new Date().toISOString().split("T")[0];
 const paymentForm = reactive({
@@ -153,6 +186,13 @@ const paymentForm = reactive({
   method: "cash",
   notes: "",
 });
+const editForm = reactive({ amount: "", date: today, method: "cash", notes: "" });
+const paymentMethodOptions = [
+  { value: "cash", label: "Cash" },
+  { value: "upi", label: "UPI" },
+  { value: "card", label: "Card" },
+  { value: "bank_transfer", label: "Bank Transfer" },
+];
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 function debouncedMemberSearch() {
@@ -214,4 +254,53 @@ async function submitPayment() {
     submittingPayment.value = false;
   }
 }
+function openEditPayment(payment: PaymentRow) {
+  editingPayment.value = payment;
+  editForm.amount = String(payment.amount / 100);
+  editForm.date = payment.date;
+  editForm.method = payment.method;
+  editForm.notes = payment.notes || "";
+  editError.value = "";
+  showEditModal.value = true;
+}
+
+async function savePaymentEdit() {
+  if (!editingPayment.value) return;
+  savingEdit.value = true;
+  editError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/payments/${editingPayment.value.id}`, {
+      method: "PUT",
+      body: {
+        amount: parseCurrencyToInt(Number(editForm.amount)),
+        date: editForm.date,
+        method: editForm.method,
+        notes: editForm.notes || null,
+      },
+    });
+    showEditModal.value = false;
+    await refreshPayments();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    editError.value = e.data?.statusMessage || e.message || "Failed to update payment";
+  } finally {
+    savingEdit.value = false;
+  }
+}
+
+async function deletePayment(payment: PaymentRow) {
+  if (!confirm(`Delete the ${formatCurrency(payment.amount)} payment for ${payment.memberName}? This cannot be undone.`)) return;
+  deletingPaymentId.value = payment.id;
+  pageError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/payments/${payment.id}`, { method: "DELETE" });
+    await refreshPayments();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    pageError.value = e.data?.statusMessage || e.message || "Failed to delete payment";
+  } finally {
+    deletingPaymentId.value = null;
+  }
+}
+
 </script>

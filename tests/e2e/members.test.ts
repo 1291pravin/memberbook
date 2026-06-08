@@ -16,6 +16,7 @@ describe("Members API", async () => {
   let orgId: number;
   let memberId: number;
   let planId: number;
+  let subscriptionId: number;
 
   beforeAll(async () => {
     const reg = await registerUser(makeUser());
@@ -163,6 +164,38 @@ describe("Members API", async () => {
       expect(data.subscription.memberId).toBe(memberId);
       expect(data.subscription.planId).toBe(planId);
       expect(data.subscription.endDate).toBeTruthy();
+      subscriptionId = data.subscription.id;
+    });
+
+    it("changes the selected subscription plan in place", async () => {
+      const secondPlan = await authFetch(session)<{ plan: any }>(`/api/orgs/${orgId}/plans`, {
+        method: "POST",
+        body: makePlan({ name: "Corrected Plan", price: 150000 }),
+      });
+      const data = await authFetch(session)<{ subscription: any }>(
+        `/api/orgs/${orgId}/members/${memberId}/subscriptions`,
+        {
+          method: "POST",
+          body: {
+            planId: secondPlan.plan.id,
+            startDate: new Date().toISOString().split("T")[0],
+            changePlan: true,
+            subscriptionId,
+          },
+        },
+      );
+      expect(data.subscription.id).toBe(subscriptionId);
+      expect(data.subscription.planId).toBe(secondPlan.plan.id);
+      expect(data.subscription.amount).toBe(150000);
+      expect(data.subscription.status).toBe("active");
+    });
+
+    it("requires a specific subscription when changing a plan", async () => {
+      const res = await authFetchRaw(session)(`/api/orgs/${orgId}/members/${memberId}/subscriptions`, {
+        method: "POST",
+        body: { planId, startDate: new Date().toISOString().split("T")[0], changePlan: true },
+      });
+      expect(res.status).toBe(400);
     });
 
     it("returns 400 when missing fields", async () => {

@@ -16,6 +16,7 @@ describe("Payments API", async () => {
   let orgId: number;
   let memberId: number;
   let subscriptionId: number;
+  let linkedPaymentId: number;
 
   beforeAll(async () => {
     const reg = await registerUser(makeUser());
@@ -65,6 +66,7 @@ describe("Payments API", async () => {
         { method: "POST", body: payment },
       );
       expect(data.payment.subscriptionId).toBe(subscriptionId);
+      linkedPaymentId = data.payment.id;
     });
 
     it("returns 400 when missing required fields", async () => {
@@ -74,6 +76,44 @@ describe("Payments API", async () => {
       });
       expect(res.status).toBe(400);
     });
+
+    it("rejects calendar dates that do not exist", async () => {
+      const res = await authFetchRaw(session)(`/api/orgs/${orgId}/payments`, {
+        method: "POST",
+        body: makePayment(memberId, { date: "2026-02-31" }),
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe("PUT and DELETE /api/orgs/[orgId]/payments/[paymentId]", () => {
+    it("edits a linked payment and recalculates its subscription status", async () => {
+      const data = await authFetch(session)<{ payment: any }>(
+        `/api/orgs/${orgId}/payments/${linkedPaymentId}`,
+        { method: "PUT", body: { amount: 100000, notes: "Corrected payment" } },
+      );
+      expect(data.payment.amount).toBe(100000);
+      expect(data.payment.notes).toBe("Corrected payment");
+
+      const member = await authFetch(session)<{ subscriptions: any[] }>(`/api/orgs/${orgId}/members/${memberId}`);
+      expect(member.subscriptions.find(sub => sub.id === subscriptionId)?.paymentStatus).toBe("paid");
+    });
+
+    it("rejects an overpayment", async () => {
+      const res = await authFetchRaw(session)(`/api/orgs/${orgId}/payments/${linkedPaymentId}`, {
+        method: "PUT",
+        body: { amount: 100001 },
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it("deletes a payment and recalculates its subscription status", async () => {
+      const res = await authFetchRaw(session)(`/api/orgs/${orgId}/payments/${linkedPaymentId}`, { method: "DELETE" });
+      expect(res.status).toBe(200);
+
+      const member = await authFetch(session)<{ subscriptions: any[] }>(`/api/orgs/${orgId}/members/${memberId}`);
+      expect(member.subscriptions.find(sub => sub.id === subscriptionId)?.paymentStatus).toBe("unpaid");
+    });
   });
 
   describe("GET /api/orgs/[orgId]/payments", () => {
@@ -81,7 +121,7 @@ describe("Payments API", async () => {
       const data = await authFetch(session)<{ payments: any[] }>(
         `/api/orgs/${orgId}/payments`,
       );
-      expect(data.payments.length).toBeGreaterThanOrEqual(2);
+      expect(data.payments.length).toBeGreaterThanOrEqual(1);
       expect(data.payments[0]).toHaveProperty("memberName");
     });
   });
