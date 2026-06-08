@@ -12,6 +12,9 @@
         <AppButton v-if="member" size="sm" variant="secondary" @click="openEditMember">
           Edit
         </AppButton>
+        <AppButton v-if="member && isOwner" size="sm" variant="danger" @click="showDeleteModal = true">
+          Delete
+        </AppButton>
       </div>
     </div>
 
@@ -306,6 +309,26 @@
       </form>
     </AppModal>
 
+    <!-- Delete Member Modal -->
+    <AppModal :open="showDeleteModal" title="Delete Member" size="sm" @close="showDeleteModal = false">
+      <div class="space-y-4">
+        <p class="text-sm text-slate-700">
+          Delete <strong class="text-slate-800">{{ member?.name }}</strong> permanently?
+        </p>
+        <p class="text-sm text-slate-600">
+          This also deletes their subscriptions, payments, check-ins, and seat assignments. This action cannot be undone.
+        </p>
+        <div class="flex justify-end gap-2">
+          <AppButton variant="secondary" :disabled="deletingMember" @click="showDeleteModal = false">
+            Cancel
+          </AppButton>
+          <AppButton variant="danger" :loading="deletingMember" @click="deleteMember">
+            Delete Member
+          </AppButton>
+        </div>
+      </div>
+    </AppModal>
+
     <!-- Edit Member Modal -->
     <AppModal :open="showEditModal" title="Edit Member" @close="showEditModal = false">
       <form class="space-y-4" @submit.prevent="saveEditMember">
@@ -452,6 +475,8 @@ const deletingSubscriptionId = ref<number | null>(null);
 const editPaymentError = ref("");
 const assignError = ref("");
 const errorMessage = ref("");
+const showDeleteModal = ref(false);
+const deletingMember = ref(false);
 
 const today = new Date().toISOString().split("T")[0];
 const assignForm = reactive({ planId: "", startDate: today, recordPayment: false, paymentAmount: "", paymentMethod: "cash" });
@@ -993,6 +1018,23 @@ async function deletePayment(payment: Payment) {
     errorMessage.value = e.data?.statusMessage || e.message || "Failed to delete payment";
   } finally {
     deletingPaymentId.value = null;
+  }
+}
+
+async function deleteMember() {
+  if (!member.value || deletingMember.value) return;
+
+  deletingMember.value = true;
+  errorMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}`, { method: "DELETE" });
+    await navigateTo("/dashboard/members");
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to delete member";
+    showDeleteModal.value = false;
+  } finally {
+    deletingMember.value = false;
   }
 }
 

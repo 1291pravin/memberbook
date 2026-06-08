@@ -237,6 +237,57 @@ describe("Members API", async () => {
     });
   });
 
+  describe("DELETE /api/orgs/[orgId]/members/[memberId]", () => {
+    it("deletes a member and their related records", async () => {
+      const created = await authFetch(session)<{ member: { id: number } }>(
+        `/api/orgs/${orgId}/members`,
+        { method: "POST", body: makeMember({ name: "Member To Delete" }) },
+      );
+      const deleteMemberId = created.member.id;
+
+      const subscription = await authFetch(session)<{ subscription: { id: number } }>(
+        `/api/orgs/${orgId}/members/${deleteMemberId}/subscriptions`,
+        {
+          method: "POST",
+          body: { planId, startDate: new Date().toISOString().split("T")[0] },
+        },
+      );
+      await authFetch(session)(`/api/orgs/${orgId}/payments`, {
+        method: "POST",
+        body: {
+          memberId: deleteMemberId,
+          subscriptionId: subscription.subscription.id,
+          amount: 50000,
+          date: new Date().toISOString().split("T")[0],
+          method: "cash",
+        },
+      });
+
+      const deleted = await authFetchRaw(session)(
+        `/api/orgs/${orgId}/members/${deleteMemberId}`,
+        { method: "DELETE" },
+      );
+      expect(deleted.status).toBe(200);
+
+      const missing = await authFetchRaw(session)(`/api/orgs/${orgId}/members/${deleteMemberId}`);
+      expect(missing.status).toBe(404);
+    });
+
+    it("returns 404 for a member outside the organization", async () => {
+      const otherReg = await registerUser(makeUser());
+      const otherSession = await createOrgAndGetSession(otherReg, makeOrg());
+      const otherMember = await authFetch(otherSession)<{ member: { id: number } }>(
+        `/api/orgs/${otherSession.orgId}/members`,
+        { method: "POST", body: makeMember() },
+      );
+
+      const res = await authFetchRaw(session)(`/api/orgs/${orgId}/members/${otherMember.member.id}`, {
+        method: "DELETE",
+      });
+      expect(res.status).toBe(404);
+    });
+  });
+
   describe("GET /api/orgs/[orgId]/members/expiring", () => {
     it("returns expiring subscriptions list", async () => {
       const data = await authFetch(session)<{ expiring: any[] }>(
