@@ -52,12 +52,13 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: "Existing payments exceed the new plan amount. Edit or delete them first." });
     }
 
+    const todayStr = new Date().toISOString().split("T")[0];
     const [updated] = await db.update(schema.memberSubscriptions).set({
       planId: plan.id,
       startDate,
       endDate,
       amount: plan.price,
-      status: existing.status,
+      status: existing.status === "cancelled" ? "cancelled" : (endDate >= todayStr ? "active" : "expired"),
     }).where(and(eq(schema.memberSubscriptions.id, existing.id), eq(schema.memberSubscriptions.orgId, access.orgId))).returning();
 
     if (inlinePaymentAmount) {

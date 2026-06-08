@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
+  requireOwner(access);
   const paymentId = Number(getRouterParam(event, "paymentId"));
   const body = await readBody(event);
 

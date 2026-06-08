@@ -172,7 +172,7 @@
           </div>
           <div class="flex items-center gap-1">
             <p v-if="payment.notes" class="text-xs text-slate-600 max-w-[160px] truncate">{{ payment.notes }}</p>
-            <AppButton size="sm" variant="ghost" @click="openEditPayment(payment)">Edit</AppButton>
+            <AppButton v-if="isOwner" size="sm" variant="ghost" @click="openEditPayment(payment)">Edit</AppButton>
             <AppButton v-if="isOwner" size="sm" variant="danger" :loading="deletingPaymentId === payment.id" @click="deletePayment(payment)">Delete</AppButton>
           </div>
         </div>
