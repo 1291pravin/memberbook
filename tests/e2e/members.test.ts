@@ -207,6 +207,36 @@ describe("Members API", async () => {
     });
   });
 
+  describe("DELETE /api/orgs/[orgId]/members/[memberId]/subscriptions/[subscriptionId]", () => {
+    it("deletes a subscription and unlinks its payment", async () => {
+      const payment = await authFetch(session)<{ payment: { id: number } }>(`/api/orgs/${orgId}/payments`, {
+        method: "POST",
+        body: {
+          memberId,
+          amount: 50000,
+          date: new Date().toISOString().split("T")[0],
+          method: "cash",
+          subscriptionId,
+        },
+      });
+
+      const res = await authFetchRaw(session)(
+        `/api/orgs/${orgId}/members/${memberId}/subscriptions/${subscriptionId}`,
+        { method: "DELETE" },
+      );
+      expect(res.status).toBe(200);
+
+      const member = await authFetch(session)<{
+        subscriptions: Array<{ id: number }>;
+        payments: Array<{ id: number; subscriptionId: number | null }>;
+      }>(
+        `/api/orgs/${orgId}/members/${memberId}`,
+      );
+      expect(member.subscriptions.some(sub => sub.id === subscriptionId)).toBe(false);
+      expect(member.payments.find(item => item.id === payment.payment.id)?.subscriptionId).toBeNull();
+    });
+  });
+
   describe("GET /api/orgs/[orgId]/members/expiring", () => {
     it("returns expiring subscriptions list", async () => {
       const data = await authFetch(session)<{ expiring: any[] }>(

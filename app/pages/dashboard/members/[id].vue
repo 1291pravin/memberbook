@@ -152,6 +152,15 @@
               >
                 Renew
               </AppButton>
+              <AppButton
+                v-if="isOwner"
+                size="sm"
+                variant="danger"
+                :loading="deletingSubscriptionId === sub.id"
+                @click="deleteSubscription(sub)"
+              >
+                Delete
+              </AppButton>
             </div>
           </div>
         </div>
@@ -439,6 +448,7 @@ const isChangingPlan = ref(false);
 const changingSubscriptionId = ref<number | null>(null);
 const savingPaymentEdit = ref(false);
 const deletingPaymentId = ref<number | null>(null);
+const deletingSubscriptionId = ref<number | null>(null);
 const editPaymentError = ref("");
 const assignError = ref("");
 const errorMessage = ref("");
@@ -983,6 +993,22 @@ async function deletePayment(payment: Payment) {
     errorMessage.value = e.data?.statusMessage || e.message || "Failed to delete payment";
   } finally {
     deletingPaymentId.value = null;
+  }
+}
+
+async function deleteSubscription(sub: Subscription) {
+  if (!confirm(`Delete the ${sub.planName} subscription? Linked payments will be preserved.`)) return;
+  deletingSubscriptionId.value = sub.id;
+  errorMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/subscriptions/${sub.id}`, { method: "DELETE" });
+    cacheVersion.value = Date.now();
+    await refreshMember();
+  } catch (err: unknown) {
+    const e = err as { data?: { statusMessage?: string }; message?: string };
+    errorMessage.value = e.data?.statusMessage || e.message || "Failed to delete subscription";
+  } finally {
+    deletingSubscriptionId.value = null;
   }
 }
 
