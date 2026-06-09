@@ -55,7 +55,6 @@ export default defineEventHandler(async (event) => {
   const baseUrl = config.public.appUrl || `${headers["x-forwarded-proto"] || "https"}://${headers.host}`;
   const inviteUrl = `${baseUrl}/invite/${token}`;
 
-  await invalidateCache(access.orgId);
 
   // Auto-complete onboarding step
   await autoCompleteOnboardingStep(access.orgId, 'staffOnboardingCompleted');

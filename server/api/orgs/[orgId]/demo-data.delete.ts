@@ -82,7 +82,6 @@ export default defineEventHandler(async (event) => {
     .set({ demoDataIds: null })
     .where(eq(schema.organizations.id, access.orgId));
 
-  await invalidateCache(access.orgId);
 
   return { success: true };
 });

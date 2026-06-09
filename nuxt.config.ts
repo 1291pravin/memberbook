@@ -91,7 +91,6 @@ export default defineNuxtConfig({
   hub: {
     hosting: "cloudflare",
     db: "sqlite",
-    cache: true,
   },
   runtimeConfig: {
     adminApiToken: "",

@@ -38,8 +38,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Invalidate cache
-  await invalidateCache(access.orgId);
 
   return { success: true, message: "Seat assignment removed successfully" };
 });

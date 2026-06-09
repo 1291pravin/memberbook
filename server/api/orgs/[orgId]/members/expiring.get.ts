@@ -7,7 +7,7 @@ const latestSubFilter = sql`${schema.memberSubscriptions.id} = (
     AND ms2.org_id = ${schema.memberSubscriptions.orgId}
 )`;
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
 
   // Fetch org's grace period
@@ -79,7 +79,4 @@ export default cachedEventHandler(async (event) => {
   }
 
   return { expiring: [...inGracePeriod, ...expiring] };
-}, {
-  maxAge: 300,
-  getKey: (event) => orgCacheKey(event, "members-expiring"),
 });

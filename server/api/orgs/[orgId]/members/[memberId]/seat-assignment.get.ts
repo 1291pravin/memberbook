@@ -1,6 +1,6 @@
 import { eq, and, isNull } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const memberId = getRouterParam(event, "memberId");
   const query = getQuery(event);
@@ -77,13 +77,4 @@ export default cachedEventHandler(async (event) => {
     assignment: mapped[0] ?? null,
     assignments: mapped,
   };
-}, {
-  maxAge: 300,
-  getKey: (event) => {
-    const orgId = getRouterParam(event, "orgId");
-    const memberId = getRouterParam(event, "memberId");
-    const query = getQuery(event);
-    const batchId = query.batchId || "all";
-    return `org${orgId}memberseatassignment${memberId}batch${batchId}`;
-  },
 });

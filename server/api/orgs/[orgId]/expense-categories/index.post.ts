@@ -51,7 +51,6 @@ export default defineEventHandler(async (event) => {
     })
     .returning();
 
-  await invalidateCache(access.orgId);
 
   return { category: result[0] };
 });

@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
     const expenseId = parseInt(getRouterParam(event, "expenseId")!);
 
@@ -41,7 +41,4 @@ export default cachedEventHandler(async (event) => {
     }
 
   return { expense };
-}, {
-  maxAge: 600,
-  getKey: (event) => orgCacheKey(event, `expense-${getRouterParam(event, "expenseId")}`),
 });

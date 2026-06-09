@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   // Find active subscriptions where total payments < subscription amount
   const pending = await db.all(sql`
@@ -27,7 +27,4 @@ export default cachedEventHandler(async (event) => {
   `);
 
   return { pending };
-}, {
-  maxAge: 300,
-  getKey: (event) => orgCacheKey(event, "payments-pending"),
 });

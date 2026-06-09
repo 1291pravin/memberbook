@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
 
   const categories = await db
@@ -18,7 +18,4 @@ export default cachedEventHandler(async (event) => {
     .orderBy(schema.expenseCategories.displayOrder, schema.expenseCategories.name);
 
   return { categories };
-}, {
-  maxAge: 600,
-  getKey: (event) => orgCacheKey(event, "expense-categories"),
 });

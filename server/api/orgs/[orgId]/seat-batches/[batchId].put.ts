@@ -57,7 +57,6 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.seatBatches.id, batchId))
     .returning();
 
-  await invalidateCache(access.orgId);
 
   return { batch: result[0] };
 });

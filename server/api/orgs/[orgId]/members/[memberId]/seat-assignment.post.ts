@@ -154,8 +154,6 @@ export default defineEventHandler(async (event) => {
       .returning();
   }
 
-  // Invalidate cache
-  await invalidateCache(access.orgId);
 
   return assignment;
 });

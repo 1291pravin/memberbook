@@ -1,6 +1,6 @@
 import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
     const query = getQuery(event);
 
@@ -43,7 +43,4 @@ export default cachedEventHandler(async (event) => {
       .orderBy(desc(sql`SUM(${schema.expenses.amount})`));
 
   return { data };
-}, {
-  maxAge: 600,
-  getKey: (event) => orgCacheKey(event, "analytics-expense-breakdown"),
 });

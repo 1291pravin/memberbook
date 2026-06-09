@@ -73,7 +73,6 @@ export default defineEventHandler(async (event) => {
       });
     }
     await recalculateSubscriptionPaymentStatus(updated.id, access.orgId);
-    await invalidateCache(access.orgId);
     return { subscription: updated };
   }
 
@@ -111,6 +110,5 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  await invalidateCache(access.orgId);
   return { subscription };
 });

@@ -1,6 +1,6 @@
 import { eq, and, isNull, inArray, sql } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const query = getQuery(event);
   const status = query.status as string | undefined;
@@ -191,11 +191,4 @@ export default cachedEventHandler(async (event) => {
   };
 
   return { seats: filteredSeats, stats };
-}, {
-  maxAge: 60,
-  getKey: (event) => {
-    const query = getQuery(event);
-    const batchSuffix = query.batchId ? `batch${query.batchId}` : "";
-    return orgCacheKey(event, "seats") + batchSuffix;
-  },
 });

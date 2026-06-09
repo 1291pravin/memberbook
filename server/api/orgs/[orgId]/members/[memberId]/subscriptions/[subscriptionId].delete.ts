@@ -28,6 +28,5 @@ export default defineEventHandler(async (event) => {
     eq(schema.memberSubscriptions.id, subscriptionId),
     eq(schema.memberSubscriptions.orgId, access.orgId),
   ));
-  await invalidateCache(access.orgId);
   return { success: true };
 });

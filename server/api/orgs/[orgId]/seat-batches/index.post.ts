@@ -50,7 +50,6 @@ export default defineEventHandler(async (event) => {
     })
     .returning();
 
-  await invalidateCache(access.orgId);
 
   return { batch: result[0] };
 });

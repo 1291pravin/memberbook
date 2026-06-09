@@ -1,6 +1,6 @@
 import { eq, and, between, gt, sql, lt } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const orgId = access.orgId;
 
@@ -82,7 +82,4 @@ export default cachedEventHandler(async (event) => {
     gracePeriod: graceCount,
     expired: expiredResult.count,
   };
-}, {
-  maxAge: 300,
-  getKey: (event) => orgCacheKey(event, "analytics-subscription-status"),
 });

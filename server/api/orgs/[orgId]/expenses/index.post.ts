@@ -68,7 +68,6 @@ export default defineEventHandler(async (event) => {
     })
     .returning();
 
-  await invalidateCache(access.orgId);
 
   return { expense: result[0] };
 });

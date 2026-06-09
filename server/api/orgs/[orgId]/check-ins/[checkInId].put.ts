@@ -36,6 +36,5 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.checkIns.id, checkInId))
     .returning();
 
-  await invalidateCache(access.orgId);
   return { checkIn: result[0] };
 });

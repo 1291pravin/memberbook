@@ -272,7 +272,6 @@ const checkingOutId = ref<number | null>(null);
 const autoCheckingOut = ref(false);
 const warningMessage = ref("");
 const errorMessage = ref("");
-const cacheVersion = ref(Date.now());
 
 // Seat selection state
 const showSeatModal = ref(false);
@@ -309,7 +308,7 @@ watch(memberSearch, (val) => {
 // Fetch active check-ins
 const { data: activeData, refresh: refreshActive } = await useFetch<{ checkIns: CheckIn[] }>(
   `/api/orgs/${orgId.value}/check-ins`,
-  { query: computed(() => ({ status: "active", _v: cacheVersion.value })) },
+  { query: { status: "active" } },
 );
 const activeCheckIns = computed(() => activeData.value?.checkIns ?? []);
 
@@ -433,7 +432,6 @@ async function confirmCheckIn() {
     }
     memberSearch.value = "";
     searchResults.value = [];
-    cacheVersion.value = Date.now();
     await refreshActive();
     closeSeatModal();
   } catch (err: unknown) {
@@ -449,7 +447,6 @@ async function checkOut(checkInId: number) {
   errorMessage.value = "";
   try {
     await $fetch(`/api/orgs/${orgId.value}/check-ins/${checkInId}`, { method: "PUT" });
-    cacheVersion.value = Date.now();
     await refreshActive();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -468,7 +465,6 @@ async function autoCheckout() {
       { method: "POST" },
     );
     warningMessage.value = `Auto checked out ${data.checkedOutCount} member(s)`;
-    cacheVersion.value = Date.now();
     await refreshActive();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };

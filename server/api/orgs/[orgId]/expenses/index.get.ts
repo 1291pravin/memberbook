@@ -1,6 +1,6 @@
 import { eq, and, or, like, gte, lte, desc, sql } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const query = getQuery(event);
 
@@ -79,7 +79,4 @@ export default cachedEventHandler(async (event) => {
       total,
     },
   };
-}, {
-  maxAge: 600,
-  getKey: (event) => orgCacheKey(event, "expenses"),
 });

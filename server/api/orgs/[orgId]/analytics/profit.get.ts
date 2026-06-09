@@ -1,6 +1,6 @@
 import { eq, and, gte, sql } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
     const query = getQuery(event);
     const period = (query.period as string) || "daily";
@@ -78,7 +78,4 @@ export default cachedEventHandler(async (event) => {
       .sort((a, b) => a.date.localeCompare(b.date));
 
   return { data };
-}, {
-  maxAge: 600,
-  getKey: (event) => orgCacheKey(event, "analytics-profit"),
 });

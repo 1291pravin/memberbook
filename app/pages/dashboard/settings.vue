@@ -137,19 +137,6 @@
       </div>
     </AppCard>
 
-    <!-- Cache Management (owner only) -->
-    <AppCard v-if="isOwner" title="Cache">
-      <p class="text-sm text-slate-600 mb-3">
-        Data like dashboard stats and analytics are cached for up to 10 minutes. Clear the cache if you need to see the latest data immediately.
-      </p>
-      <div class="flex items-center gap-3">
-        <AppButton size="sm" variant="secondary" :loading="clearingCache" @click="clearCache">
-          Clear Cache
-        </AppButton>
-        <p v-if="cacheCleared" class="text-sm text-green-600">{{ cacheCleared }}</p>
-      </div>
-    </AppCard>
-
     <!-- Add/Edit Category Modal -->
     <AppModal :open="showAddCategoryModal" :title="editingCategory ? 'Edit Category' : 'Add Category'" @close="closeCategoryModal">
       <form class="space-y-4" @submit.prevent="saveCategory">
@@ -331,9 +318,6 @@ const copyError = ref("");
 
 const isOwner = computed(() => currentOrg.value?.role === "owner");
 
-const clearingCache = ref(false);
-const cacheCleared = ref("");
-
 // Demo data
 const { data: demoStatus, refresh: refreshDemoStatus } = await useFetch<{ hasDemoData: boolean }>(
   `/api/orgs/${orgId.value}/demo-data`,
@@ -466,23 +450,6 @@ async function toggleCategoryStatus(cat: Category) {
     await refreshCategories();
   } catch (e: any) {
     alert(e.data?.statusMessage || "Failed to update category");
-  }
-}
-
-async function clearCache() {
-  clearingCache.value = true;
-  cacheCleared.value = "";
-  try {
-    const result = await $fetch<{ cleared: number }>(`/api/orgs/${orgId.value}/cache`, {
-      method: "DELETE",
-    });
-    cacheCleared.value = `Cleared ${result.cleared} cached ${result.cleared === 1 ? "entry" : "entries"}`;
-    setTimeout(() => { cacheCleared.value = ""; }, 5000);
-  } catch {
-    cacheCleared.value = "Failed to clear cache";
-    setTimeout(() => { cacheCleared.value = ""; }, 5000);
-  } finally {
-    clearingCache.value = false;
   }
 }
 

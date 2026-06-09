@@ -67,8 +67,6 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.librarySeats.id, Number(seatId)))
     .returning();
 
-  // Invalidate cache
-  await invalidateCache(access.orgId);
 
   return updatedSeat;
 });

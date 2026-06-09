@@ -73,8 +73,6 @@ export default defineEventHandler(async (event) => {
   );
   const seats = results.flat();
 
-  // Invalidate cache
-  await invalidateCache(access.orgId);
 
   // Auto-complete onboarding step
   await autoCompleteOnboardingStep(access.orgId, 'businessSetupCompleted');

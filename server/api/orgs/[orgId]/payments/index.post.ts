@@ -42,6 +42,5 @@ export default defineEventHandler(async (event) => {
   }).returning();
 
   await recalculateSubscriptionPaymentStatus(payment.subscriptionId, access.orgId);
-  await invalidateCache(access.orgId);
   return { payment };
 });

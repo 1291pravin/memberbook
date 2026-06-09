@@ -1,6 +1,6 @@
 import { eq, sql, count } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
 
   // Get plans with active member count (members whose latest subscription is on this plan)
@@ -39,7 +39,4 @@ export default cachedEventHandler(async (event) => {
   }));
 
   return { plans: plansWithCount };
-}, {
-  maxAge: 3600,
-  getKey: (event) => orgCacheKey(event, "plans"),
 });

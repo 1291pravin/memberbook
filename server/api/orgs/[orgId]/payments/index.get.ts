@@ -1,6 +1,6 @@
 import { eq, desc, count } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const { page, limit, offset } = parsePagination(event, 30);
 
@@ -32,7 +32,4 @@ export default cachedEventHandler(async (event) => {
 
   const { pagination } = buildPaginatedResponse(paymentList, total, { page, limit, offset });
   return { payments: paymentList, pagination };
-}, {
-  maxAge: 3600,
-  getKey: (event) => orgCacheKey(event, "payments"),
 });

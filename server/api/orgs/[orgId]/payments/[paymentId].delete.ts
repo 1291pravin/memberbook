@@ -17,6 +17,5 @@ export default defineEventHandler(async (event) => {
 
   await db.delete(schema.payments).where(and(eq(schema.payments.id, paymentId), eq(schema.payments.orgId, access.orgId)));
   await recalculateSubscriptionPaymentStatus(payment.subscriptionId, access.orgId);
-  await invalidateCache(access.orgId);
   return { success: true };
 });

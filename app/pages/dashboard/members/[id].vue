@@ -415,7 +415,6 @@ const { formatDate } = useFormatDate();
 const { getWhatsAppLink, getReminderMessage, getPaymentReminderMessage } = useWhatsApp();
 
 const memberId = route.params.id;
-const cacheVersion = ref(Date.now());
 const isLibrary = computed(() => currentOrg.value?.type === 'library');
 const isOwner = computed(() => currentOrg.value?.role === 'owner');
 
@@ -530,7 +529,7 @@ const seatForm = reactive({ seatId: "", batchId: "", notes: "" });
 // Seat data — only fetch for library orgs
 const { data: seatAssignmentData, refresh: refreshSeatAssignment } = await useFetch<{ assignment: SeatAssignment | null; assignments: SeatAssignment[] }>(
   `/api/orgs/${orgId.value}/members/${memberId}/seat-assignment`,
-  { query: { _v: cacheVersion }, immediate: isLibrary.value },
+  { immediate: isLibrary.value },
 );
 const seatAssignments = computed(() => seatAssignmentData.value?.assignments ?? []);
 
@@ -577,7 +576,6 @@ async function assignSeat() {
       },
     });
     showSeatModal.value = false;
-    cacheVersion.value = Date.now();
     await refreshSeatAssignment();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -597,7 +595,6 @@ async function removeBatchSeatAssignment(batchId: number | null) {
     await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/seat-assignment${query}`, {
       method: "DELETE",
     });
-    cacheVersion.value = Date.now();
     await refreshSeatAssignment();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -609,7 +606,6 @@ async function removeBatchSeatAssignment(batchId: number | null) {
 
 const { data: memberData, refresh: refreshMember } = await useFetch<{ member: MemberDetail; subscriptions: Subscription[]; payments: Payment[] }>(
   `/api/orgs/${orgId.value}/members/${memberId}`,
-  { query: { _v: cacheVersion } },
 );
 const member = computed(() => memberData.value?.member ?? null);
 const subscriptions = computed(() => memberData.value?.subscriptions ?? []);
@@ -679,7 +675,7 @@ interface CheckInRecord {
 const checkingIn = ref(false);
 const { data: checkInsData, refresh: refreshCheckIns } = await useFetch<{ checkIns: CheckInRecord[]; pagination: { total: number } }>(
   `/api/orgs/${orgId.value}/members/${memberId}/check-ins`,
-  { query: { limit: 5, _v: cacheVersion } },
+  { query: { limit: 5 } },
 );
 const recentCheckIns = computed(() => checkInsData.value?.checkIns ?? []);
 const checkInTotal = computed(() => checkInsData.value?.pagination?.total ?? 0);
@@ -705,7 +701,6 @@ async function quickCheckIn() {
       method: "POST",
       body: { memberId: Number(memberId) },
     });
-    cacheVersion.value = Date.now();
     await refreshCheckIns();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -817,7 +812,6 @@ async function toggleStatus() {
       method: "PUT",
       body: { status: newStatus },
     });
-    cacheVersion.value = Date.now();
     await refreshMember();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -882,7 +876,6 @@ async function saveEditMember() {
       },
     });
     showEditModal.value = false;
-    cacheVersion.value = Date.now();
     await refreshMember();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -921,7 +914,6 @@ async function assignPlan() {
     assignForm.recordPayment = false;
     assignForm.paymentAmount = "";
     assignForm.paymentMethod = "cash";
-    cacheVersion.value = Date.now();
     await refreshMember();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -950,7 +942,6 @@ async function recordPayment() {
     paymentForm.amount = "";
     paymentForm.notes = "";
     paymentForm.subscriptionId = "";
-    cacheVersion.value = Date.now();
     await refreshMember();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -995,7 +986,6 @@ async function savePaymentEdit() {
       },
     });
     showEditPaymentModal.value = false;
-    cacheVersion.value = Date.now();
     await refreshMember();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -1011,7 +1001,6 @@ async function deletePayment(payment: Payment) {
   errorMessage.value = "";
   try {
     await $fetch(`/api/orgs/${orgId.value}/payments/${payment.id}`, { method: "DELETE" });
-    cacheVersion.value = Date.now();
     await refreshMember();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };
@@ -1044,7 +1033,6 @@ async function deleteSubscription(sub: Subscription) {
   errorMessage.value = "";
   try {
     await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/subscriptions/${sub.id}`, { method: "DELETE" });
-    cacheVersion.value = Date.now();
     await refreshMember();
   } catch (err: unknown) {
     const e = err as { data?: { statusMessage?: string }; message?: string };

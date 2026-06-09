@@ -1,6 +1,6 @@
 import { eq, and, like, or, sql, lt, between, desc, asc, count } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const query = getQuery(event);
   const search = query.search as string | undefined;
@@ -127,7 +127,4 @@ export default cachedEventHandler(async (event) => {
 
   const { pagination } = buildPaginatedResponse(memberList, total, { page, limit, offset });
   return { members: memberList, pagination };
-}, {
-  maxAge: 3600,
-  getKey: (event) => orgCacheKey(event, "members"),
 });

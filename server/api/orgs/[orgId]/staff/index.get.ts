@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const staff = await db
     .select({
@@ -15,7 +15,4 @@ export default cachedEventHandler(async (event) => {
     .where(eq(schema.orgMemberships.orgId, access.orgId));
 
   return { staff };
-}, {
-  maxAge: 3600,
-  getKey: (event) => orgCacheKey(event, "staff"),
 });

@@ -41,7 +41,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  await invalidateCache(access.orgId);
 
   return { success: true };
 });

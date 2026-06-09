@@ -1,6 +1,6 @@
 import { eq, and, sql } from "drizzle-orm";
 
-export default cachedEventHandler(async (event) => {
+export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const memberId = Number(getRouterParam(event, "memberId"));
 
@@ -59,7 +59,4 @@ export default cachedEventHandler(async (event) => {
     .orderBy(schema.payments.date);
 
   return { member: memberRows[0], subscriptions: subscriptionsWithPaid, payments: paymentList };
-}, {
-  maxAge: 3600,
-  getKey: (event) => orgCacheKey(event, "members") + getRouterParam(event, "memberId"),
 });

@@ -24,7 +24,6 @@ export default defineEventHandler(async (event) => {
     durationValue: Number(durationValue),
   }).returning();
 
-  await invalidateCache(access.orgId);
 
   // Auto-complete onboarding step
   await autoCompleteOnboardingStep(access.orgId, 'plansSetupCompleted');

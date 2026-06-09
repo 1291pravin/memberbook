@@ -50,6 +50,5 @@ export default defineEventHandler(async (event) => {
   if (updatedPayment.subscriptionId !== payment.subscriptionId) {
     await recalculateSubscriptionPaymentStatus(updatedPayment.subscriptionId, access.orgId);
   }
-  await invalidateCache(access.orgId);
   return { payment: updatedPayment };
 });

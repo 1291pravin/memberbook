@@ -146,7 +146,6 @@ export default defineEventHandler(async (event) => {
   // Auto-complete onboarding steps
   await autoCompleteOnboardingStep(access.orgId, "plansSetupCompleted");
 
-  await invalidateCache(access.orgId);
 
   return { success: true, demoIds };
 });
