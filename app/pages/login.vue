@@ -97,7 +97,7 @@ async function handleLogin() {
   error.value = "";
   loading.value = true;
   try {
-    await $fetch("/api/auth/login", {
+    const res = await $fetch("/api/auth/login", {
       method: "POST",
       body: { email: form.email, password: form.password },
     });
@@ -107,6 +107,9 @@ async function handleLogin() {
     const redirect = route.query.redirect as string;
     if (redirect && redirect.startsWith("/")) {
       navigateTo(redirect);
+    } else if (res.orgCount > 1) {
+      // Multiple outlets — let the owner pick one
+      navigateTo("/outlets");
     } else {
       navigateTo(session.value?.currentOrg ? "/dashboard" : "/onboarding");
     }

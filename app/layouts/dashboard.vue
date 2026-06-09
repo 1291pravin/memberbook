@@ -6,7 +6,6 @@
         <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300 tracking-tight">MemberBook</NuxtLink>
         <div v-if="currentOrg" class="relative mt-1">
           <button
-            v-if="hasMultipleOrgs"
             class="flex items-center gap-1 text-xs text-slate-200 hover:text-white transition-colors"
             @click.stop="orgDropdownOpen = !orgDropdownOpen"
           >
@@ -15,7 +14,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
           </button>
-          <p v-else class="text-xs text-slate-200">{{ currentOrg.name }}</p>
           <div
             v-if="orgDropdownOpen"
             class="absolute left-0 top-full mt-1 w-56 bg-slate-700 rounded-lg shadow-lg border border-slate-600 py-1 z-50"
@@ -32,6 +30,16 @@
                 class="ml-2 shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
                 :class="org.role === 'owner' ? 'bg-primary-500/20 text-primary-300' : 'bg-slate-500/30 text-slate-200'"
               >{{ org.role === 'owner' ? 'Owner' : 'Staff' }}</span>
+            </button>
+            <div class="my-1 border-t border-slate-600" />
+            <button
+              class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-200 hover:bg-slate-600 transition-colors"
+              @click="openAddOutlet"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Add outlet
             </button>
           </div>
         </div>
@@ -88,7 +96,6 @@
         <div class="flex items-center gap-2">
           <div v-if="currentOrg" class="relative">
             <button
-              v-if="hasMultipleOrgs"
               class="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-800 transition-colors"
               @click.stop="mobileOrgDropdownOpen = !mobileOrgDropdownOpen"
             >
@@ -97,7 +104,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
               </svg>
             </button>
-            <p v-else class="text-xs text-slate-600">{{ currentOrg.name }}</p>
             <div
               v-if="mobileOrgDropdownOpen"
               class="absolute right-0 top-full mt-1 w-52 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50"
@@ -114,6 +120,16 @@
                   class="ml-2 shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
                   :class="org.role === 'owner' ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-600'"
                 >{{ org.role === 'owner' ? 'Owner' : 'Staff' }}</span>
+              </button>
+              <div class="my-1 border-t border-slate-200" />
+              <button
+                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                @click="openAddOutlet"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add outlet
               </button>
             </div>
           </div>
@@ -256,6 +272,8 @@
         </Transition>
       </div>
     </Transition>
+
+    <AddOutletModal :open="addOutletOpen" @close="addOutletOpen = false" @created="onOutletCreated" />
   </div>
 </template>
 
@@ -277,6 +295,18 @@ const orgDropdownOpen = ref(false);
 const mobileOrgDropdownOpen = ref(false);
 const userOrgs = ref<{ orgId: number; name: string; slug: string; type: string; role: string }[]>([]);
 const hasMultipleOrgs = ref(false);
+const addOutletOpen = ref(false);
+
+function openAddOutlet() {
+  orgDropdownOpen.value = false;
+  mobileOrgDropdownOpen.value = false;
+  addOutletOpen.value = true;
+}
+
+async function onOutletCreated() {
+  addOutletOpen.value = false;
+  await fetchUserOrgs();
+}
 
 async function fetchUserOrgs() {
   try {

@@ -33,5 +33,8 @@ export default defineEventHandler(async (event) => {
     currentOrg,
   });
 
-  return { user: { id: user.id, email: user.email, name: user.name } };
+  return {
+    user: { id: user.id, email: user.email, name: user.name },
+    orgCount: orgs.length,
+  };
 });

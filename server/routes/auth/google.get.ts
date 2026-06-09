@@ -32,7 +32,10 @@ export default defineOAuthGoogleEventHandler({
       currentOrg,
     });
 
-    return sendRedirect(event, currentOrg ? "/dashboard" : "/onboarding");
+    const destination = orgs.length > 1
+      ? "/outlets"
+      : currentOrg ? "/dashboard" : "/onboarding";
+    return sendRedirect(event, destination);
   },
   onError(event, error) {
     console.error("Google OAuth error:", error);
