@@ -105,6 +105,7 @@ export default defineEventHandler(async (event) => {
       email: schema.members.email,
       status: schema.members.status,
       notes: schema.members.notes,
+      photoKey: schema.members.photoKey,
       createdAt: schema.members.createdAt,
       subscriptionEndDate: schema.memberSubscriptions.endDate,
       subscriptionStatus: schema.memberSubscriptions.status,

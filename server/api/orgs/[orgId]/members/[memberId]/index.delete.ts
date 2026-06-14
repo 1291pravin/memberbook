@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { blob } from "@nuxthub/blob";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -10,7 +11,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const [member] = await db
-    .select({ id: schema.members.id })
+    .select({ id: schema.members.id, photoKey: schema.members.photoKey })
     .from(schema.members)
     .where(and(eq(schema.members.id, memberId), eq(schema.members.orgId, access.orgId)))
     .limit(1);
@@ -43,6 +44,14 @@ export default defineEventHandler(async (event) => {
     )),
   ]);
 
+  // Remove the member's photo from blob storage after the row is gone
+  if (member.photoKey) {
+    try {
+      await blob.del(member.photoKey);
+    } catch {
+      // Object already gone — ignore
+    }
+  }
 
   return { success: true };
 });

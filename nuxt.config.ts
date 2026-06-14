@@ -91,6 +91,11 @@ export default defineNuxtConfig({
   hub: {
     hosting: "cloudflare",
     db: "sqlite",
+    // Member photos. In production use the Cloudflare R2 binding "BLOB";
+    // in dev fall back to the local filesystem so `npm run dev` works without R2.
+    blob: process.env.NODE_ENV === "production"
+      ? { driver: "cloudflare-r2", binding: "BLOB" }
+      : { driver: "fs", dir: ".data/hub/blob" },
   },
   runtimeConfig: {
     adminApiToken: "",

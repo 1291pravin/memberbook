@@ -53,6 +53,7 @@ export const members = sqliteTable("members", {
   fatherName: text("father_name"),
   address: text("address"),
   batch: text("batch"),
+  photoKey: text("photo_key"), // R2/blob pathname of the member's photo, null = no photo
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 

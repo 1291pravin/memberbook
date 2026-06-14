@@ -130,15 +130,21 @@
       >
         <AppCard class="hover:border-primary-200 transition-colors">
           <div class="flex items-center justify-between">
-            <div class="min-w-0 flex-1">
-              <p class="font-medium text-slate-800">{{ member.name }}</p>
-              <p v-if="member.phone" class="text-sm text-slate-600">{{ member.phone }}</p>
-              <p v-if="member.planName" class="text-sm text-slate-600 mt-0.5">
-                {{ member.planName }}
-                <span v-if="member.subscriptionEndDate" class="text-slate-600">
-                  &middot; ends {{ formatDate(member.subscriptionEndDate) }}
-                </span>
-              </p>
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="h-10 w-10 shrink-0 rounded-full overflow-hidden bg-slate-100 ring-1 ring-slate-200 flex items-center justify-center text-sm font-semibold text-slate-500">
+                <img v-if="member.photoKey" :src="`/api/orgs/${orgId}/members/${member.id}/photo?v=${member.photoKey}`" alt="" class="h-full w-full object-cover">
+                <span v-else>{{ memberInitials(member.name) }}</span>
+              </div>
+              <div class="min-w-0">
+                <p class="font-medium text-slate-800 truncate">{{ member.name }}</p>
+                <p v-if="member.phone" class="text-sm text-slate-600">{{ member.phone }}</p>
+                <p v-if="member.planName" class="text-sm text-slate-600 mt-0.5">
+                  {{ member.planName }}
+                  <span v-if="member.subscriptionEndDate" class="text-slate-600">
+                    &middot; ends {{ formatDate(member.subscriptionEndDate) }}
+                  </span>
+                </p>
+              </div>
             </div>
             <div class="flex flex-col items-end gap-1 ml-2 shrink-0">
               <AppBadge :color="member.status === 'active' ? 'green' : 'gray'">
@@ -178,6 +184,7 @@ interface Member {
   phone: string | null;
   email: string | null;
   status: string;
+  photoKey: string | null;
   subscriptionEndDate: string | null;
   subscriptionStatus: string | null;
   paymentStatus: string | null;
@@ -304,6 +311,13 @@ watch(membersData, (val) => {
 }, { immediate: true });
 
 const { formatDate } = useFormatDate();
+
+function memberInitials(name: string): string {
+  const n = name?.trim() || "";
+  if (!n) return "?";
+  const parts = n.split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? (parts.at(-1)?.[0] ?? "") : "")).toUpperCase();
+}
 
 function isExpired(member: Member): boolean {
   if (!member.subscriptionEndDate) return false;
