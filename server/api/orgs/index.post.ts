@@ -1,7 +1,16 @@
+import { parseOrgContact } from "../../utils/org-contact";
+
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event);
   const body = await readBody(event);
   const { name, type } = body;
+
+  let contact;
+  try {
+    contact = parseOrgContact(body.ownerWhatsapp, body.setupHelpConsent);
+  } catch (error) {
+    throw createError({ statusCode: 400, statusMessage: (error as Error).message });
+  }
 
   if (!name || !type) {
     throw createError({ statusCode: 400, statusMessage: "Name and type are required" });
@@ -19,6 +28,7 @@ export default defineEventHandler(async (event) => {
     name: name.trim(),
     slug,
     type,
+    ...contact,
   }).returning();
 
   const org = orgResult[0];

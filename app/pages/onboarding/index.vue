@@ -22,6 +22,21 @@
           placeholder="Select type"
           required
         />
+        <AppInput
+          id="owner-whatsapp"
+          v-model="form.ownerWhatsapp"
+          type="tel"
+          label="Owner WhatsApp number (optional)"
+          placeholder="+91 98765 43210"
+        />
+        <p class="text-sm text-slate-600">
+          Include your country code. Indian 10-digit numbers use +91 automatically.
+          You can leave this blank.
+        </p>
+        <label class="flex items-start gap-3 text-sm text-slate-700">
+          <input v-model="form.setupHelpConsent" type="checkbox" class="mt-1 h-4 w-4 shrink-0 accent-primary-600">
+          <span>You can contact me on WhatsApp to help set up MemberBook.</span>
+        </label>
         <AppButton type="submit" class="w-full" :loading="loading">
           Create Workspace
         </AppButton>
@@ -40,7 +55,7 @@ useSeoMeta({
 
 const { fetch: refreshSession } = useUserSession();
 
-const form = reactive({ name: "", type: "" });
+const form = reactive({ name: "", type: "", ownerWhatsapp: "", setupHelpConsent: false });
 const error = ref("");
 const loading = ref(false);
 const { trackFunnelStep } = useAnalytics();
@@ -58,7 +73,7 @@ async function handleCreate() {
   try {
     const res = await $fetch<{ org: { id: number, type: string } }>("/api/orgs", {
       method: "POST",
-      body: { name: form.name, type: form.type },
+      body: { ...form },
     });
     trackFunnelStep("organization_created", {
       org_id: res.org.id,
