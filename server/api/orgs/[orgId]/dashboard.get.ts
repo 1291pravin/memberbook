@@ -64,6 +64,11 @@ export default defineEventHandler(async (event) => {
     )
   `);
 
+  // Check-ins are stored as UTC timestamps; show the current day in India.
+  const [checkInsToday] = await db.select({ count: sql<number>`count(*)` })
+    .from(schema.checkIns)
+    .where(and(eq(schema.checkIns.orgId, orgId), sql`date(${schema.checkIns.checkedInAt}, '+05:30') = date('now', '+05:30')`));
+
   // Recent payments (last 5)
   const recentPayments = await db
     .select({
@@ -86,6 +91,7 @@ export default defineEventHandler(async (event) => {
       monthExpenses: expenseResult.total,
       monthProfit: monthProfit,
       pendingPayments: (pendingRows[0] as { count: number })?.count || 0,
+      checkInsToday: checkInsToday.count,
     },
     recentPayments,
   };

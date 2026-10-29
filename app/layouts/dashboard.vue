@@ -1,12 +1,12 @@
 <template>
   <div class="dashboard-shell min-h-screen bg-slate-50 lg:flex">
     <!-- Desktop Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-gradient-to-b lg:from-slate-800 lg:to-slate-900 lg:fixed lg:inset-y-0">
-      <div class="p-4 border-b border-slate-700/50">
-        <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300 tracking-tight">MemberBook</NuxtLink>
+    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-white lg:border-r lg:border-slate-200 lg:fixed lg:inset-y-0">
+      <div class="p-4 border-b border-slate-200">
+        <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-700 tracking-tight">MemberBook</NuxtLink>
         <div v-if="currentOrg" class="relative mt-1">
           <button
-            class="flex items-center gap-1 text-xs text-slate-200 hover:text-white transition-colors"
+            class="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-800 transition-colors"
             @click.stop="orgDropdownOpen = !orgDropdownOpen"
           >
             {{ currentOrg.name }}
@@ -16,24 +16,24 @@
           </button>
           <div
             v-if="orgDropdownOpen"
-            class="absolute left-0 top-full mt-1 w-56 bg-slate-700 rounded-lg shadow-lg border border-slate-600 py-1 z-50"
+            class="absolute left-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50"
           >
             <button
               v-for="org in userOrgs"
               :key="org.orgId"
               class="flex items-center justify-between w-full px-3 py-2 text-sm transition-colors"
-              :class="org.orgId === currentOrg.orgId ? 'bg-slate-600 text-white' : 'text-slate-200 hover:bg-slate-600'"
+              :class="org.orgId === currentOrg.orgId ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-50'"
               @click="switchOrg(org.orgId)"
             >
               <span class="truncate">{{ org.name }}</span>
               <span
                 class="ml-2 shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
-                :class="org.role === 'owner' ? 'bg-primary-500/20 text-primary-300' : 'bg-slate-500/30 text-slate-200'"
+                :class="org.role === 'owner' ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-600'"
               >{{ org.role === 'owner' ? 'Owner' : 'Staff' }}</span>
             </button>
-            <div class="my-1 border-t border-slate-600" />
+            <div class="my-1 border-t border-slate-200" />
             <button
-              class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-200 hover:bg-slate-600 transition-colors"
+              class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
               @click="openAddOutlet"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -46,7 +46,7 @@
       </div>
       <nav class="flex-1 overflow-y-auto px-3 py-4">
         <div v-for="group in navGroups" :key="group.label" class="mb-5 last:mb-0">
-          <p class="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-200">
+          <p class="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
             {{ group.label }}
           </p>
           <div class="space-y-0.5">
@@ -55,7 +55,7 @@
               :key="item.to"
               :to="item.to"
               class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200"
-              :class="isActive(item.to) ? 'bg-primary-600/20 text-primary-200 shadow-sm shadow-primary-500/10' : 'text-slate-200 hover:bg-white/5 hover:text-white'"
+              :class="isActive(item.to) ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-100'"
             >
               <component :is="item.icon" class="h-5 w-5" />
               {{ item.label }}
@@ -65,7 +65,7 @@
         <!-- Show more features toggle for new orgs -->
         <button
           v-if="memberCount < 5 && !showAllNav"
-          class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-200 transition-all duration-200 hover:bg-white/5 hover:text-white"
+          class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-100"
           @click="showAllNav = true"
         >
           <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -74,13 +74,13 @@
           More features
         </button>
       </nav>
-      <div class="border-t border-slate-700/50 p-3">
-        <div v-if="currentOrg" class="mb-2 rounded-lg bg-white/5 px-3 py-2">
-          <p class="truncate text-xs font-medium text-slate-200">{{ currentOrg.name }}</p>
-          <p class="mt-0.5 text-[11px] capitalize text-slate-200">{{ currentOrg.role }} workspace</p>
+      <div class="border-t border-slate-200 p-3">
+        <div v-if="currentOrg" class="mb-2 rounded-lg bg-slate-50 px-3 py-2">
+          <p class="truncate text-xs font-medium text-slate-600">{{ currentOrg.name }}</p>
+          <p class="mt-0.5 text-[11px] capitalize text-slate-600">{{ currentOrg.role }} workspace</p>
         </div>
         <button
-          class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-200 transition-all duration-200 hover:bg-white/5 hover:text-white cursor-pointer"
+          class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition-all duration-200 hover:bg-slate-100 cursor-pointer"
           @click="logout"
         >
           Logout
@@ -181,7 +181,7 @@
         v-for="item in mobileNavItems"
         :key="item.to"
         :to="item.to"
-        class="relative flex flex-col items-center gap-0.5 px-3 py-2 text-xs min-w-[44px] min-h-[44px] justify-center"
+        class="relative flex flex-col items-center gap-0.5 px-1 sm:px-3 py-2 text-xs min-w-[44px] min-h-[44px] justify-center"
         :class="isActive(item.to) ? 'text-primary-600' : 'text-slate-600'"
       >
         <span
@@ -194,7 +194,7 @@
 
       <!-- More Button -->
       <button
-        class="relative flex flex-col items-center gap-0.5 px-3 py-2 text-xs min-w-[44px] min-h-[44px] justify-center"
+        class="relative flex flex-col items-center gap-0.5 px-1 sm:px-3 py-2 text-xs min-w-[44px] min-h-[44px] justify-center"
         :class="moreMenuOpen ? 'text-primary-600' : 'text-slate-600'"
         @click="moreMenuOpen = !moreMenuOpen"
       >
@@ -417,7 +417,7 @@ const navGroups = computed(() => {
 // Core items always visible in bottom nav: Dashboard, Members, Payments
 const mobileNavItems = computed(() => {
   const all = allNavItems.value;
-  return [all[0]!, all[1]!, all[3]!];
+  return [all[0]!, all[1]!, all[3]!, all[2]!];
 });
 
 // Items in the "More" menu - everything not in the bottom nav
