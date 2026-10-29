@@ -1,12 +1,11 @@
 <template>
-  <div class="p-4 lg:p-6 space-y-6">
+  <div class="p-4 lg:p-6 space-y-5">
     <OnboardingProgressWidget />
 
     <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-700">Today at a glance</p>
         <h1 class="mt-1.5 text-2xl font-bold tracking-tight text-slate-800">Dashboard</h1>
-        <p class="mt-1 text-sm text-slate-600">Focus on the follow-ups that keep your day moving.</p>
+        <p class="mt-1 text-sm text-slate-600">Here’s what needs your attention today.</p>
       </div>
       <div class="flex flex-wrap gap-2">
         <NuxtLink to="/dashboard/members/new">
@@ -14,9 +13,6 @@
         </NuxtLink>
         <NuxtLink to="/dashboard/payments">
           <AppButton size="sm" variant="secondary">Record Payment</AppButton>
-        </NuxtLink>
-        <NuxtLink to="/dashboard/payments/pending">
-          <AppButton size="sm" variant="ghost">View Dues</AppButton>
         </NuxtLink>
       </div>
     </header>
@@ -34,8 +30,10 @@
       </AppButton>
     </div>
 
+    <p v-if="dashError" role="alert" class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">Could not load the dashboard. Please refresh the page.</p>
+
     <!-- Activation Checklist (shown when no active members) -->
-    <AppCard v-if="stats.activeMembers === 0" class="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
+    <AppCard v-if="!dashError && stats.activeMembers === 0" class="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
       <div class="mb-4">
         <h2 class="text-lg font-semibold text-slate-800">Welcome to MemberBook!</h2>
         <p class="text-sm text-slate-600 mt-1">Add your first 3 {{ t.members.toLowerCase() }} to see your dashboard come alive with stats, charts, and insights.</p>
@@ -132,122 +130,74 @@
       </button>
     </AppCard>
 
-    <!-- Today command center (shown when user has active members) -->
-    <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <NuxtLink
-        v-for="card in priorityCards"
-        :key="card.label"
-        :to="card.to"
-        class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-md"
-      >
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{{ card.label }}</p>
-            <p class="mt-3 text-2xl font-bold tracking-tight text-slate-800">{{ card.value }}</p>
-            <p class="mt-1 text-sm text-slate-600">{{ card.helper }}</p>
-          </div>
-          <span class="rounded-xl p-2" :class="card.tone">
-            <component :is="card.icon" class="h-5 w-5" />
-          </span>
-        </div>
-      </NuxtLink>
-    </div>
-
-    <div v-if="stats.activeMembers > 0" class="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)]">
-      <div class="space-y-4">
-        <AppCard class="border-primary-200 bg-white">
-          <div class="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary-700">Needs attention</p>
-              <h2 class="mt-1 text-base font-semibold text-slate-800">Your next best actions</h2>
-            </div>
-            <NuxtLink to="/dashboard/members" class="text-xs font-semibold text-primary-700 hover:text-primary-800">View members</NuxtLink>
-          </div>
-          <div class="divide-y divide-slate-100">
-            <div v-for="(item, index) in actionQueue" :key="item.title" class="flex gap-3 py-3 first:pt-0 last:pb-0">
-              <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-bold text-primary-700">{{ index + 1 }}</span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold text-slate-800">{{ item.title }}</p>
-                <p class="mt-1 text-xs leading-5 text-slate-600">{{ item.description }}</p>
-              </div>
-              <NuxtLink :to="item.to" class="shrink-0 text-sm font-semibold text-primary-700 hover:text-primary-800">
-                {{ item.action }}
-              </NuxtLink>
+    <!-- The figures and follow-ups below are backed by the organisation's live data. -->
+    <template v-if="!dashError">
+      <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <NuxtLink v-for="card in priorityCards" :key="card.label" :to="card.to" class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-primary-200 sm:p-4">
+          <div class="flex items-start gap-3">
+            <span class="hidden rounded-lg p-2 sm:block" :class="card.tone"><component :is="card.icon" class="h-5 w-5" /></span>
+            <div class="min-w-0">
+              <p class="text-xs font-medium text-slate-600">{{ card.label }}</p>
+              <p class="mt-2 text-xl font-bold tracking-tight text-slate-800 sm:text-2xl">{{ card.value }}</p>
+              <p class="mt-1 text-xs text-slate-600">{{ card.helper }}</p>
             </div>
           </div>
-        </AppCard>
-
-        <!-- Mini trend charts (only when populated) -->
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <AppCard title="Revenue (last 30 days)">
-            <ClientOnly>
-              <ChartLine
-                :chart-data="revenueChartData"
-                :chart-options="sparklineOptions"
-                :height="140"
-                empty-message="No payments yet — record one to see your revenue trend."
-              />
-              <template #fallback>
-                <div class="h-[140px] bg-slate-50 animate-pulse rounded" />
-              </template>
-            </ClientOnly>
-          </AppCard>
-          <AppCard :title="`${t.member} Growth`">
-            <ClientOnly>
-              <ChartLine
-                :chart-data="memberGrowthChartData"
-                :chart-options="memberGrowthOptions"
-                :height="140"
-                :empty-message="`No ${t.membersLower} yet — add your first ${t.memberLower} to track growth.`"
-              />
-              <template #fallback>
-                <div class="h-[140px] bg-slate-50 animate-pulse rounded" />
-              </template>
-            </ClientOnly>
-          </AppCard>
-        </div>
+        </NuxtLink>
       </div>
 
-      <aside class="space-y-4">
-        <!-- Expiring Soon -->
-        <AppCard v-if="expiring.length > 0" title="Expiring This Week">
-          <div class="divide-y divide-slate-100">
-            <div v-for="item in expiring" :key="item.memberId" class="py-3 first:pt-0 last:pb-0">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-medium text-slate-800">{{ item.memberName }}</p>
-                  <p class="mt-0.5 text-xs text-slate-600">{{ item.planName }} &mdash; {{ formatDate(item.endDate) }}</p>
-                </div>
-                <div class="flex shrink-0 items-center gap-2">
-                  <a
-                    v-if="item.memberPhone"
-                    :href="getWhatsAppLink(item.memberPhone, getReminderMessage(item.memberName, item.planName, item.endDate))"
-                    target="_blank"
-                    class="text-xs font-semibold text-green-700 hover:text-green-800"
-                  >
-                    Remind
-                  </a>
-                  <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="text-xs font-semibold text-primary-700 hover:text-primary-800">View</NuxtLink>
-                </div>
+      <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
+        <div class="min-w-0 space-y-4">
+          <AppCard>
+            <div class="flex items-center justify-between gap-3">
+              <h2 class="text-base font-semibold text-slate-800">Needs attention</h2>
+              <NuxtLink :to="attentionTab === 'renewals' ? '/dashboard/members' : '/dashboard/payments/pending'" class="text-sm font-medium text-primary-700">View all</NuxtLink>
+            </div>
+            <div class="mt-3 flex gap-5 border-b border-slate-200" aria-label="Follow-ups">
+              <button type="button" class="border-b-2 py-3 text-sm font-medium" :class="attentionTab === 'renewals' ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-600'" :aria-pressed="attentionTab === 'renewals'" @click="attentionTab = 'renewals'">Renewals & grace ({{ expiring.length }})</button>
+              <button type="button" class="border-b-2 py-3 text-sm font-medium" :class="attentionTab === 'payments' ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-600'" :aria-pressed="attentionTab === 'payments'" @click="attentionTab = 'payments'">Pending payments ({{ pending.length }})</button>
+            </div>
+            <p v-if="attentionTab === 'renewals' && expiringError" class="py-5 text-sm text-danger-700">Could not load renewals. Please refresh the page.</p>
+            <p v-else-if="attentionTab === 'payments' && pendingError" class="py-5 text-sm text-danger-700">Could not load pending payments. Please refresh the page.</p>
+            <p v-else-if="attentionItems.length === 0" class="py-6 text-sm text-slate-600">{{ attentionTab === 'renewals' ? 'No renewals due this week or in the grace period.' : 'No pending payments.' }}</p>
+            <div v-else class="divide-y divide-slate-100">
+              <div class="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_7rem_7rem_9rem] gap-3 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 lg:grid">
+                <span>{{ t.member }}</span><span>Plan</span><span>End date</span><span>{{ attentionTab === 'renewals' ? 'Plan price' : 'Balance' }}</span><span>Action</span>
+              </div>
+              <div v-for="item in attentionItems" :key="item.key" class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_7rem_7rem_9rem] lg:px-3">
+                <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="truncate text-sm font-semibold text-slate-800 hover:text-primary-700">{{ item.name }}</NuxtLink>
+                <span class="row-start-2 text-xs text-slate-600 lg:row-auto">{{ item.plan }}</span>
+                <span class="row-start-3 text-xs text-slate-600 lg:row-auto">{{ formatDate(item.date) }}</span>
+                <span class="col-start-2 row-start-1 text-right text-sm font-semibold text-slate-800 lg:col-auto lg:row-auto lg:text-left"><span class="block text-xs font-normal text-slate-600 lg:hidden">{{ attentionTab === 'renewals' ? 'Plan price' : 'Balance' }}</span>{{ formatCurrency(item.amount) }}</span>
+                <a v-if="item.phone" :href="item.reminder" target="_blank" rel="noopener noreferrer" class="col-start-2 row-start-2 row-span-2 inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-green-700 hover:bg-green-50 lg:col-auto lg:row-auto">WhatsApp reminder</a>
+                <NuxtLink v-else :to="`/dashboard/members/${item.memberId}`" class="col-start-2 row-start-2 row-span-2 text-right text-xs font-semibold text-primary-700 lg:col-auto lg:row-auto lg:text-left">View member</NuxtLink>
               </div>
             </div>
-          </div>
-        </AppCard>
-
-        <!-- Recent Payments -->
-        <AppCard v-if="recentPayments.length > 0" title="Recent Payments">
-          <div class="divide-y divide-slate-100">
-            <div v-for="p in recentPayments" :key="p.id" class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-              <div class="min-w-0">
-                <p class="truncate text-sm font-medium text-slate-800">{{ p.memberName }}</p>
-                <p class="mt-0.5 text-xs text-slate-600">{{ formatDate(p.date) }}</p>
+          </AppCard>
+          <AppCard>
+            <div class="mb-2 flex items-center justify-between"><h2 class="text-base font-semibold text-slate-800">Recent payments</h2><NuxtLink to="/dashboard/payments" class="text-sm font-medium text-primary-700">View all</NuxtLink></div>
+            <p v-if="!recentPayments.length" class="py-4 text-sm text-slate-600">No payments recorded yet.</p>
+            <div v-else class="divide-y divide-slate-100">
+              <div v-for="payment in recentPayments" :key="payment.id" class="flex items-center justify-between gap-3 py-3">
+                <div><p class="text-sm font-semibold text-slate-800">{{ payment.memberName }}</p><p class="mt-1 text-xs text-slate-600">{{ formatDate(payment.date) }}</p></div>
+                <p class="text-sm font-semibold text-slate-800">{{ formatCurrency(payment.amount) }}</p>
               </div>
-              <p class="shrink-0 text-sm font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
             </div>
-          </div>
-        </AppCard>
-      </aside>
-    </div>
+          </AppCard>
+        </div>
+        <aside class="space-y-4">
+          <AppCard>
+            <h2 class="mb-3 text-base font-semibold text-slate-800">Quick actions</h2>
+            <div class="space-y-2">
+              <NuxtLink v-for="action in quickActions" :key="action.to" :to="action.to" class="flex min-h-11 items-center justify-between rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-800 hover:bg-slate-50">{{ action.label }} <span aria-hidden="true" class="text-slate-600">→</span></NuxtLink>
+            </div>
+          </AppCard>
+          <AppCard>
+            <h2 class="text-base font-semibold text-slate-800">This month</h2>
+            <div class="mt-3 flex items-center justify-between text-sm"><span class="text-slate-600">Payments received</span><span class="font-semibold text-slate-800">{{ formatCurrency(stats.monthRevenue) }}</span></div>
+          </AppCard>
+        </aside>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -260,8 +210,7 @@ const { formatCurrency } = useFormatCurrency();
 const { formatDate } = useFormatDate();
 const { orgId } = useOrg();
 const t = useTerminology();
-const { getWhatsAppLink, getReminderMessage } = useWhatsApp();
-const { colors, baseOptions, formatRevenueLabel, formatDateLabel, formatMonthLabel } = useCharts();
+const { getWhatsAppLink, getReminderMessage, getPaymentReminderMessage } = useWhatsApp();
 
 interface DashboardData {
   stats: {
@@ -271,6 +220,7 @@ interface DashboardData {
     monthExpenses: number;
     monthProfit: number;
     pendingPayments: number;
+    checkInsToday: number;
   };
   recentPayments: Array<{ id: number; amount: number; date: string; memberName: string }>;
 }
@@ -285,25 +235,34 @@ interface ExpiringItem {
 }
 
 // Fetch dashboard data
-const { data: dashData } = await useFetch<DashboardData>(
+const { data: dashData, error: dashError } = await useFetch<DashboardData>(
   `/api/orgs/${orgId.value}/dashboard`,
 );
-const { data: expiringData } = await useFetch<{ expiring: ExpiringItem[] }>(
+const { data: expiringData, error: expiringError } = await useFetch<{ expiring: ExpiringItem[] }>(
   `/api/orgs/${orgId.value}/members/expiring`,
 );
 const { data: plansData } = await useFetch<{ plans: Array<{ id: number }> }>(
   `/api/orgs/${orgId.value}/plans`,
 );
 
-// Mini trend charts (reuse the analytics endpoints — no blocking, lazy fetch)
-const { data: revenueTrendData } = useFetch<{ data: Array<{ date: string; revenue: number }> }>(
-  `/api/orgs/${orgId.value}/analytics/revenue-trend`,
-  { query: { period: "daily" }, lazy: true },
+interface PendingItem {
+  subscription_id: number; member_id: number; member_name: string; member_phone: string | null;
+  plan_name: string; end_date: string; pending_amount: number;
+}
+const { data: pendingData, error: pendingError } = await useFetch<{ pending: PendingItem[] }>(
+  `/api/orgs/${orgId.value}/payments/pending`,
 );
-const { data: memberGrowthData } = useFetch<{ data: Array<{ month: string; count: number }> }>(
-  `/api/orgs/${orgId.value}/analytics/member-growth`,
-  { lazy: true },
+const pending = computed(() => pendingData.value?.pending ?? []);
+const attentionTab = ref<"renewals" | "payments">("renewals");
+const attentionItems = computed(() => attentionTab.value === "renewals"
+  ? expiring.value.map(item => ({ key: `renewal-${item.memberId}-${item.endDate}`, memberId: item.memberId, name: item.memberName, phone: item.memberPhone, plan: item.planName, date: item.endDate, amount: item.amount, reminder: item.memberPhone ? getWhatsAppLink(item.memberPhone, getReminderMessage(item.memberName, item.planName, item.endDate)) : "" }))
+  : pending.value.map(item => ({ key: `payment-${item.subscription_id}`, memberId: item.member_id, name: item.member_name, phone: item.member_phone, plan: item.plan_name, date: item.end_date, amount: item.pending_amount, reminder: item.member_phone ? getWhatsAppLink(item.member_phone, getPaymentReminderMessage(item.member_name, formatCurrency(item.pending_amount))) : "" }))
 );
+const quickActions = computed(() => [
+  { label: t.value.addMember, to: "/dashboard/members/new" },
+  { label: "Record payment", to: "/dashboard/payments" },
+  { label: `Check in ${t.value.memberLower}`, to: "/dashboard/check-ins" },
+]);
 
 const stats = computed(
   () =>
@@ -311,13 +270,17 @@ const stats = computed(
       activeMembers: 0,
       expiringSoon: 0,
       pendingPayments: 0,
+      checkInsToday: 0,
       monthRevenue: 0,
       monthExpenses: 0,
       monthProfit: 0,
     }
 );
 const recentPayments = computed(() => dashData.value?.recentPayments ?? []);
-const expiring = computed(() => expiringData.value?.expiring ?? []);
+const expiring = computed(() => {
+  const items = expiringData.value?.expiring ?? [];
+  return items.filter((item, index) => items.findIndex(other => other.memberId === item.memberId && other.endDate === item.endDate) === index);
+});
 const plansCount = computed(() => plansData.value?.plans?.length ?? 0);
 
 const iconProps = {
@@ -352,146 +315,11 @@ const RupeeIcon = () => h("svg", iconProps, [
 ]);
 
 const priorityCards = computed(() => [
-  {
-    label: "Collected this month",
-    value: formatCurrency(stats.value.monthRevenue),
-    helper: recentPayments.value.length > 0 ? `${recentPayments.value.length} recent payments visible` : "Record a payment to start the trend",
-    to: "/dashboard/payments",
-    icon: RupeeIcon,
-    tone: "bg-success-100 text-success-700",
-  },
-  {
-    label: "Pending payments",
-    value: String(stats.value.pendingPayments),
-    helper: stats.value.pendingPayments > 0 ? "Follow up before the day gets busy" : "No pending dues right now",
-    to: "/dashboard/payments/pending",
-    icon: AlertIcon,
-    tone: "bg-danger-100 text-danger-700",
-  },
-  {
-    label: "Expiring soon",
-    value: String(stats.value.expiringSoon),
-    helper: expiring.value.length > 0 ? "WhatsApp reminders are one tap away" : "No urgent renewals this week",
-    to: "/dashboard/members",
-    icon: ClockIcon,
-    tone: "bg-warning-100 text-warning-700",
-  },
-  {
-    label: `Active ${t.value.members}`,
-    value: String(stats.value.activeMembers),
-    helper: "Your live member base",
-    to: "/dashboard/members",
-    icon: MembersIcon,
-    tone: "bg-primary-100 text-primary-700",
-  },
+  { label: `Active ${t.value.members}`, value: String(stats.value.activeMembers), helper: "Current members", to: "/dashboard/members", icon: MembersIcon, tone: "bg-green-50 text-green-700" },
+  { label: "Renewals due", value: String(stats.value.expiringSoon), helper: "Next 7 days", to: "/dashboard/members", icon: ClockIcon, tone: "bg-amber-50 text-amber-700" },
+  { label: "Pending payments", value: pendingError.value ? "—" : formatCurrency(pending.value.reduce((sum, item) => sum + Number(item.pending_amount), 0)), helper: pendingError.value ? "Could not load" : `${stats.value.pendingPayments} unpaid subscriptions`, to: "/dashboard/payments/pending", icon: RupeeIcon, tone: "bg-red-50 text-red-700" },
+  { label: "Check-ins today", value: String(stats.value.checkInsToday), helper: "Today, India time", to: "/dashboard/check-ins", icon: AlertIcon, tone: "bg-primary-50 text-primary-700" },
 ]);
-
-const actionQueue = computed(() => {
-  const firstExpiring = expiring.value[0];
-  return [
-    {
-      title: firstExpiring ? `Remind ${firstExpiring.memberName}` : "Review renewal reminders",
-      description: firstExpiring
-        ? `${firstExpiring.planName} expires ${formatDate(firstExpiring.endDate)}. Send a WhatsApp nudge while it is fresh.`
-        : "No urgent expiry yet. Keep your reminder list clean for the week.",
-      action: firstExpiring?.memberPhone ? "Remind" : "Open members",
-      to: firstExpiring ? `/dashboard/members/${firstExpiring.memberId}` : "/dashboard/members",
-    },
-    {
-      title: "Close pending dues",
-      description: stats.value.pendingPayments > 0
-        ? `${stats.value.pendingPayments} payment follow-up${stats.value.pendingPayments === 1 ? "" : "s"} should be handled before evening.`
-        : "Payments are clear. New collections will appear here automatically.",
-      action: "Open dues",
-      to: "/dashboard/payments/pending",
-    },
-    {
-      title: "Add today's walk-in",
-      description: "Capture the member and first payment while the person is still at the counter.",
-      action: t.value.addMember,
-      to: "/dashboard/members/new",
-    },
-  ];
-});
-
-// Revenue (30 days) sparkline
-const revenueChartData = computed(() => {
-  const data = revenueTrendData.value?.data ?? [];
-  return {
-    labels: data.map((d) => formatDateLabel(d.date, "daily")),
-    datasets: [
-      {
-        label: "Revenue",
-        data: data.map((d) => d.revenue),
-        borderColor: colors.blue,
-        backgroundColor: colors.blueAlpha,
-        fill: true,
-        tension: 0.35,
-        pointRadius: 0,
-        borderWidth: 2,
-      },
-    ],
-  };
-});
-
-const memberGrowthChartData = computed(() => {
-  const data = memberGrowthData.value?.data ?? [];
-  return {
-    labels: data.map((d) => formatMonthLabel(d.month)),
-    datasets: [
-      {
-        label: `New ${t.value.members}`,
-        data: data.map((d) => d.count),
-        borderColor: colors.green,
-        backgroundColor: colors.greenAlpha,
-        fill: true,
-        tension: 0.35,
-        pointRadius: 0,
-        borderWidth: 2,
-      },
-    ],
-  };
-});
-
-const sparklineOptions = computed(() => ({
-  ...baseOptions,
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: { color: "#6B7280", font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
-    },
-    y: {
-      grid: { color: "rgba(0, 0, 0, 0.05)" },
-      ticks: {
-        color: "#6B7280",
-        font: { size: 10 },
-        callback: (value: number | string) => formatRevenueLabel(Number(value)),
-      },
-    },
-  },
-  plugins: {
-    ...baseOptions.plugins,
-    legend: { display: false },
-  },
-}));
-
-const memberGrowthOptions = computed(() => ({
-  ...baseOptions,
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: { color: "#6B7280", font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
-    },
-    y: {
-      grid: { color: "rgba(0, 0, 0, 0.05)" },
-      ticks: { color: "#6B7280", font: { size: 10 }, precision: 0 },
-    },
-  },
-  plugins: {
-    ...baseOptions.plugins,
-    legend: { display: false },
-  },
-}));
 
 // Demo data
 const { data: demoStatus, refresh: refreshDemoStatus } = await useFetch<{ hasDemoData: boolean }>(
