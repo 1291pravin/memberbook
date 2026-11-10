@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     .select({
       memberId: schema.memberSubscriptions.memberId,
       maxId: sql<number>`MAX(${schema.memberSubscriptions.id})`.as("max_id"),
-    })
+      })
     .from(schema.memberSubscriptions)
     .where(eq(schema.memberSubscriptions.orgId, access.orgId))
     .groupBy(schema.memberSubscriptions.memberId)
@@ -87,44 +87,47 @@ export default defineEventHandler(async (event) => {
 
   const whereClause = and(...conditions);
 
-  // Count query for pagination
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(schema.members)
-    .leftJoin(latestSub, eq(schema.members.id, latestSub.memberId))
-    .leftJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
-    .where(whereClause);
+  // Count and page queries are independent; run them concurrently to save a D1 round trip.
+  const [[{ total }], memberList] = await Promise.all([
+    // Count query for pagination
+    db
+      .select({ total: count() })
+      .from(schema.members)
+      .leftJoin(latestSub, eq(schema.members.id, latestSub.memberId))
+      .leftJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
+      .where(whereClause),
 
-  // Data query with pagination
-  const memberList = await db
-    .select({
-      id: schema.members.id,
-      orgId: schema.members.orgId,
-      name: schema.members.name,
-      phone: schema.members.phone,
-      email: schema.members.email,
-      status: schema.members.status,
-      notes: schema.members.notes,
-      photoKey: schema.members.photoKey,
-      createdAt: schema.members.createdAt,
-      subscriptionEndDate: schema.memberSubscriptions.endDate,
-      subscriptionStatus: schema.memberSubscriptions.status,
-      paymentStatus: schema.memberSubscriptions.paymentStatus,
-      planName: schema.subscriptionPlans.name,
-    })
-    .from(schema.members)
-    .leftJoin(latestSub, eq(schema.members.id, latestSub.memberId))
-    .leftJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
-    .leftJoin(schema.subscriptionPlans, eq(schema.memberSubscriptions.planId, schema.subscriptionPlans.id))
-    .where(whereClause)
-    .orderBy(
-      sort === "name-asc" ? asc(schema.members.name)
-        : sort === "name-desc" ? desc(schema.members.name)
-          : sort === "oldest" ? asc(schema.members.createdAt)
-            : desc(schema.members.createdAt),
-    )
-    .limit(limit)
-    .offset(offset);
+    // Data query with pagination
+    db
+      .select({
+        id: schema.members.id,
+        orgId: schema.members.orgId,
+        name: schema.members.name,
+        phone: schema.members.phone,
+        email: schema.members.email,
+        status: schema.members.status,
+        notes: schema.members.notes,
+        photoKey: schema.members.photoKey,
+        createdAt: schema.members.createdAt,
+        subscriptionEndDate: schema.memberSubscriptions.endDate,
+        subscriptionStatus: schema.memberSubscriptions.status,
+        paymentStatus: schema.memberSubscriptions.paymentStatus,
+        planName: schema.subscriptionPlans.name,
+      })
+      .from(schema.members)
+      .leftJoin(latestSub, eq(schema.members.id, latestSub.memberId))
+      .leftJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
+      .leftJoin(schema.subscriptionPlans, eq(schema.memberSubscriptions.planId, schema.subscriptionPlans.id))
+      .where(whereClause)
+      .orderBy(
+        sort === "name-asc" ? asc(schema.members.name)
+          : sort === "name-desc" ? desc(schema.members.name)
+            : sort === "oldest" ? asc(schema.members.createdAt)
+              : desc(schema.members.createdAt),
+      )
+      .limit(limit)
+      .offset(offset),
+  ]);
 
   const { pagination } = buildPaginatedResponse(memberList, total, { page, limit, offset });
   return { members: memberList, pagination };

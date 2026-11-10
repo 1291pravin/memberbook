@@ -361,8 +361,9 @@ function icon(d: string) {
 const memberCount = ref(0);
 async function fetchMemberCount() {
   try {
-    const data = await $fetch<{ stats: { activeMembers: number } }>(`/api/orgs/${currentOrg.value?.orgId}/dashboard`);
-    memberCount.value = data.stats?.activeMembers ?? 0;
+    // Lightweight single-query endpoint; the full /dashboard endpoint runs six queries.
+    const data = await $fetch<{ activeMembers: number }>(`/api/orgs/${currentOrg.value?.orgId}/member-count`);
+    memberCount.value = data.activeMembers ?? 0;
   }
   catch {
     // Default to showing all items if fetch fails

@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, uniqueIndex, index } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -7,7 +7,9 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash"),
   googleId: text("google_id"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  googleIdIdx: index("users_google_id_idx").on(table.googleId),
+}));
 
 export const organizations = sqliteTable("organizations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -30,6 +32,7 @@ export const orgMemberships = sqliteTable("org_memberships", {
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   userOrgUnique: uniqueIndex("org_memberships_user_org_unique").on(table.userId, table.orgId),
+  orgIdx: index("org_memberships_org_idx").on(table.orgId),
 }));
 
 export const subscriptionPlans = sqliteTable("subscription_plans", {
@@ -41,7 +44,9 @@ export const subscriptionPlans = sqliteTable("subscription_plans", {
   durationValue: integer("duration_value").notNull(),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  orgIdx: index("subscription_plans_org_idx").on(table.orgId),
+}));
 
 export const members = sqliteTable("members", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -57,7 +62,9 @@ export const members = sqliteTable("members", {
   batch: text("batch"),
   photoKey: text("photo_key"), // R2/blob pathname of the member's photo, null = no photo
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  orgCreatedIdx: index("members_org_created_idx").on(table.orgId, table.createdAt),
+}));
 
 export const memberSubscriptions = sqliteTable("member_subscriptions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -71,7 +78,10 @@ export const memberSubscriptions = sqliteTable("member_subscriptions", {
   autoRenew: integer("auto_renew", { mode: "boolean" }).notNull().default(true),
   paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid, partial, paid
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  orgMemberIdx: index("member_subscriptions_org_member_idx").on(table.orgId, table.memberId),
+  orgEndDateIdx: index("member_subscriptions_org_end_date_idx").on(table.orgId, table.endDate),
+}));
 
 export const payments = sqliteTable("payments", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -83,7 +93,11 @@ export const payments = sqliteTable("payments", {
   date: text("date").notNull(),
   notes: text("notes"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  orgDateIdx: index("payments_org_date_idx").on(table.orgId, table.date),
+  subscriptionIdx: index("payments_subscription_idx").on(table.subscriptionId),
+  memberIdx: index("payments_member_idx").on(table.memberId),
+}));
 
 export const inquiries = sqliteTable("inquiries", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -96,7 +110,9 @@ export const inquiries = sqliteTable("inquiries", {
   status: text("status").notNull().default("new"), // new, contacted, converted, lost
   notes: text("notes"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  orgIdx: index("inquiries_org_idx").on(table.orgId),
+}));
 
 export const librarySeats = sqliteTable("library_seats", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -109,7 +125,9 @@ export const librarySeats = sqliteTable("library_seats", {
   displayOrder: integer("display_order").notNull(),
   notes: text("notes"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  orgIdx: index("library_seats_org_idx").on(table.orgId),
+}));
 
 export const seatBatches = sqliteTable("seat_batches", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -156,7 +174,10 @@ export const checkIns = sqliteTable("check_ins", {
   batchName: text("batch_name"), // Denormalized for history
   notes: text("notes"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  orgCheckedInIdx: index("check_ins_org_checked_in_idx").on(table.orgId, table.checkedInAt),
+  memberIdx: index("check_ins_member_idx").on(table.memberId),
+}));
 
 export const orgInvites = sqliteTable("org_invites", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -201,7 +222,9 @@ export const expenses = sqliteTable("expenses", {
   recurringFrequency: text("recurring_frequency"),
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  orgDateIdx: index("expenses_org_date_idx").on(table.orgId, table.date),
+}));
 
 export const onboardingProgress = sqliteTable("onboarding_progress", {
   id: integer("id").primaryKey({ autoIncrement: true }),
