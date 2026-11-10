@@ -24,33 +24,36 @@ export default defineEventHandler(async (event) => {
 
   const whereClause = and(...conditions);
 
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(schema.checkIns)
-    .innerJoin(schema.members, eq(schema.checkIns.memberId, schema.members.id))
-    .where(whereClause);
+  // Independent queries: run them concurrently to save D1 round trips.
+  const [[{ total }], checkIns] = await Promise.all([
+    db
+      .select({ total: count() })
+      .from(schema.checkIns)
+      .innerJoin(schema.members, eq(schema.checkIns.memberId, schema.members.id))
+      .where(whereClause),
 
-  const checkIns = await db
-    .select({
-      id: schema.checkIns.id,
-      memberId: schema.checkIns.memberId,
-      memberName: schema.members.name,
-      memberPhone: schema.members.phone,
-      checkedInAt: schema.checkIns.checkedInAt,
-      checkedOutAt: schema.checkIns.checkedOutAt,
-      durationMinutes: schema.checkIns.durationMinutes,
-      autoCheckedOut: schema.checkIns.autoCheckedOut,
-      subscriptionStatus: schema.checkIns.subscriptionStatus,
-      notes: schema.checkIns.notes,
-      seatId: schema.checkIns.seatId,
-      seatNumber: schema.checkIns.seatNumber,
-    })
-    .from(schema.checkIns)
-    .innerJoin(schema.members, eq(schema.checkIns.memberId, schema.members.id))
-    .where(whereClause)
-    .orderBy(desc(schema.checkIns.checkedInAt))
-    .limit(limit)
-    .offset(offset);
+    db
+      .select({
+        id: schema.checkIns.id,
+        memberId: schema.checkIns.memberId,
+        memberName: schema.members.name,
+        memberPhone: schema.members.phone,
+        checkedInAt: schema.checkIns.checkedInAt,
+        checkedOutAt: schema.checkIns.checkedOutAt,
+        durationMinutes: schema.checkIns.durationMinutes,
+        autoCheckedOut: schema.checkIns.autoCheckedOut,
+        subscriptionStatus: schema.checkIns.subscriptionStatus,
+        notes: schema.checkIns.notes,
+        seatId: schema.checkIns.seatId,
+        seatNumber: schema.checkIns.seatNumber,
+      })
+      .from(schema.checkIns)
+      .innerJoin(schema.members, eq(schema.checkIns.memberId, schema.members.id))
+      .where(whereClause)
+      .orderBy(desc(schema.checkIns.checkedInAt))
+      .limit(limit)
+      .offset(offset),
+  ]);
 
   const { pagination } = buildPaginatedResponse(checkIns, total, { page, limit, offset });
   return { checkIns, pagination };

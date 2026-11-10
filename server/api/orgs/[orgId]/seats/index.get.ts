@@ -26,64 +26,66 @@ export default defineEventHandler(async (event) => {
 
   const whereClause = and(...conditions);
 
-  // Fetch all seats with current occupancy info
-  const seatsWithOccupancy = await db
-    .select({
-      id: schema.librarySeats.id,
-      orgId: schema.librarySeats.orgId,
-      seatNumber: schema.librarySeats.seatNumber,
-      seatLabel: schema.librarySeats.seatLabel,
-      timePreference: schema.librarySeats.timePreference,
-      genderPreference: schema.librarySeats.genderPreference,
-      displayOrder: schema.librarySeats.displayOrder,
-      notes: schema.librarySeats.notes,
-      createdAt: schema.librarySeats.createdAt,
-      // Current occupant info (if any active check-in)
-      currentCheckInId: schema.checkIns.id,
-      currentOccupantId: schema.members.id,
-      currentOccupantName: schema.members.name,
-      currentOccupantGender: schema.members.gender,
-      checkedInAt: schema.checkIns.checkedInAt,
-    })
-    .from(schema.librarySeats)
-    .leftJoin(
-      schema.checkIns,
-      and(
-        eq(schema.checkIns.seatId, schema.librarySeats.id),
-        isNull(schema.checkIns.checkedOutAt),
-      ),
-    )
-    .leftJoin(schema.members, eq(schema.members.id, schema.checkIns.memberId))
-    .where(whereClause)
-    .orderBy(schema.librarySeats.displayOrder);
-
-  // If batchId is provided, also fetch batch-based seat assignments
-  let assignmentMap = new Map<number, { memberId: number; memberName: string; memberGender: string | null }>();
-
-  if (batchId) {
-    const batchAssignments = await db
+  // Seats and (optional) batch assignments are independent; fetch concurrently.
+  const [seatsWithOccupancy, batchAssignments] = await Promise.all([
+    // All seats with current occupancy info
+    db
       .select({
-        seatId: schema.memberSeatAssignments.seatId,
-        memberId: schema.members.id,
-        memberName: schema.members.name,
-        memberGender: schema.members.gender,
+        id: schema.librarySeats.id,
+        orgId: schema.librarySeats.orgId,
+        seatNumber: schema.librarySeats.seatNumber,
+        seatLabel: schema.librarySeats.seatLabel,
+        timePreference: schema.librarySeats.timePreference,
+        genderPreference: schema.librarySeats.genderPreference,
+        displayOrder: schema.librarySeats.displayOrder,
+        notes: schema.librarySeats.notes,
+        createdAt: schema.librarySeats.createdAt,
+        // Current occupant info (if any active check-in)
+        currentCheckInId: schema.checkIns.id,
+        currentOccupantId: schema.members.id,
+        currentOccupantName: schema.members.name,
+        currentOccupantGender: schema.members.gender,
+        checkedInAt: schema.checkIns.checkedInAt,
       })
-      .from(schema.memberSeatAssignments)
-      .innerJoin(schema.members, eq(schema.members.id, schema.memberSeatAssignments.memberId))
-      .where(
+      .from(schema.librarySeats)
+      .leftJoin(
+        schema.checkIns,
         and(
-          eq(schema.memberSeatAssignments.orgId, access.orgId),
-          eq(schema.memberSeatAssignments.batchId, batchId),
+          eq(schema.checkIns.seatId, schema.librarySeats.id),
+          isNull(schema.checkIns.checkedOutAt),
         ),
-      );
+      )
+      .leftJoin(schema.members, eq(schema.members.id, schema.checkIns.memberId))
+      .where(whereClause)
+      .orderBy(schema.librarySeats.displayOrder),
 
-    for (const a of batchAssignments) {
-      assignmentMap.set(a.seatId, {
-        memberId: a.memberId,
-        memberName: a.memberName,
-        memberGender: a.memberGender,
-      });
-    }
+    // If batchId is provided, also fetch batch-based seat assignments
+    batchId
+      ? db
+          .select({
+            seatId: schema.memberSeatAssignments.seatId,
+            memberId: schema.members.id,
+            memberName: schema.members.name,
+            memberGender: schema.members.gender,
+          })
+          .from(schema.memberSeatAssignments)
+          .innerJoin(schema.members, eq(schema.members.id, schema.memberSeatAssignments.memberId))
+          .where(
+            and(
+              eq(schema.memberSeatAssignments.orgId, access.orgId),
+              eq(schema.memberSeatAssignments.batchId, batchId),
+            ),
+          )
+      : Promise.resolve([]),
+  ]);
+
+  const assignmentMap = new Map<number, { memberId: number; memberName: string; memberGender: string | null }>();
+  for (const a of batchAssignments) {
+    assignmentMap.set(a.seatId, {
+      memberId: a.memberId,
+      memberName: a.memberName,
+      memberGender: a.memberGender,
+    });
   }
 
   // Collect all member IDs from occupants and assignments

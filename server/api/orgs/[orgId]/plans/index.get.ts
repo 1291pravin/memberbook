@@ -14,24 +14,27 @@ export default defineEventHandler(async (event) => {
     .groupBy(schema.memberSubscriptions.memberId)
     .as("latest_sub");
 
-  const memberCounts = await db
-    .select({
-      planId: schema.memberSubscriptions.planId,
-      memberCount: count(schema.members.id),
-    })
-    .from(schema.members)
-    .innerJoin(latestSub, eq(schema.members.id, latestSub.memberId))
-    .innerJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
-    .where(eq(schema.members.orgId, access.orgId))
-    .groupBy(schema.memberSubscriptions.planId);
+  // Independent queries: run them concurrently to save D1 round trips.
+  const [memberCounts, plans] = await Promise.all([
+    db
+      .select({
+        planId: schema.memberSubscriptions.planId,
+        memberCount: count(schema.members.id),
+      })
+      .from(schema.members)
+      .innerJoin(latestSub, eq(schema.members.id, latestSub.memberId))
+      .innerJoin(schema.memberSubscriptions, eq(latestSub.maxId, schema.memberSubscriptions.id))
+      .where(eq(schema.members.orgId, access.orgId))
+      .groupBy(schema.memberSubscriptions.planId),
+
+    db
+      .select()
+      .from(schema.subscriptionPlans)
+      .where(eq(schema.subscriptionPlans.orgId, access.orgId))
+      .orderBy(schema.subscriptionPlans.id),
+  ]);
 
   const countMap = new Map(memberCounts.map((r) => [r.planId, r.memberCount]));
-
-  const plans = await db
-    .select()
-    .from(schema.subscriptionPlans)
-    .where(eq(schema.subscriptionPlans.orgId, access.orgId))
-    .orderBy(schema.subscriptionPlans.id);
 
   const plansWithCount = plans.map((plan) => ({
     ...plan,

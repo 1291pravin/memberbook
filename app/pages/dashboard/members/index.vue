@@ -246,9 +246,10 @@ if (initialPlanId !== "all") {
 
 // Fetch plans for the filter dropdown
 interface PlanOption { id: number; name: string }
-const { data: plansData } = await useFetch<{ plans: PlanOption[] }>(
+const plansDataReq = useFetch<{ plans: PlanOption[] }>(
   `/api/orgs/${orgId.value}/plans`,
 );
+const { data: plansData } = plansDataReq;
 const availablePlans = computed(() => plansData.value?.plans ?? []);
 
 const pagination = usePagination(20);
@@ -299,10 +300,14 @@ const query = computed(() => {
   return params;
 });
 
-const { data: membersData, status: membersStatus } = await useFetch<{ members: Member[]; pagination: PaginationMeta }>(
+const membersDataReq = useFetch<{ members: Member[]; pagination: PaginationMeta }>(
   `/api/orgs/${orgId.value}/members`,
   { query },
 );
+const { data: membersData, status: membersStatus } = membersDataReq;
+// Requests above were started without awaiting so they run in parallel;
+// wait for all of them here (keeps SSR and navigation behaviour the same).
+await Promise.all([plansDataReq, membersDataReq]);
 const filteredMembers = computed(() => membersData.value?.members ?? []);
 const loading = computed(() => membersStatus.value === "pending");
 

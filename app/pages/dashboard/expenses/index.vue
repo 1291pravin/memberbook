@@ -29,8 +29,8 @@
       <button
         v-for="preset in datePresets"
         :key="preset.label"
-        @click="applyDatePreset(preset)"
         class="px-3 py-1 text-xs rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors"
+        @click="applyDatePreset(preset)"
       >
         {{ preset.label }}
       </button>
@@ -117,9 +117,10 @@ interface PaginationMeta {
 }
 
 // Fetch categories
-const { data: categoriesData } = await useFetch<{ categories: Category[] }>(
+const categoriesDataReq = useFetch<{ categories: Category[] }>(
   `/api/orgs/${orgId.value}/expense-categories`
 );
+const { data: categoriesData } = categoriesDataReq;
 const categories = computed(() => categoriesData.value?.categories.filter((c) => c.isActive) ?? []);
 const categoryOptions = computed(() =>
   categories.value.map((c) => ({ value: String(c.id), label: c.name }))
@@ -144,10 +145,14 @@ const query = computed(() => {
   return q;
 });
 
-const { data: expensesData, refresh } = await useFetch<{
+const expensesDataReq = useFetch<{
   expenses: ExpenseRow[];
   pagination: PaginationMeta;
 }>(`/api/orgs/${orgId.value}/expenses`, { query, watch: [query] });
+const { data: expensesData, refresh } = expensesDataReq;
+// Requests above were started without awaiting so they run in parallel;
+// wait for all of them here (keeps SSR and navigation behaviour the same).
+await Promise.all([categoriesDataReq, expensesDataReq]);
 
 const expenses = computed(() => expensesData.value?.expenses ?? []);
 

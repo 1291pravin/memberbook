@@ -284,16 +284,19 @@ interface ExpiringItem {
   amount: number;
 }
 
-// Fetch dashboard data
-const { data: dashData } = await useFetch<DashboardData>(
-  `/api/orgs/${orgId.value}/dashboard`,
-);
-const { data: expiringData } = await useFetch<{ expiring: ExpiringItem[] }>(
-  `/api/orgs/${orgId.value}/members/expiring`,
-);
-const { data: plansData } = await useFetch<{ plans: Array<{ id: number }> }>(
-  `/api/orgs/${orgId.value}/plans`,
-);
+// Fetch dashboard data. These requests are independent, so start them together
+// instead of awaiting each one in turn (which stacked their latencies during SSR).
+const [
+  { data: dashData },
+  { data: expiringData },
+  { data: plansData },
+  { data: demoStatus, refresh: refreshDemoStatus },
+] = await Promise.all([
+  useFetch<DashboardData>(`/api/orgs/${orgId.value}/dashboard`),
+  useFetch<{ expiring: ExpiringItem[] }>(`/api/orgs/${orgId.value}/members/expiring`),
+  useFetch<{ plans: Array<{ id: number }> }>(`/api/orgs/${orgId.value}/plans`),
+  useFetch<{ hasDemoData: boolean }>(`/api/orgs/${orgId.value}/demo-data`),
+]);
 
 // Mini trend charts (reuse the analytics endpoints — no blocking, lazy fetch)
 const { data: revenueTrendData } = useFetch<{ data: Array<{ date: string; revenue: number }> }>(
@@ -494,9 +497,6 @@ const memberGrowthOptions = computed(() => ({
 }));
 
 // Demo data
-const { data: demoStatus, refresh: refreshDemoStatus } = await useFetch<{ hasDemoData: boolean }>(
-  `/api/orgs/${orgId.value}/demo-data`,
-);
 const hasDemoData = computed(() => demoStatus.value?.hasDemoData ?? false);
 
 const loadingDemo = ref(false);

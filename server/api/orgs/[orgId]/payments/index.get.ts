@@ -5,30 +5,33 @@ export default defineEventHandler(async (event) => {
   const { page, limit, offset } = parsePagination(event, 30);
 
   // Count query for pagination
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(schema.payments)
-    .where(eq(schema.payments.orgId, access.orgId));
+  // Independent queries: run them concurrently to save D1 round trips.
+  const [[{ total }], paymentList] = await Promise.all([
+    db
+      .select({ total: count() })
+      .from(schema.payments)
+      .where(eq(schema.payments.orgId, access.orgId)),
 
-  // Data query with pagination
-  const paymentList = await db
-    .select({
-      id: schema.payments.id,
-      amount: schema.payments.amount,
-      date: schema.payments.date,
-      method: schema.payments.method,
-      notes: schema.payments.notes,
-      memberId: schema.payments.memberId,
-      subscriptionId: schema.payments.subscriptionId,
-      memberName: schema.members.name,
-      memberPhone: schema.members.phone,
-    })
-    .from(schema.payments)
-    .innerJoin(schema.members, eq(schema.payments.memberId, schema.members.id))
-    .where(eq(schema.payments.orgId, access.orgId))
-    .orderBy(desc(schema.payments.date))
-    .limit(limit)
-    .offset(offset);
+    // Data query with pagination
+    db
+      .select({
+        id: schema.payments.id,
+        amount: schema.payments.amount,
+        date: schema.payments.date,
+        method: schema.payments.method,
+        notes: schema.payments.notes,
+        memberId: schema.payments.memberId,
+        subscriptionId: schema.payments.subscriptionId,
+        memberName: schema.members.name,
+        memberPhone: schema.members.phone,
+      })
+      .from(schema.payments)
+      .innerJoin(schema.members, eq(schema.payments.memberId, schema.members.id))
+      .where(eq(schema.payments.orgId, access.orgId))
+      .orderBy(desc(schema.payments.date))
+      .limit(limit)
+      .offset(offset),
+  ]);
 
   const { pagination } = buildPaginatedResponse(paymentList, total, { page, limit, offset });
   return { payments: paymentList, pagination };

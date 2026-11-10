@@ -38,38 +38,41 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get total count
-  const [countResult] = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(schema.expenses)
-    .where(and(...conditions));
+  // Independent queries: run them concurrently to save D1 round trips.
+  const [[countResult], expenses] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.expenses)
+      .where(and(...conditions)),
+
+    // Get expenses with category info
+    db
+      .select({
+        id: schema.expenses.id,
+        amount: schema.expenses.amount,
+        date: schema.expenses.date,
+        paymentMethod: schema.expenses.paymentMethod,
+        vendorName: schema.expenses.vendorName,
+        description: schema.expenses.description,
+        notes: schema.expenses.notes,
+        categoryId: schema.expenses.categoryId,
+        categoryName: schema.expenseCategories.name,
+        categoryColor: schema.expenseCategories.color,
+        createdAt: schema.expenses.createdAt,
+      })
+      .from(schema.expenses)
+      .innerJoin(
+        schema.expenseCategories,
+        eq(schema.expenses.categoryId, schema.expenseCategories.id)
+      )
+      .where(and(...conditions))
+      .orderBy(desc(schema.expenses.date), desc(schema.expenses.id))
+      .limit(limit)
+      .offset(offset),
+  ]);
 
   const total = countResult?.count || 0;
   const totalPages = Math.ceil(total / limit);
-
-  // Get expenses with category info
-  const expenses = await db
-    .select({
-      id: schema.expenses.id,
-      amount: schema.expenses.amount,
-      date: schema.expenses.date,
-      paymentMethod: schema.expenses.paymentMethod,
-      vendorName: schema.expenses.vendorName,
-      description: schema.expenses.description,
-      notes: schema.expenses.notes,
-      categoryId: schema.expenses.categoryId,
-      categoryName: schema.expenseCategories.name,
-      categoryColor: schema.expenseCategories.color,
-      createdAt: schema.expenses.createdAt,
-    })
-    .from(schema.expenses)
-    .innerJoin(
-      schema.expenseCategories,
-      eq(schema.expenses.categoryId, schema.expenseCategories.id)
-    )
-    .where(and(...conditions))
-    .orderBy(desc(schema.expenses.date), desc(schema.expenses.id))
-    .limit(limit)
-    .offset(offset);
 
   return {
     expenses,

@@ -79,8 +79,8 @@
           v-if="isOwner"
           variant="danger"
           :loading="deleting"
-          @click="handleDelete"
           class="ml-auto"
+          @click="handleDelete"
         >
           Delete
         </AppButton>
@@ -92,7 +92,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
-const { orgId } = useOrg();
+const { orgId, currentOrg } = useOrg();
 const router = useRouter();
 const route = useRoute();
 const { formatDate } = useFormatDate();
@@ -120,15 +120,17 @@ interface Category {
 }
 
 // Fetch expense
-const { data: expenseData } = await useFetch<{ expense: Expense }>(
+const expenseDataReq = useFetch<{ expense: Expense }>(
   `/api/orgs/${orgId.value}/expenses/${expenseId}`
 );
+const { data: expenseData } = expenseDataReq;
 const expense = computed(() => expenseData.value?.expense);
 
 // Fetch categories
-const { data: categoriesData } = await useFetch<{ categories: Category[] }>(
+const categoriesDataReq = useFetch<{ categories: Category[] }>(
   `/api/orgs/${orgId.value}/expense-categories`
 );
+const { data: categoriesData } = categoriesDataReq;
 const activeCategories = computed(() =>
   categoriesData.value?.categories.filter((c) => c.isActive) ?? []
 );
@@ -145,8 +147,12 @@ const paymentMethodOptions = [
 ];
 
 // Check if user is owner (for delete permission)
-const { data: sessionData } = await useFetch("/api/auth/session");
-const isOwner = computed(() => sessionData.value?.currentOrg?.role === "owner");
+// Role comes from the already-loaded user session; no extra request needed.
+const isOwner = computed(() => currentOrg.value?.role === "owner");
+
+// Requests above were started without awaiting so they run in parallel;
+// wait for all of them here (keeps SSR and navigation behaviour the same).
+await Promise.all([expenseDataReq, categoriesDataReq]);
 
 const form = ref({
   categoryId: "",
