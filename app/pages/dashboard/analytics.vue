@@ -212,41 +212,52 @@ const revenuePeriod = ref<"daily" | "weekly" | "monthly">("daily");
 const profitPeriod = ref<"daily" | "weekly" | "monthly">("daily");
 
 // Fetch analytics data
-const { data: revenueTrendData } = await useFetch<{ data: Array<{ date: string; revenue: number }> }>(
+const revenueTrendDataReq = useFetch<{ data: Array<{ date: string; revenue: number }> }>(
   `/api/orgs/${orgId.value}/analytics/revenue-trend`,
   { query: { period: revenuePeriod }, watch: [revenuePeriod] },
 );
+const { data: revenueTrendData } = revenueTrendDataReq;
 
-const { data: expenseBreakdownData } = await useFetch<{
+const expenseBreakdownDataReq = useFetch<{
   data: Array<{ categoryId: number; categoryName: string; categoryColor: string; total: number; count: number }>;
 }>(`/api/orgs/${orgId.value}/analytics/expense-breakdown`);
+const { data: expenseBreakdownData } = expenseBreakdownDataReq;
 
-const { data: profitTrendData } = await useFetch<{
+const profitTrendDataReq = useFetch<{
   data: Array<{ date: string; revenue: number; expenses: number; profit: number }>;
 }>(`/api/orgs/${orgId.value}/analytics/profit`, {
   query: { period: profitPeriod },
   watch: [profitPeriod],
 });
+const { data: profitTrendData } = profitTrendDataReq;
 
-const { data: memberGrowthData } = await useFetch<{ data: Array<{ month: string; count: number }> }>(
+const memberGrowthDataReq = useFetch<{ data: Array<{ month: string; count: number }> }>(
   `/api/orgs/${orgId.value}/analytics/member-growth`,
 );
+const { data: memberGrowthData } = memberGrowthDataReq;
 
-const { data: paymentMethodsData } = await useFetch<{ data: Array<{ method: string; total: number; count: number }> }>(
+const paymentMethodsDataReq = useFetch<{ data: Array<{ method: string; total: number; count: number }> }>(
   `/api/orgs/${orgId.value}/analytics/payment-methods`,
 );
+const { data: paymentMethodsData } = paymentMethodsDataReq;
 
-const { data: subscriptionStatusData } = await useFetch<{ active: number; expiring: number; expired: number }>(
+const subscriptionStatusDataReq = useFetch<{ active: number; expiring: number; expired: number }>(
   `/api/orgs/${orgId.value}/analytics/subscription-status`,
 );
+const { data: subscriptionStatusData } = subscriptionStatusDataReq;
 
-const { data: planPopularityData } = await useFetch<{ data: Array<{ planId: number; planName: string; activeCount: number }> }>(
+const planPopularityDataReq = useFetch<{ data: Array<{ planId: number; planName: string; activeCount: number }> }>(
   `/api/orgs/${orgId.value}/analytics/plan-popularity`,
 );
+const { data: planPopularityData } = planPopularityDataReq;
 
-const { data: inquiryFunnelData } = await useFetch<{ total: number; new: number; contacted: number; converted: number; lost: number; conversionRate: number }>(
+const inquiryFunnelDataReq = useFetch<{ total: number; new: number; contacted: number; converted: number; lost: number; conversionRate: number }>(
   `/api/orgs/${orgId.value}/analytics/inquiry-funnel`,
 );
+const { data: inquiryFunnelData } = inquiryFunnelDataReq;
+// Requests above were started without awaiting so they run in parallel;
+// wait for all of them here (keeps SSR and navigation behaviour the same).
+await Promise.all([revenueTrendDataReq, expenseBreakdownDataReq, profitTrendDataReq, memberGrowthDataReq, paymentMethodsDataReq, subscriptionStatusDataReq, planPopularityDataReq, inquiryFunnelDataReq]);
 
 // Revenue Trend Chart
 const revenueChartData = computed(() => {

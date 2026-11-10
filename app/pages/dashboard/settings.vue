@@ -319,9 +319,10 @@ const copyError = ref("");
 const isOwner = computed(() => currentOrg.value?.role === "owner");
 
 // Demo data
-const { data: demoStatus, refresh: refreshDemoStatus } = await useFetch<{ hasDemoData: boolean }>(
+const demoStatusReq = useFetch<{ hasDemoData: boolean }>(
   `/api/orgs/${orgId.value}/demo-data`,
 );
+const { data: demoStatus, refresh: refreshDemoStatus } = demoStatusReq;
 const hasDemoData = computed(() => demoStatus.value?.hasDemoData ?? false);
 const loadingDemo = ref(false);
 const clearingDemo = ref(false);
@@ -376,9 +377,10 @@ interface Category {
   isSystem: boolean;
 }
 
-const { data: categoriesData, refresh: refreshCategories } = await useFetch<{ categories: Category[] }>(
+const categoriesDataReq = useFetch<{ categories: Category[] }>(
   `/api/orgs/${orgId.value}/expense-categories`
 );
+const { data: categoriesData, refresh: refreshCategories } = categoriesDataReq;
 const categories = computed(() => categoriesData.value?.categories ?? []);
 
 const showAddCategoryModal = ref(false);
@@ -453,15 +455,20 @@ async function toggleCategoryStatus(cat: Category) {
   }
 }
 
-const { data: staffData, refresh: refreshStaff } = await useFetch<{ staff: StaffMember[] }>(
+const staffDataReq = useFetch<{ staff: StaffMember[] }>(
   `/api/orgs/${orgId.value}/staff`,
 );
+const { data: staffData, refresh: refreshStaff } = staffDataReq;
 const staff = computed(() => staffData.value?.staff ?? []);
 
-const { data: invitesData, refresh: refreshInvites } = await useFetch<{ invites: Invite[] }>(
+const invitesDataReq = useFetch<{ invites: Invite[] }>(
   `/api/orgs/${orgId.value}/invites`,
   { immediate: false },
 );
+const { data: invitesData, refresh: refreshInvites } = invitesDataReq;
+// Requests above were started without awaiting so they run in parallel;
+// wait for all of them here (keeps SSR and navigation behaviour the same).
+await Promise.all([demoStatusReq, categoriesDataReq, staffDataReq, invitesDataReq]);
 
 const pendingInvites = computed(() => {
   const now = new Date().toISOString();

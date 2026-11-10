@@ -572,26 +572,29 @@ const seatError = ref("");
 const seatForm = reactive({ seatId: "", batchId: "", notes: "" });
 
 // Seat data — only fetch for library orgs
-const { data: seatAssignmentData, refresh: refreshSeatAssignment } = await useFetch<{ assignment: SeatAssignment | null; assignments: SeatAssignment[] }>(
+const seatAssignmentDataReq = useFetch<{ assignment: SeatAssignment | null; assignments: SeatAssignment[] }>(
   `/api/orgs/${orgId.value}/members/${memberId}/seat-assignment`,
   { immediate: isLibrary.value },
 );
+const { data: seatAssignmentData, refresh: refreshSeatAssignment } = seatAssignmentDataReq;
 const seatAssignments = computed(() => seatAssignmentData.value?.assignments ?? []);
 
-const { data: seatBatchesData } = await useFetch<{ batches: SeatBatch[] }>(
+const seatBatchesDataReq = useFetch<{ batches: SeatBatch[] }>(
   `/api/orgs/${orgId.value}/seat-batches`,
   { immediate: isLibrary.value },
 );
+const { data: seatBatchesData } = seatBatchesDataReq;
 const seatBatches = computed(() => (seatBatchesData.value?.batches ?? []).filter(b => b.isActive));
 const batchOptions = computed(() => [
   { value: "", label: "No batch (default)" },
   ...seatBatches.value.map(b => ({ value: b.id, label: b.name })),
 ]);
 
-const { data: availableSeatsData } = await useFetch<{ seats: LibrarySeat[] }>(
+const availableSeatsDataReq = useFetch<{ seats: LibrarySeat[] }>(
   `/api/orgs/${orgId.value}/seats`,
   { query: { status: "all" }, immediate: isLibrary.value },
 );
+const { data: availableSeatsData } = availableSeatsDataReq;
 const availableSeats = computed(() => availableSeatsData.value?.seats ?? []);
 const availableSeatsOptions = computed(() =>
   availableSeats.value.map(s => ({
@@ -649,9 +652,10 @@ async function removeBatchSeatAssignment(batchId: number | null) {
   }
 }
 
-const { data: memberData, refresh: refreshMember } = await useFetch<{ member: MemberDetail; subscriptions: Subscription[]; payments: Payment[] }>(
+const memberDataReq = useFetch<{ member: MemberDetail; subscriptions: Subscription[]; payments: Payment[] }>(
   `/api/orgs/${orgId.value}/members/${memberId}`,
 );
+const { data: memberData, refresh: refreshMember } = memberDataReq;
 const member = computed(() => memberData.value?.member ?? null);
 const subscriptions = computed(() => memberData.value?.subscriptions ?? []);
 const latestSubscriptionId = computed(() => {
@@ -808,10 +812,11 @@ interface CheckInRecord {
   notes: string | null;
 }
 const checkingIn = ref(false);
-const { data: checkInsData, refresh: refreshCheckIns } = await useFetch<{ checkIns: CheckInRecord[]; pagination: { total: number } }>(
+const checkInsDataReq = useFetch<{ checkIns: CheckInRecord[]; pagination: { total: number } }>(
   `/api/orgs/${orgId.value}/members/${memberId}/check-ins`,
   { query: { limit: 5 } },
 );
+const { data: checkInsData, refresh: refreshCheckIns } = checkInsDataReq;
 const recentCheckIns = computed(() => checkInsData.value?.checkIns ?? []);
 const checkInTotal = computed(() => checkInsData.value?.pagination?.total ?? 0);
 const isCurrentlyCheckedIn = computed(() => recentCheckIns.value.some(ci => !ci.checkedOutAt));
@@ -845,9 +850,13 @@ async function quickCheckIn() {
   }
 }
 
-const { data: plansData } = await useFetch<{ plans: Plan[] }>(
+const plansDataReq = useFetch<{ plans: Plan[] }>(
   `/api/orgs/${orgId.value}/plans`,
 );
+const { data: plansData } = plansDataReq;
+// Requests above were started without awaiting so they run in parallel;
+// wait for all of them here (keeps SSR and navigation behaviour the same).
+await Promise.all([seatAssignmentDataReq, seatBatchesDataReq, availableSeatsDataReq, memberDataReq, checkInsDataReq, plansDataReq]);
 const plans = computed(() => plansData.value?.plans ?? []);
 
 const planOptions = computed(() =>

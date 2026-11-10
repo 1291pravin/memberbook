@@ -28,34 +28,37 @@ export default defineEventHandler(async (event) => {
     }
 
     // Get revenue data
-    const revenueData = await db
-      .select({
-        date: period === "daily" ? schema.payments.date : dateFormat,
-        revenue: sql<number>`COALESCE(SUM(${schema.payments.amount}), 0)`,
-      })
-      .from(schema.payments)
-      .where(
-        and(
-          eq(schema.payments.orgId, access.orgId),
-          gte(schema.payments.date, startDate)
+    // Independent queries: run them concurrently to save D1 round trips.
+    const [revenueData, expenseData] = await Promise.all([
+      db
+        .select({
+          date: period === "daily" ? schema.payments.date : dateFormat,
+          revenue: sql<number>`COALESCE(SUM(${schema.payments.amount}), 0)`,
+        })
+        .from(schema.payments)
+        .where(
+          and(
+            eq(schema.payments.orgId, access.orgId),
+            gte(schema.payments.date, startDate)
+          )
         )
-      )
-      .groupBy(period === "daily" ? schema.payments.date : dateFormat);
+        .groupBy(period === "daily" ? schema.payments.date : dateFormat),
 
-    // Get expense data
-    const expenseData = await db
-      .select({
-        date: period === "daily" ? schema.expenses.date : dateFormat,
-        expenses: sql<number>`COALESCE(SUM(${schema.expenses.amount}), 0)`,
-      })
-      .from(schema.expenses)
-      .where(
-        and(
-          eq(schema.expenses.orgId, access.orgId),
-          gte(schema.expenses.date, startDate)
+      // Get expense data
+      db
+        .select({
+          date: period === "daily" ? schema.expenses.date : dateFormat,
+          expenses: sql<number>`COALESCE(SUM(${schema.expenses.amount}), 0)`,
+        })
+        .from(schema.expenses)
+        .where(
+          and(
+            eq(schema.expenses.orgId, access.orgId),
+            gte(schema.expenses.date, startDate)
+          )
         )
-      )
-      .groupBy(period === "daily" ? schema.expenses.date : dateFormat);
+        .groupBy(period === "daily" ? schema.expenses.date : dateFormat),
+    ]);
 
     // Combine revenue and expense data
     const revenueMap = new Map(revenueData.map((r) => [r.date, r.revenue]));
