@@ -55,18 +55,25 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  if (amount !== undefined && amount <= 0) {
+  const amountValue = amount === undefined ? undefined : Number(amount);
+  if (amountValue !== undefined && (!Number.isFinite(amountValue) || amountValue <= 0)) {
     throw createError({
       statusCode: 400,
       statusMessage: "Amount must be greater than zero",
     });
+  }
+  if (date !== undefined && date !== "" && !isIsoDate(date)) {
+    throw createError({ statusCode: 400, statusMessage: "Date must be YYYY-MM-DD" });
+  }
+  if (paymentMethod && !isPaymentMethod(paymentMethod)) {
+    throw createError({ statusCode: 400, statusMessage: "Invalid payment method" });
   }
 
   const result = await db
     .update(schema.expenses)
     .set({
       categoryId: categoryId || expense.categoryId,
-      amount: amount !== undefined ? Math.round(amount) : expense.amount,
+      amount: amountValue !== undefined ? Math.round(amountValue) : expense.amount,
       date: date || expense.date,
       description: description?.trim() || expense.description,
       paymentMethod: paymentMethod || expense.paymentMethod,

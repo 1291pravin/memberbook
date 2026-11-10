@@ -21,9 +21,7 @@ export default defineEventHandler(async (event) => {
     dateFormat = groupBy;
   }
 
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - daysBack);
-  const cutoffStr = cutoffDate.toISOString().split("T")[0];
+  const cutoffStr = dateIST(-daysBack);
 
   // Query revenue grouped by period
   const results = await db.all<{ date: string; revenue: number }>(sql`

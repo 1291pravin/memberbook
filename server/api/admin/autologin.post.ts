@@ -66,6 +66,7 @@ export default defineEventHandler(async (event) => {
     user: { id: user.id, email: user.email, name: user.name },
     currentOrg,
     admin,
+    sessionVersion: user.sessionVersion,
   });
 
   await recordAdminAuditLog(event, "autologin", {

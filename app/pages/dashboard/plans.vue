@@ -2,13 +2,13 @@
   <div class="p-4 space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold text-slate-800">Subscription Plans</h1>
-      <AppButton @click="showForm = true">Add Plan</AppButton>
+      <AppButton v-if="isOwner" @click="showForm = true">Add Plan</AppButton>
     </div>
 
     <div v-if="plans.length === 0 && !loading">
       <AppEmptyState title="No plans yet" description="Create your first subscription plan to get started.">
         <template #action>
-          <AppButton @click="showForm = true">Create Plan</AppButton>
+          <AppButton v-if="isOwner" @click="showForm = true">Create Plan</AppButton>
         </template>
       </AppEmptyState>
     </div>
@@ -34,7 +34,7 @@
             <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
           </svg>
         </NuxtLink>
-        <div class="mt-2 flex gap-2">
+        <div v-if="isOwner" class="mt-2 flex gap-2">
           <AppButton size="sm" variant="ghost" @click="editPlan(plan)">Edit</AppButton>
           <AppButton
             size="sm"
@@ -81,7 +81,9 @@
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const { formatCurrency, parseCurrencyToInt } = useFormatCurrency();
-const { orgId } = useOrg();
+const { orgId, currentOrg } = useOrg();
+// Plan prices drive every new subscription, so only owners can change them.
+const isOwner = computed(() => currentOrg.value?.role === "owner");
 const t = useTerminology();
 
 interface Plan {

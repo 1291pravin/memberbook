@@ -20,6 +20,44 @@ export default defineEventHandler(async (event) => {
 
   const normalizedPhone = phone ? normalizePhone(phone) : null;
 
+  if (gender && !["male", "female", "other"].includes(gender)) {
+    throw createError({ statusCode: 400, statusMessage: "Invalid gender" });
+  }
+
+  // Validate the plan and the optional first payment before inserting
+  // anything, so a bad request can't leave a half-created member behind.
+  let plan: typeof schema.subscriptionPlans.$inferSelect | undefined;
+  let paymentAmount: number | null = null;
+  if (planId) {
+    if (!isIsoDate(startDate)) {
+      throw createError({ statusCode: 400, statusMessage: "A valid start date is required with a plan" });
+    }
+    [plan] = await db
+      .select()
+      .from(schema.subscriptionPlans)
+      .where(and(eq(schema.subscriptionPlans.id, Number(planId)), eq(schema.subscriptionPlans.orgId, access.orgId)))
+      .limit(1);
+    if (!plan) {
+      throw createError({ statusCode: 404, statusMessage: "Plan not found" });
+    }
+
+    if (payment?.amount !== undefined && payment?.amount !== null && payment?.amount !== "" && payment?.amount !== 0) {
+      paymentAmount = parsePaymentAmount(payment.amount);
+      if (!paymentAmount) {
+        throw createError({ statusCode: 400, statusMessage: "Payment amount must be a positive number of paise" });
+      }
+      if (paymentAmount > plan.price) {
+        throw createError({ statusCode: 400, statusMessage: "Payment exceeds the subscription amount" });
+      }
+      if (payment.method !== undefined && !isPaymentMethod(payment.method)) {
+        throw createError({ statusCode: 400, statusMessage: "Invalid payment method" });
+      }
+      if (payment.date !== undefined && payment.date !== "" && !isIsoDate(payment.date)) {
+        throw createError({ statusCode: 400, statusMessage: "Invalid payment date" });
+      }
+    }
+  }
+
   const result = await db.insert(schema.members).values({
     orgId: access.orgId,
     name: name.trim(),
@@ -36,51 +74,42 @@ export default defineEventHandler(async (event) => {
 
   // If planId provided, create subscription
   let subscriptionInfo: { planName: string; endDate: string } | null = null;
-  if (planId && startDate) {
-    const plans = await db
-      .select()
-      .from(schema.subscriptionPlans)
-      .where(and(eq(schema.subscriptionPlans.id, Number(planId)), eq(schema.subscriptionPlans.orgId, access.orgId)))
-      .limit(1);
+  if (plan) {
+    const endDate = calculateEndDate(startDate, plan.durationType, plan.durationValue);
 
-    const plan = plans[0];
-    if (plan) {
-      const endDate = calculateEndDate(startDate, plan.durationType, plan.durationValue);
+    let paymentStatus = "unpaid";
+    if (paymentAmount) {
+      paymentStatus = paymentAmount >= plan.price ? "paid" : "partial";
+    }
 
-      let paymentStatus = "unpaid";
-      if (payment?.amount) {
-        paymentStatus = payment.amount >= plan.price ? "paid" : "partial";
-      }
+    subscriptionInfo = { planName: plan.name, endDate };
 
-      subscriptionInfo = { planName: plan.name, endDate };
+    const subResult = await db.insert(schema.memberSubscriptions).values({
+      orgId: access.orgId,
+      memberId: member.id,
+      planId: plan.id,
+      startDate,
+      endDate,
+      amount: plan.price,
+      autoRenew: true,
+      paymentStatus,
+    }).returning();
 
-      const subResult = await db.insert(schema.memberSubscriptions).values({
+    const subscription = subResult[0];
+
+    // Record payment if provided
+    if (paymentAmount) {
+      await db.insert(schema.payments).values({
         orgId: access.orgId,
         memberId: member.id,
-        planId: plan.id,
-        startDate,
-        endDate,
-        amount: plan.price,
-        autoRenew: true,
-        paymentStatus,
-      }).returning();
-
-      const subscription = subResult[0];
-
-      // Record payment if provided
-      if (payment?.amount) {
-        await db.insert(schema.payments).values({
-          orgId: access.orgId,
-          memberId: member.id,
-          amount: Number(payment.amount),
-          date: payment.date || startDate,
-          method: payment.method || "cash",
-          notes: payment.notes || null,
-          subscriptionId: subscription.id,
-        });
-      }
-
+        amount: paymentAmount,
+        date: payment.date || startDate,
+        method: payment.method || "cash",
+        notes: typeof payment.notes === "string" ? payment.notes.trim() || null : null,
+        subscriptionId: subscription.id,
+      });
     }
+
   }
 
   // Return total member count so frontend can detect first member

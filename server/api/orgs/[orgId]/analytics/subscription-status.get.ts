@@ -1,86 +1,51 @@
-import { eq, and, between, gt, sql, lt } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const orgId = access.orgId;
 
-  const today = new Date().toISOString().split("T")[0];
-  const weekLater = new Date();
-  weekLater.setDate(weekLater.getDate() + 7);
-  const weekStr = weekLater.toISOString().split("T")[0];
+  const today = todayIST();
+  const weekStr = dateIST(7);
 
-  // First batch: grace period setting plus the two counts that don't depend on it.
-  const [[org], [activeResult], [expiringResult]] = await Promise.all([
-    db
-      .select({ gracePeriodDays: schema.organizations.gracePeriodDays })
-      .from(schema.organizations)
-      .where(eq(schema.organizations.id, orgId))
-      .limit(1),
-
-    // Active (not expiring in next 7 days)
-    db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.memberSubscriptions)
-      .where(
-        and(
-          eq(schema.memberSubscriptions.orgId, orgId),
-          eq(schema.memberSubscriptions.status, "active"),
-          gt(schema.memberSubscriptions.endDate, weekStr),
-        ),
-      ),
-
-    // Expiring soon (next 7 days)
-    db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.memberSubscriptions)
-      .where(
-        and(
-          eq(schema.memberSubscriptions.orgId, orgId),
-          eq(schema.memberSubscriptions.status, "active"),
-          between(schema.memberSubscriptions.endDate, today, weekStr),
-        ),
-      ),
-  ]);
+  const [org] = await db
+    .select({ gracePeriodDays: schema.organizations.gracePeriodDays })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.id, orgId))
+    .limit(1);
 
   const gracePeriodDays = org?.gracePeriodDays ?? 0;
-  const graceCutoffStr = gracePeriodDays > 0
-    ? (() => { const d = new Date(); d.setDate(d.getDate() - gracePeriodDays); return d.toISOString().split("T")[0]; })()
-    : today;
+  // With no grace period the cutoff is today, so the grace bucket is empty.
+  const graceCutoffStr = gracePeriodDays > 0 ? dateIST(-gracePeriodDays) : today;
 
-  // Second batch: counts that depend on the grace period, run concurrently.
-  const [graceRows, [expiredResult]] = await Promise.all([
-    // Grace period: endDate passed but within grace window, still status=active
-    gracePeriodDays > 0
-      ? db
-          .select({ count: sql<number>`count(*)` })
-          .from(schema.memberSubscriptions)
-          .where(
-            and(
-              eq(schema.memberSubscriptions.orgId, orgId),
-              eq(schema.memberSubscriptions.status, "active"),
-              lt(schema.memberSubscriptions.endDate, today),
-              gt(schema.memberSubscriptions.endDate, graceCutoffStr),
-            ),
-          )
-      : Promise.resolve([]),
+  // Count each member once, by their latest subscription. Counting every
+  // subscription row put members who renewed in both "active" and "expired".
+  // The buckets are exclusive and cover every date (grace is
+  // [graceCutoff, today), expired is before graceCutoff).
+  const [counts] = await db.all<{
+    active: number | null;
+    expiring: number | null;
+    grace: number | null;
+    expired: number | null;
+  }>(sql`
+    SELECT
+      SUM(CASE WHEN ms.status = 'active' AND ms.end_date > ${weekStr} THEN 1 ELSE 0 END) AS active,
+      SUM(CASE WHEN ms.status = 'active' AND ms.end_date >= ${today} AND ms.end_date <= ${weekStr} THEN 1 ELSE 0 END) AS expiring,
+      SUM(CASE WHEN ms.status = 'active' AND ms.end_date < ${today} AND ms.end_date >= ${graceCutoffStr} THEN 1 ELSE 0 END) AS grace,
+      SUM(CASE WHEN ms.status = 'expired' OR (ms.status = 'active' AND ms.end_date < ${graceCutoffStr}) THEN 1 ELSE 0 END) AS expired
+    FROM member_subscriptions ms
+    WHERE ms.org_id = ${orgId}
+      AND ms.id = (
+        SELECT MAX(ms2.id) FROM member_subscriptions ms2
+        WHERE ms2.member_id = ms.member_id AND ms2.org_id = ms.org_id
+      )
+  `);
 
-    // Expired: DB status is 'expired' OR endDate has passed (status still 'active' in DB)
-    db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.memberSubscriptions)
-      .where(
-        and(
-          eq(schema.memberSubscriptions.orgId, orgId),
-          sql`(${schema.memberSubscriptions.status} = 'expired' OR (${schema.memberSubscriptions.status} = 'active' AND ${schema.memberSubscriptions.endDate} < ${graceCutoffStr}))`,
-        ),
-      ),
-  ]);
-  const graceCount = graceRows[0]?.count ?? 0;
+  const graceCount = Number(counts?.grace ?? 0);
 
   return {
-    active: activeResult.count + graceCount,
-    expiring: expiringResult.count,
+    active: Number(counts?.active ?? 0) + graceCount,
+    expiring: Number(counts?.expiring ?? 0),
     gracePeriod: graceCount,
-    expired: expiredResult.count,
+    expired: Number(counts?.expired ?? 0),
   };
 });

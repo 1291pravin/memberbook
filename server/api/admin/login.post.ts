@@ -11,6 +11,8 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  await enforceRateLimit(`admin-login:ip:${getClientIp(event)}`, { limit: 5, windowSeconds: 900 });
+
   const body = await readBody<AdminLoginBody>(event);
   const password = body.password || "";
 

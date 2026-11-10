@@ -1,4 +1,25 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, lt, ne } from "drizzle-orm";
+
+// Any non-cancelled subscription of this member whose dates overlap
+// [startDate, endDate], optionally ignoring one subscription. Sharing a single
+// boundary day is allowed: subscriptions created before end dates became
+// inclusive end on the day their renewal starts.
+async function findOverlappingSubscription(orgId: number, memberId: number, startDate: string, endDate: string, excludeId?: number) {
+  const conditions = [
+    eq(schema.memberSubscriptions.orgId, orgId),
+    eq(schema.memberSubscriptions.memberId, memberId),
+    ne(schema.memberSubscriptions.status, "cancelled"),
+    lt(schema.memberSubscriptions.startDate, endDate),
+    gt(schema.memberSubscriptions.endDate, startDate),
+  ];
+  if (excludeId) conditions.push(ne(schema.memberSubscriptions.id, excludeId));
+  const [overlap] = await db
+    .select({ startDate: schema.memberSubscriptions.startDate, endDate: schema.memberSubscriptions.endDate })
+    .from(schema.memberSubscriptions)
+    .where(and(...conditions))
+    .limit(1);
+  return overlap ?? null;
+}
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -30,6 +51,9 @@ export default defineEventHandler(async (event) => {
     if (payment.method !== undefined && !isPaymentMethod(payment.method)) {
       throw createError({ statusCode: 400, statusMessage: "Invalid payment method" });
     }
+    if (payment.date !== undefined && payment.date !== "" && !isIsoDate(payment.date)) {
+      throw createError({ statusCode: 400, statusMessage: "Invalid payment date" });
+    }
   }
 
   const endDate = calculateEndDate(startDate, plan.durationType, plan.durationValue);
@@ -47,12 +71,17 @@ export default defineEventHandler(async (event) => {
     )).limit(1);
     if (!existing) throw createError({ statusCode: 404, statusMessage: "Subscription not found" });
 
+    const overlap = await findOverlappingSubscription(access.orgId, memberId, startDate, endDate, existing.id);
+    if (overlap) {
+      throw createError({ statusCode: 409, statusMessage: `These dates overlap another subscription (${overlap.startDate} to ${overlap.endDate}).` });
+    }
+
     const existingPaid = await getSubscriptionPaidTotal(existing.id, access.orgId);
     if (existingPaid + (inlinePaymentAmount ?? 0) > plan.price) {
       throw createError({ statusCode: 400, statusMessage: "Existing payments exceed the new plan amount. Edit or delete them first." });
     }
 
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = todayIST();
     const [updated] = await db.update(schema.memberSubscriptions).set({
       planId: plan.id,
       startDate,
@@ -76,15 +105,14 @@ export default defineEventHandler(async (event) => {
     return { subscription: updated };
   }
 
-  const today = new Date().toISOString().split("T")[0];
-  const activeSubs = await db.select().from(schema.memberSubscriptions).where(and(
-    eq(schema.memberSubscriptions.orgId, access.orgId),
-    eq(schema.memberSubscriptions.memberId, memberId),
-    eq(schema.memberSubscriptions.status, "active"),
-  ));
-  const activeSubscription = activeSubs.find(s => s.endDate >= today);
-  if (activeSubscription && startDate < activeSubscription.endDate) {
-    throw createError({ statusCode: 409, statusMessage: "Member already has an active subscription. Change the current plan instead." });
+  // Check against every existing subscription (current, queued renewals and
+  // past ones), not just the first active one, so renewals can't stack.
+  const overlap = await findOverlappingSubscription(access.orgId, memberId, startDate, endDate);
+  if (overlap) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: `These dates overlap an existing subscription (${overlap.startDate} to ${overlap.endDate}). Start after ${overlap.endDate} or change the current plan instead.`,
+    });
   }
 
   const [subscription] = await db.insert(schema.memberSubscriptions).values({

@@ -7,6 +7,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Name is required" });
   }
 
+  if (followUpDate && !isIsoDate(followUpDate)) {
+    throw createError({ statusCode: 400, statusMessage: "Follow-up date must be YYYY-MM-DD" });
+  }
+
   const result = await db.insert(schema.inquiries).values({
     orgId: access.orgId,
     name: name.trim(),

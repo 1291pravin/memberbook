@@ -8,6 +8,15 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Email, password, and name are required",
     });
   }
+  const normalizedEmail = String(email).toLowerCase().trim();
+  if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Please enter a valid email address",
+    });
+  }
+  await enforceRateLimit(`register:ip:${getClientIp(event)}`, { limit: 10, windowSeconds: 3600 });
+
   if (password.length < 6) {
     throw createError({
       statusCode: 400,
@@ -15,7 +24,9 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const existing = await findUserByEmail(email);
+  // Look up with the same normalization used for the insert, so "A@x.com"
+  // is caught as a duplicate of "a@x.com" instead of failing the unique index.
+  const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
     throw createError({
       statusCode: 409,
@@ -27,15 +38,18 @@ export default defineEventHandler(async (event) => {
   const result = await db
     .insert(schema.users)
     .values({
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       name: name.trim(),
       passwordHash,
     })
     .returning();
 
   const user = result[0];
-  await setUserSession(event, {
+  const previous = await getUserSession(event);
+  await replaceUserSession(event, {
+    admin: previous.admin,
     user: { id: user.id, email: user.email, name: user.name },
+    sessionVersion: user.sessionVersion,
   });
 
   return { user: { id: user.id, email: user.email, name: user.name } };

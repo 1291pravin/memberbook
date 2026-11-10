@@ -4,14 +4,10 @@ export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const orgId = access.orgId;
 
-  const today = new Date().toISOString().split("T")[0];
-  const weekLater = new Date();
-  weekLater.setDate(weekLater.getDate() + 7);
-  const weekStr = weekLater.toISOString().split("T")[0];
+  const today = todayIST();
+  const weekStr = dateIST(7);
 
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  const monthStr = monthStart.toISOString().split("T")[0];
+  const monthStr = monthStartIST();
 
   // All queries are independent, so run them concurrently: each D1 query is a
   // network round trip, and awaiting them one by one stacked up the latency.

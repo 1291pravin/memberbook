@@ -179,7 +179,7 @@ const savingEdit = ref(false);
 const deletingPaymentId = ref<number | null>(null);
 const editError = ref("");
 
-const today = new Date().toISOString().split("T")[0];
+const today = todayLocal();
 const paymentForm = reactive({
   amount: "",
   date: today,
@@ -242,7 +242,7 @@ async function submitPayment() {
     showRecordModal.value = false;
     selectedMember.value = null;
     paymentForm.amount = "";
-    paymentForm.date = new Date().toISOString().split("T")[0];
+    paymentForm.date = todayLocal();
     paymentForm.method = "cash";
     paymentForm.notes = "";
     // Refresh payments list

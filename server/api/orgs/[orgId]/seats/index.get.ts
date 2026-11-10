@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
   // Batch query latest subscription status for all members on seats
   const memberAlertMap = new Map<number, { hasActiveSubscription: boolean; paymentStatus: string | null }>();
   if (memberIds.size > 0) {
-    const today = new Date().toISOString().split("T")[0]!;
+    const today = todayIST();
     const subscriptions = await db
       .select({
         memberId: schema.memberSubscriptions.memberId,

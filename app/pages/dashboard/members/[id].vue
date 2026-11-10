@@ -522,7 +522,7 @@ const errorMessage = ref("");
 const showDeleteModal = ref(false);
 const deletingMember = ref(false);
 
-const today = new Date().toISOString().split("T")[0];
+const today = todayLocal();
 const assignForm = reactive({ planId: "", startDate: today, recordPayment: false, paymentAmount: "", paymentMethod: "cash" });
 const paymentForm = reactive({ amount: "", date: today, method: "cash", notes: "", subscriptionId: "" });
 const editPaymentForm = reactive({ id: 0, amount: "", date: today, method: "cash", notes: "", subscriptionId: "" });
@@ -916,8 +916,8 @@ function renewSubscription(sub: Subscription) {
   nextTick(() => {
     assignForm.planId = String(sub.planId);
   });
-  // Start the new subscription on the end date of the current one
-  assignForm.startDate = sub.endDate;
+  // Start the renewal the day after the current subscription ends (end dates are inclusive)
+  assignForm.startDate = addDaysToDateString(sub.endDate, 1);
   isChangingPlan.value = false;
   resetPaymentFields();
   // Explicitly set payment amount for the renewed plan

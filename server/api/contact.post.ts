@@ -27,6 +27,8 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  await enforceRateLimit(`contact:ip:${getClientIp(event)}`, { limit: 5, windowSeconds: 3600 });
+
   const inserted = await db.insert(schema.contactSubmissions).values({
     name,
     phone,
@@ -38,6 +40,6 @@ export default defineEventHandler(async (event) => {
 
   return {
     ok: true,
-    submission: inserted[0],
+    submission: { id: inserted[0]?.id },
   };
 });

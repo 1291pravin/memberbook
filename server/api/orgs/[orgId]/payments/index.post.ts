@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const [payment] = await db.insert(schema.payments).values({
+  const values = {
     orgId: access.orgId,
     memberId,
     amount,
@@ -39,8 +39,31 @@ export default defineEventHandler(async (event) => {
     method: body.method || "cash",
     notes: typeof body.notes === "string" ? body.notes.trim() || null : null,
     subscriptionId: subscription?.id ?? null,
-  }).returning();
+  };
 
-  await recalculateSubscriptionPaymentStatus(payment.subscriptionId, access.orgId);
+  let payment: typeof schema.payments.$inferSelect | undefined;
+  if (subscription) {
+    // Re-check the balance inside the insert itself, so two payments recorded
+    // at the same moment can't together go over the subscription amount.
+    const now = new Date().toISOString();
+    const inserted = await db.all<{ id: number }>(sql`
+      INSERT INTO payments (org_id, member_id, subscription_id, amount, method, date, notes, created_at)
+      SELECT ${values.orgId}, ${values.memberId}, ${subscription.id}, ${values.amount},
+        ${values.method}, ${values.date}, ${values.notes}, ${now}
+      WHERE (
+        SELECT COALESCE(SUM(amount), 0) FROM payments
+        WHERE subscription_id = ${subscription.id} AND org_id = ${access.orgId}
+      ) + ${values.amount} <= ${subscription.amount}
+      RETURNING id
+    `);
+    if (!inserted[0]) {
+      throw createError({ statusCode: 400, statusMessage: "Payment exceeds the remaining subscription balance" });
+    }
+    [payment] = await db.select().from(schema.payments).where(eq(schema.payments.id, inserted[0].id)).limit(1);
+  } else {
+    [payment] = await db.insert(schema.payments).values(values).returning();
+  }
+
+  await recalculateSubscriptionPaymentStatus(payment!.subscriptionId, access.orgId);
   return { payment };
 });

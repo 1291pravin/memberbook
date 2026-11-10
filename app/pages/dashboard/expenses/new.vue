@@ -104,7 +104,7 @@ const form = ref({
   categoryId: "",
   description: "",
   amount: "",
-  date: new Date().toISOString().split("T")[0],
+  date: todayLocal(),
   paymentMethod: "cash",
   vendorName: "",
   notes: "",

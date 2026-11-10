@@ -40,6 +40,7 @@ export default defineEventHandler(async (event) => {
         and(
           eq(schema.librarySeats.orgId, access.orgId),
           eq(schema.librarySeats.seatNumber, body.seatNumber.trim()),
+          eq(schema.librarySeats.isActive, true),
         ),
       )
       .limit(1);

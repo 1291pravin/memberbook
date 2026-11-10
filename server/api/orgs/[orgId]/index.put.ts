@@ -9,7 +9,12 @@ export default defineEventHandler(async (event) => {
 
   const updates: Record<string, unknown> = {};
   if (name) updates.name = name.trim();
-  if (type) updates.type = type;
+  if (type) {
+    if (!["gym", "library", "tuition", "other"].includes(type)) {
+      throw createError({ statusCode: 400, statusMessage: "Invalid organization type" });
+    }
+    updates.type = type;
+  }
   if (gracePeriodDays !== undefined) {
     const days = Number(gracePeriodDays);
     if (!Number.isInteger(days) || days < 0) {

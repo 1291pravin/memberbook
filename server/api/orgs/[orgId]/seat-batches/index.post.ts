@@ -23,6 +23,21 @@ export default defineEventHandler(async (event) => {
     )
     .limit(1);
 
+  // A deleted (inactive) batch with this name still holds the unique name,
+  // so bring it back instead of failing.
+  if (existing[0] && !existing[0].isActive) {
+    const [restored] = await db
+      .update(schema.seatBatches)
+      .set({
+        isActive: true,
+        startTime: startTime?.trim() || null,
+        endTime: endTime?.trim() || null,
+      })
+      .where(and(eq(schema.seatBatches.id, existing[0].id), eq(schema.seatBatches.orgId, access.orgId)))
+      .returning();
+    return { batch: restored };
+  }
+
   if (existing.length > 0) {
     throw createError({
       statusCode: 409,
