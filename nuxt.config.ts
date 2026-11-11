@@ -119,6 +119,9 @@ export default defineNuxtConfig({
     // NUXT_WHATSAPP_CLOUD_ENABLED=true and the token and phone number id are set
     // (NUXT_WHATSAPP_CLOUD_ACCESS_TOKEN, NUXT_WHATSAPP_CLOUD_PHONE_NUMBER_ID, ...).
     // Setup steps: docs/whatsapp-cloud-api-setup.md
+    // Email for new WhatsApp inbox messages (must be a verified Email Routing
+    // destination; sent through the ALERT_EMAIL send_email binding).
+    inboxAlertEmail: "",
     whatsappCloud: {
       enabled: false,
       accessToken: "",

@@ -49,6 +49,13 @@ WhatsApp → Configuration → Webhook:
 - Verify token: any random string; use the same one in `NUXT_WHATSAPP_CLOUD_WEBHOOK_VERIFY_TOKEN`
 - Subscribe to the `messages` field.
 
+## 7b. Inbox for incoming messages
+Messages to the business number (owners asking for help, members replying to reminders) are saved by the webhook and shown at **/admin/inbox**. You can reply with free text for 24 hours after the person's last message.
+
+- The Meta app must be **published** (App dashboard → Publish) or Meta only sends test webhooks.
+- Email alerts: set the secret `NUXT_INBOX_ALERT_EMAIL` to an address that is a verified destination in Cloudflare Email Routing for memberbook.in. Alerts go through the `ALERT_EMAIL` send_email binding in `wrangler.jsonc`, from alerts@memberbook.in.
+- Replies need the access token and phone number ID, but not `NUXT_WHATSAPP_CLOUD_ENABLED` (that switch only controls automatic reminders).
+
 ## 8. Turn it on (Cloudflare)
 Workers & Pages → memberbook → Settings → Variables and secrets. Add as **secrets**:
 

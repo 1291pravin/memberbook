@@ -12,6 +12,12 @@
           >
             Usage
           </NuxtLink>
+          <NuxtLink
+            to="/admin/inbox"
+            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            Inbox
+          </NuxtLink>
           <AppButton size="sm" variant="ghost" @click="logout">
             Logout
           </AppButton>

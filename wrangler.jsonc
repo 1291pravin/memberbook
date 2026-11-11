@@ -21,6 +21,13 @@
       "bucket_name": "memberbook-blob",
     },
   ],
+  // Email alerts for new WhatsApp inbox messages (server/utils/inbox-alert.ts).
+  // Sends only to verified Cloudflare Email Routing destination addresses.
+  "send_email": [
+    {
+      "name": "ALERT_EMAIL",
+    },
+  ],
   // Daily fee reminders at 09:00 IST (see nitro.scheduledTasks in nuxt.config.ts).
   "triggers": {
     "crons": ["30 3 * * *"],
