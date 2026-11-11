@@ -1,0 +1,405 @@
+<template>
+  <div class="p-4 space-y-4 max-w-3xl">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-800">Collections</h1>
+        <p class="text-sm text-slate-600 mt-0.5">Who owes you money. Remind them on WhatsApp with a UPI pay link, or mark them paid.</p>
+      </div>
+      <AppButton v-if="isOwner" size="sm" variant="secondary" @click="openSettings">
+        Payment settings
+      </AppButton>
+    </div>
+
+    <!-- UPI ID missing -->
+    <div
+      v-if="data && !data.settings.upiId"
+      class="rounded-xl border border-warning-200 bg-warning-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+    >
+      <div class="flex-1">
+        <p class="text-sm font-semibold text-slate-800">Add your UPI ID to get paid faster</p>
+        <p class="text-sm text-slate-700 mt-0.5">
+          Every reminder will include a pay link. {{ t.members }} tap it, their UPI app opens with the amount filled in, and the money goes straight to your account.
+        </p>
+      </div>
+      <AppButton v-if="isOwner" size="sm" @click="openSettings">Add UPI ID</AppButton>
+      <p v-else class="text-sm text-slate-700">Ask the owner to add it.</p>
+    </div>
+
+    <!-- How reminders are sent -->
+    <p v-if="data" class="text-xs text-slate-600">
+      <template v-if="data.sendsViaCloud">
+        Reminders go out automatically every morning from MemberBook's WhatsApp number, with your business name in each message.
+      </template>
+      <template v-else>
+        Tap <span class="font-medium text-slate-700">Remind</span> and WhatsApp opens with the message ready. Just press send.
+      </template>
+    </p>
+
+    <!-- Totals -->
+    <div v-if="data" class="grid grid-cols-2 gap-3">
+      <AppStatCard
+        label="Overdue"
+        :value="formatCurrency(data.summary.overdueAmount)"
+        :subtitle="`${data.summary.overdueCount} ${data.summary.overdueCount === 1 ? t.memberLower : t.membersLower}`"
+      />
+      <AppStatCard
+        :label="`Due in next ${data.settings.reminderDaysBefore} days`"
+        :value="formatCurrency(data.summary.upcomingAmount)"
+        :subtitle="`${data.summary.upcomingCount} ${data.summary.upcomingCount === 1 ? t.memberLower : t.membersLower}`"
+      />
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 rounded-lg bg-slate-100 p-1 w-fit">
+      <button
+        v-for="tab in tabs"
+        :key="tab.value"
+        class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
+        :class="activeTab === tab.value ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-800'"
+        @click="activeTab = tab.value"
+      >
+        {{ tab.label }} <span class="text-slate-500">({{ tab.count }})</span>
+      </button>
+    </div>
+
+    <p v-if="actionError" class="text-sm text-danger-700" role="alert">{{ actionError }}</p>
+
+    <div v-if="status === 'pending' && !data" class="text-sm text-slate-600">Loading…</div>
+
+    <AppEmptyState
+      v-else-if="visibleItems.length === 0"
+      :title="activeTab === 'overdue' ? 'Nobody is overdue' : 'No renewals coming up'"
+      :description="activeTab === 'overdue'
+        ? 'Everyone has paid. Nice work!'
+        : `No memberships end in the next ${data?.settings.reminderDaysBefore ?? 3} days.`"
+    />
+
+    <div v-else class="space-y-2">
+      <AppCard v-for="item in visibleItems" :key="item.key">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="font-medium text-slate-800 text-sm hover:text-primary-600">
+              {{ item.memberName }}
+            </NuxtLink>
+            <p class="text-xs text-slate-600 mt-0.5">{{ item.planName }} &middot; {{ describe(item) }}</p>
+            <div class="flex flex-wrap items-center gap-2 mt-1.5">
+              <AppBadge v-if="item.claimedAt" color="yellow">Says paid {{ shortDate(item.claimedAt) }}</AppBadge>
+              <span v-if="item.remindersSent > 0" class="text-xs text-slate-600">
+                Reminded {{ item.remindersSent }}&times; &middot; last {{ shortDate(item.lastRemindedAt!) }}
+              </span>
+              <span v-else class="text-xs text-slate-600">Not reminded yet</span>
+            </div>
+          </div>
+          <p class="text-base font-semibold text-slate-800 whitespace-nowrap">{{ formatCurrency(item.amount) }}</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 mt-3">
+          <template v-if="item.memberPhone">
+            <AppButton
+              v-if="data?.sendsViaCloud"
+              size="sm"
+              variant="secondary"
+              :loading="sendingKey === item.key"
+              @click="sendViaCloud(item)"
+            >
+              {{ sentKeys.has(item.key) ? "Sent" : "Send reminder" }}
+            </AppButton>
+            <a
+              v-else
+              :href="getWhatsAppLink(item.memberPhone, item.message)"
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+              @click="logTapToSend(item)"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+              </svg>
+              Remind
+            </a>
+          </template>
+          <span v-else class="text-xs text-slate-600">No phone number</span>
+
+          <AppButton size="sm" variant="ghost" @click="openMarkPaid(item)">Mark paid</AppButton>
+        </div>
+      </AppCard>
+    </div>
+
+    <!-- Mark paid -->
+    <AppModal :open="!!payingItem" title="Mark as paid" size="sm" @close="payingItem = null">
+      <form v-if="payingItem" class="space-y-4" @submit.prevent="confirmMarkPaid">
+        <div>
+          <p class="text-sm text-slate-800 font-medium">{{ payingItem.memberName }}</p>
+          <p class="text-sm text-slate-600">
+            {{ payingItem.kind === 'renewal' ? `Renew ${payingItem.planName}` : `${payingItem.planName} balance` }}
+            &middot; {{ formatCurrency(payingItem.amount) }}
+          </p>
+        </div>
+        <AppSelect v-model="payForm.method" label="Paid by" :options="methodOptions" />
+        <AppInput v-model="payForm.date" type="date" label="Payment date" required />
+        <div v-if="payingItem.kind === 'renewal'">
+          <AppInput v-model="payForm.startDate" type="date" label="New period starts" required />
+          <p class="text-xs text-slate-600 mt-1">Defaults to the day after the current period ends.</p>
+        </div>
+        <p v-if="payError" class="text-sm text-danger-700" role="alert">{{ payError }}</p>
+        <div class="flex justify-end gap-2">
+          <AppButton variant="ghost" @click="payingItem = null">Cancel</AppButton>
+          <AppButton type="submit" :loading="markingPaid">Mark paid</AppButton>
+        </div>
+      </form>
+    </AppModal>
+
+    <!-- Payment settings (owner) -->
+    <AppModal :open="showSettings" title="Payment settings" @close="showSettings = false">
+      <form class="space-y-4" @submit.prevent="saveSettings">
+        <div>
+          <AppInput v-model="settingsForm.upiId" label="Your UPI ID" placeholder="e.g. 9876543210@ybl or yourgym@okaxis" />
+          <p class="text-xs text-slate-600 mt-1">
+            Payments go straight to this UPI ID. MemberBook never holds your money.
+            A business UPI ID (PhonePe Business, Paytm for Business, Google Pay for Business) works best, because some apps limit payments to personal UPI IDs from links.
+          </p>
+        </div>
+        <div>
+          <AppInput v-model="settingsForm.upiPayeeName" label="Name shown in the UPI app" :placeholder="currentOrg?.name || 'Your business name'" />
+        </div>
+        <div>
+          <AppInput v-model="settingsForm.reminderDaysBefore" type="number" label="Remind this many days before a renewal" />
+        </div>
+
+        <div class="rounded-lg border border-slate-200 p-3">
+          <label class="flex items-start gap-3" :class="data?.cloudAvailable ? 'cursor-pointer' : 'opacity-60'">
+            <input
+              v-model="settingsForm.autoRemindersEnabled"
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary-600"
+              :disabled="!data?.cloudAvailable"
+            >
+            <span>
+              <span class="block text-sm font-medium text-slate-700">Send reminders automatically</span>
+              <span class="block text-xs text-slate-600 mt-0.5">
+                <template v-if="data?.cloudAvailable">
+                  Every morning, MemberBook sends due reminders from its WhatsApp number with your business name. Up to 3 reminders per payment, 3 days apart.
+                </template>
+                <template v-else>
+                  Coming soon: MemberBook will send reminders for you every morning, so you don't have to.
+                </template>
+              </span>
+            </span>
+          </label>
+        </div>
+
+        <p v-if="settingsError" class="text-sm text-danger-700" role="alert">{{ settingsError }}</p>
+        <div class="flex justify-end gap-2">
+          <AppButton variant="ghost" @click="showSettings = false">Cancel</AppButton>
+          <AppButton type="submit" :loading="savingSettings">Save</AppButton>
+        </div>
+      </form>
+    </AppModal>
+  </div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({ layout: "dashboard", middleware: "org-required" });
+useHead({ title: "Collections - MemberBook" });
+
+const { orgId, currentOrg } = useOrg();
+const t = useTerminology();
+const { formatCurrency } = useFormatCurrency();
+const { getWhatsAppLink } = useWhatsApp();
+
+interface CollectionItem {
+  key: string;
+  kind: "due" | "renewal";
+  memberId: number;
+  memberName: string;
+  memberPhone: string | null;
+  subscriptionId: number;
+  planName: string;
+  amount: number;
+  dueDate: string;
+  daysLate: number;
+  overdue: boolean;
+  remindersSent: number;
+  lastRemindedAt: string | null;
+  claimedAt: string | null;
+  payToken: string | null;
+  message: string;
+}
+
+interface CollectionsResponse {
+  settings: { upiId: string | null; upiPayeeName: string | null; autoRemindersEnabled: boolean; reminderDaysBefore: number };
+  cloudAvailable: boolean;
+  sendsViaCloud: boolean;
+  summary: { overdueCount: number; overdueAmount: number; upcomingCount: number; upcomingAmount: number };
+  items: CollectionItem[];
+}
+
+const { data, status, refresh } = await useFetch<CollectionsResponse>(`/api/orgs/${orgId.value}/collections`);
+
+const isOwner = computed(() => currentOrg.value?.role === "owner");
+const activeTab = ref<"overdue" | "upcoming">("overdue");
+const items = computed(() => data.value?.items ?? []);
+const tabs = computed(() => [
+  { value: "overdue" as const, label: "Overdue", count: items.value.filter(i => i.overdue).length },
+  { value: "upcoming" as const, label: "Due soon", count: items.value.filter(i => !i.overdue).length },
+]);
+const visibleItems = computed(() => items.value.filter(i => (activeTab.value === "overdue") === i.overdue));
+
+// Open on "Due soon" when nothing is overdue.
+watch(data, (d) => {
+  if (d && d.summary.overdueCount === 0 && d.summary.upcomingCount > 0) activeTab.value = "upcoming";
+}, { immediate: true });
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function shortDate(value: string): string {
+  const d = value.length === 10 ? new Date(`${value}T00:00:00`) : new Date(value);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
+
+function plural(n: number, word: string) {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+function describe(item: CollectionItem): string {
+  if (item.kind === "due") {
+    return item.daysLate > 0 ? `Balance unpaid since ${shortDate(item.dueDate)}` : "Balance due today";
+  }
+  if (item.daysLate > 0) return `Ended ${plural(item.daysLate, "day")} ago (${shortDate(item.dueDate)})`;
+  if (item.daysLate === 0) return "Ends today";
+  return `Ends in ${plural(-item.daysLate, "day")} (${shortDate(item.dueDate)})`;
+}
+
+const actionError = ref("");
+function errorMessage(err: unknown, fallback: string): string {
+  const e = err as { data?: { statusMessage?: string; message?: string }; statusMessage?: string };
+  return e?.data?.statusMessage || e?.data?.message || e?.statusMessage || fallback;
+}
+
+// Tap-to-send: the link opens WhatsApp; record the reminder in the background.
+function logTapToSend(item: CollectionItem) {
+  $fetch(`/api/orgs/${orgId.value}/collections/remind`, {
+    method: "POST",
+    body: { subscriptionId: item.subscriptionId, kind: item.kind, channel: "link" },
+  }).then(() => {
+    item.remindersSent += 1;
+    item.lastRemindedAt = new Date().toISOString();
+  }).catch(() => {});
+}
+
+const sendingKey = ref<string | null>(null);
+const sentKeys = ref(new Set<string>());
+async function sendViaCloud(item: CollectionItem) {
+  actionError.value = "";
+  sendingKey.value = item.key;
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/collections/remind`, {
+      method: "POST",
+      body: { subscriptionId: item.subscriptionId, kind: item.kind },
+    });
+    sentKeys.value.add(item.key);
+    item.remindersSent += 1;
+    item.lastRemindedAt = new Date().toISOString();
+  }
+  catch (err) {
+    actionError.value = errorMessage(err, "Could not send the reminder.");
+  }
+  finally {
+    sendingKey.value = null;
+  }
+}
+
+// Mark paid
+const methodOptions = [
+  { value: "upi", label: "UPI" },
+  { value: "cash", label: "Cash" },
+  { value: "card", label: "Card" },
+  { value: "bank_transfer", label: "Bank transfer" },
+];
+const payingItem = ref<CollectionItem | null>(null);
+const payForm = reactive({ method: "upi", date: "", startDate: "" });
+const payError = ref("");
+const markingPaid = ref(false);
+
+function todayLocal(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function addDays(date: string, days: number): string {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y!, m! - 1, d! + days)).toISOString().slice(0, 10);
+}
+
+function openMarkPaid(item: CollectionItem) {
+  payError.value = "";
+  payForm.method = "upi";
+  payForm.date = todayLocal();
+  payForm.startDate = item.kind === "renewal" ? addDays(item.dueDate, 1) : "";
+  payingItem.value = item;
+}
+
+async function confirmMarkPaid() {
+  if (!payingItem.value) return;
+  payError.value = "";
+  markingPaid.value = true;
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/collections/mark-paid`, {
+      method: "POST",
+      body: {
+        subscriptionId: payingItem.value.subscriptionId,
+        kind: payingItem.value.kind,
+        method: payForm.method,
+        date: payForm.date,
+        ...(payingItem.value.kind === "renewal" ? { startDate: payForm.startDate } : {}),
+      },
+    });
+    payingItem.value = null;
+    await refresh();
+  }
+  catch (err) {
+    payError.value = errorMessage(err, "Could not mark this as paid.");
+  }
+  finally {
+    markingPaid.value = false;
+  }
+}
+
+// Settings
+const showSettings = ref(false);
+const settingsForm = reactive({ upiId: "", upiPayeeName: "", reminderDaysBefore: "3", autoRemindersEnabled: false });
+const settingsError = ref("");
+const savingSettings = ref(false);
+
+function openSettings() {
+  const s = data.value?.settings;
+  settingsForm.upiId = s?.upiId ?? "";
+  settingsForm.upiPayeeName = s?.upiPayeeName ?? "";
+  settingsForm.reminderDaysBefore = String(s?.reminderDaysBefore ?? 3);
+  settingsForm.autoRemindersEnabled = s?.autoRemindersEnabled ?? false;
+  settingsError.value = "";
+  showSettings.value = true;
+}
+
+async function saveSettings() {
+  settingsError.value = "";
+  savingSettings.value = true;
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/collections/settings`, {
+      method: "PUT",
+      body: {
+        upiId: settingsForm.upiId,
+        upiPayeeName: settingsForm.upiPayeeName,
+        reminderDaysBefore: Number(settingsForm.reminderDaysBefore),
+        ...(data.value?.cloudAvailable ? { autoRemindersEnabled: settingsForm.autoRemindersEnabled } : {}),
+      },
+    });
+    showSettings.value = false;
+    await refresh();
+  }
+  catch (err) {
+    settingsError.value = errorMessage(err, "Could not save your settings.");
+  }
+  finally {
+    savingSettings.value = false;
+  }
+}
+</script>

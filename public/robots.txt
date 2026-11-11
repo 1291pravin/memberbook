@@ -5,6 +5,7 @@ Disallow: /onboarding
 Disallow: /login
 Disallow: /register
 Disallow: /invite/
+Disallow: /pay/
 Disallow: /api/
 Disallow: /auth/
 
