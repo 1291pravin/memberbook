@@ -96,8 +96,8 @@
           <div>
             <h3 class="font-semibold text-slate-800 mb-2">Reduce payment defaults</h3>
             <p class="text-sm text-slate-600 mb-6">WhatsApp renewal reminders with your UPI ID go out before the plan ends. See exactly which members are about to expire and follow up before they lapse.</p>
-            <h3 class="font-semibold text-slate-800 mb-2">Free setup</h3>
-            <p class="text-sm text-slate-600 mb-6">No credit card and no contract. We set your gym up for free, and you only pay once you have seen reminders bring fees in.</p>
+            <h3 class="font-semibold text-slate-800 mb-2">Free, setup included</h3>
+            <p class="text-sm text-slate-600 mb-6">MemberBook is free to use, and we set your gym up for free. No credit card, no contract.</p>
           </div>
         </div>
         <div class="mt-8 text-center">
@@ -114,7 +114,7 @@
       <div class="max-w-xl mx-auto">
         <h2 class="text-3xl font-bold mb-4">Get paid on time from next week</h2>
         <p class="text-lg text-slate-300 mb-8">
-          Send us your register on WhatsApp today. Setup is free.
+          Send us your register on WhatsApp today. MemberBook and setup are both free.
         </p>
         <a :href="setupLink" target="_blank" rel="noopener">
           <AppButton size="lg" class="bg-white text-slate-800 hover:bg-slate-100">Send us your register</AppButton>

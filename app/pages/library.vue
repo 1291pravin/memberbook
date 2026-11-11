@@ -18,7 +18,7 @@
             <AppButton size="lg" variant="secondary">Set it up myself</AppButton>
           </NuxtLink>
         </div>
-        <p class="mt-4 text-sm text-slate-600">Free setup. We load your students, seats and due dates for you.</p>
+        <p class="mt-4 text-sm text-slate-600">Free to use, with free setup. We load your students, seats and due dates for you.</p>
       </div>
     </section>
 

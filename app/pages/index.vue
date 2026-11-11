@@ -27,7 +27,7 @@
                 <span class="check"><IcCheck :size="9" /></span> Setup done for you, free
               </span>
               <span style="display: inline-flex; align-items: center; gap: 6px;">
-                <span class="check"><IcCheck :size="9" /></span> No card needed
+                <span class="check"><IcCheck :size="9" /></span> Free to use, no card
               </span>
               <span style="display: inline-flex; align-items: center; gap: 6px;">
                 <span class="check"><IcCheck :size="9" /></span> Works on any phone
@@ -205,7 +205,7 @@
         <div class="sec-head">
           <div>
             <span class="eyebrow">Pricing</span>
-            <h2 style="margin-top: 16px;">Setup is on us. <em>Pay when it works.</em></h2>
+            <h2 style="margin-top: 16px;">MemberBook is free. <em>Setup included.</em></h2>
           </div>
           <p>{{ pricingNote }}</p>
         </div>
@@ -552,22 +552,22 @@ type PricingPlan = {
   cta: { label: string; track: string; to?: string; whatsapp?: string };
 };
 
-const pricingNote = "We are onboarding our first businesses by hand right now. Setup is free, and we agree a simple monthly price with you on WhatsApp once you have seen it work. No card, no contract.";
+const pricingNote = "The software is free, and so is setting it up for you. No card, no contract, no hidden charges. If we ever add paid extras, like building a website for your business, they will be optional and clearly priced.";
 
 const pricingPlans: PricingPlan[] = [
   {
     name: "Do it yourself",
     blurb: "For owners who prefer to type members in themselves.",
     price: "₹0",
-    priceUnit: "/to start",
+    priceUnit: "/month",
     features: ["Members, plans and payments", "One-tap WhatsApp reminders", "Import from Excel or CSV", "Phone and computer"],
     cta: { label: "Create free account", track: "home_pricing_self_serve", to: "/register" },
   },
   {
     name: "Done for you",
     blurb: "We load your register and set up reminders for you.",
-    price: "Free setup",
-    priceSmall: true,
+    price: "₹0",
+    priceUnit: "/month, setup included",
     featured: true,
     ribbon: "Recommended",
     features: [
@@ -582,8 +582,8 @@ const pricingPlans: PricingPlan[] = [
   {
     name: "Many branches",
     blurb: "Two or more gyms, libraries or centres.",
-    price: "Let's talk",
-    priceSmall: true,
+    price: "₹0",
+    priceUnit: "/month",
     features: ["Every branch set up for you", "Branch-wise collections", "Staff logins per branch", "Priority WhatsApp support"],
     cta: { label: "Message us", track: "home_pricing_branches", whatsapp: "Hi MemberBook team, I run more than one branch and want to know more.\n\n" },
   },
@@ -592,7 +592,7 @@ const pricingPlans: PricingPlan[] = [
 const faqs: { question: string; answer: string }[] = [
   { question: "What exactly do you do for me?", answer: "You send photos of your member register or your Excel sheet on WhatsApp. We type every member, plan, fee and due date into MemberBook, add your UPI ID, write your reminder messages, and send you a login. You check it and tell us anything to fix." },
   { question: "How long does setup take?", answer: "Usually one working day after we receive your register. Very large registers can take a little longer, and we will tell you upfront." },
-  { question: "What does it cost?", answer: "Setup is free. We are onboarding our first businesses by hand, and agree a simple monthly price with you once you have seen reminders bring fees in. There is no card and no contract." },
+  { question: "What does it cost?", answer: "Nothing. MemberBook is free to use, and we set it up for you for free. There is no card and no contract. If we add paid extras later, such as building a website for your business, they will be optional." },
   { question: "Do reminders go from my own WhatsApp number?", answer: "Yes. Members see your name and number, and reply to you directly. Each reminder already has the member's name, amount and your UPI ID filled in." },
   { question: "Do my members need to install anything?", answer: "No. They only get WhatsApp messages. The app is for you and your staff, and works on any phone or computer." },
   { question: "Can I take cash and UPI payments?", answer: "Yes. Mark a cash or UPI payment in one tap and it is saved against the member, so you always know who paid and when." },
@@ -602,7 +602,7 @@ const faqs: { question: string; answer: string }[] = [
 
 /* ── SEO ────────────────────────────────────────────────────────────── */
 const seoTitle = "Gym, Library & Coaching Fee Reminders, Set Up for You | MemberBook";
-const seoDescription = "Send us your member register and we set up MemberBook for free: every member, plan and due date, plus WhatsApp renewal reminders with your UPI ID. For Indian gyms, libraries and coaching centres.";
+const seoDescription = "Free software for Indian gyms, libraries and coaching centres. Send us your member register and we set it up for free: every member, plan and due date, plus WhatsApp renewal reminders with your UPI ID.";
 
 useSeoMeta({
   title: seoTitle,
@@ -630,7 +630,7 @@ useHead({
         "url": appUrl,
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web Browser",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR", "description": "Free setup and free self-serve account" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR", "description": "Free software with free setup" },
         "description": seoDescription,
       }),
     },
