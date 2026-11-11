@@ -16,15 +16,36 @@
 
       <!-- Step Content -->
       <AppCard>
-        <!-- Staff Step -->
-        <div v-if="currentStep === 'staff'">
+        <!-- Members Step: get real members in before anything else -->
+        <div v-if="currentStep === 'members'">
           <div class="text-center mb-6">
-            <div class="text-4xl mb-3">👥</div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">Invite Your Team</h2>
-            <p class="text-slate-600">Share this invite link with your staff members so they can join your workspace</p>
+            <div class="text-4xl mb-3">📋</div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Add Your {{ t.members }}</h2>
+            <p class="text-slate-600">Paste your list from Excel or WhatsApp. It takes a minute, and then MemberBook can track renewals and dues for you.</p>
           </div>
 
-          <div v-if="inviteLoading" class="text-center py-8">
+          <MemberImportPanel :cancellable="false" @imported="membersAdded = true" @done="goToNext" />
+
+          <p class="mt-4 text-center text-sm text-slate-600">
+            Only a few {{ t.membersLower }}?
+            <NuxtLink to="/dashboard/members/new" class="font-medium text-primary-700 hover:underline">Add them one by one</NuxtLink>
+          </p>
+        </div>
+
+        <!-- Staff Step (last, and optional: most owners run it alone) -->
+        <div v-else-if="currentStep === 'staff'">
+          <div class="text-center mb-6">
+            <div class="text-4xl mb-3">👥</div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Does anyone help you run {{ currentOrg?.name || 'your business' }}?</h2>
+            <p class="text-slate-600">If you have staff at the front desk, share a link so they can record payments and check-ins too.</p>
+          </div>
+
+          <div v-if="!wantsInvite && !inviteUrl" class="grid gap-3 sm:grid-cols-2">
+            <AppButton variant="secondary" size="lg" @click="runsAlone">No, I run it alone</AppButton>
+            <AppButton size="lg" @click="wantsInvite = true; generateInvite()">Yes, invite my staff</AppButton>
+          </div>
+
+          <div v-else-if="inviteLoading" class="text-center py-8">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
             <p class="text-sm text-slate-600 mt-3">Generating invite link...</p>
           </div>
@@ -170,49 +191,22 @@
           <div class="text-center py-8">
             <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-3xl font-bold text-slate-800 mb-2">You're All Set!</h2>
-            <p class="text-slate-600 mb-4">Your workspace is ready. How would you like to add your members?</p>
+            <p class="text-slate-600 mb-6">Your workspace is ready.</p>
 
-            <!-- Bulk Import Prompt -->
-            <div class="grid gap-3 max-w-md mx-auto mb-6 text-left">
-              <NuxtLink
-                to="/dashboard/members/new"
-                class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 border border-slate-200 hover:border-primary-300 hover:shadow-sm transition-all group"
-              >
-                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <p class="text-sm font-medium text-slate-800 group-hover:text-primary-700">Add members one by one</p>
-                  <p class="text-xs text-slate-600">Best for a few members</p>
-                </div>
-              </NuxtLink>
-
-              <NuxtLink
-                to="/dashboard/members?import=1"
-                class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 border border-slate-200 hover:border-primary-300 hover:shadow-sm transition-all group"
-              >
-                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <p class="text-sm font-medium text-slate-800 group-hover:text-primary-700">Import from CSV / Excel</p>
-                  <p class="text-xs text-slate-600">Best for 10+ existing members</p>
-                </div>
-              </NuxtLink>
+            <div v-if="!membersAdded" class="mx-auto mb-6 max-w-md rounded-lg border border-amber-200 bg-amber-50 p-4 text-left">
+              <p class="text-sm font-medium text-amber-900">You haven't added any {{ t.membersLower }} yet</p>
+              <p class="mt-0.5 text-sm text-amber-800">MemberBook is only useful once your {{ t.membersLower }} are in. Paste your list, or send us photos of your register and we'll do it for you.</p>
+              <NuxtLink to="/onboarding/wizard/members" class="mt-2 inline-block text-sm font-semibold text-amber-900 underline">Add {{ t.membersLower }} now</NuxtLink>
             </div>
 
-            <AppButton variant="secondary" @click="navigateTo('/dashboard')" size="lg">
+            <AppButton @click="navigateTo('/dashboard')" size="lg">
               Go to Dashboard
             </AppButton>
           </div>
         </div>
 
         <!-- Navigation -->
-        <div class="mt-6 flex justify-between" v-if="currentStep !== 'complete'">
+        <div class="mt-6 flex justify-between" v-if="currentStep !== 'complete' && !(currentStep === 'staff' && !wantsInvite && !inviteUrl)">
           <AppButton variant="secondary" @click="skipStep">
             Skip for now
           </AppButton>
@@ -237,17 +231,17 @@ const { orgId, currentOrg } = useOrg();
 const { api } = useApi();
 const { progress, loadProgress, markStepComplete } = useOnboarding();
 const { trackFunnelStep } = useAnalytics();
+const t = useTerminology();
 
 const currentStep = computed(() => route.params.step as string);
 
 // Step numbering
 const wizardSteps = computed(() => {
   const isLibrary = currentOrg.value?.type === 'library';
-  const steps = [
-    { key: 'staff', label: 'Invite Your Team' },
-    { key: 'plans', label: 'Create Your First Plan' },
-  ];
+  const steps = [{ key: 'plans', label: 'Create Your First Plan' }];
   if (isLibrary) steps.push({ key: 'seats', label: 'Setup Library Seats' });
+  steps.push({ key: 'members', label: `Add Your ${t.value.members}` });
+  steps.push({ key: 'staff', label: 'Your Team (optional)' });
   return steps;
 });
 const totalWizardSteps = computed(() => wizardSteps.value.length);
@@ -260,7 +254,11 @@ const currentStepLabel = computed(() => {
   return step?.label ?? '';
 });
 
+// Members step state (shared with the complete step's reminder)
+const membersAdded = useState("onboarding-members-added", () => false);
+
 // Staff invite state
+const wantsInvite = ref(false);
 const inviteUrl = ref("");
 const inviteLoading = ref(false);
 const copied = ref(false);
@@ -348,28 +346,24 @@ async function createPlan() {
 
 // Navigation logic
 const canProceed = computed(() => {
-  if (currentStep.value === 'staff') return true; // Can skip
-  if (currentStep.value === 'plans') return true; // Can skip
-  if (currentStep.value === 'seats') return true; // Can skip
-  return false;
+  // Every step can be skipped. The members step moves on from its own Done button.
+  return ['plans', 'seats', 'staff'].includes(currentStep.value);
 });
 
 function getNextStep(): string {
-  const isLibrary = currentOrg.value?.type === 'library';
-
-  if (currentStep.value === 'staff') {
-    return 'plans';
-  } else if (currentStep.value === 'plans') {
-    return isLibrary ? 'seats' : 'complete';
-  } else if (currentStep.value === 'seats') {
-    return 'complete';
-  }
-  return 'complete';
+  const keys = wizardSteps.value.map(s => s.key);
+  const idx = keys.indexOf(currentStep.value);
+  return idx >= 0 && idx < keys.length - 1 ? keys[idx + 1]! : 'complete';
 }
 
 function goToNext() {
   const next = getNextStep();
   navigateTo(`/onboarding/wizard/${next}`);
+}
+
+async function runsAlone() {
+  await markStepComplete('staffOnboardingCompleted');
+  goToNext();
 }
 
 function skipStep() {

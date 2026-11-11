@@ -22,7 +22,7 @@
     </header>
 
     <!-- Demo Data Banner (shown when viewing sample data) -->
-    <div v-if="hasDemoData && stats.activeMembers > 0" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 flex items-center justify-between gap-3">
+    <div v-if="hasDemoData && realMembers > 0" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
@@ -34,16 +34,24 @@
       </AppButton>
     </div>
 
-    <!-- Activation Checklist (shown when no active members) -->
-    <AppCard v-if="stats.activeMembers === 0" class="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
+    <!-- Activation Checklist: shown until the org has a real (non-sample) member.
+         Sample members used to count as "active" and hid this, leaving owners
+         who tried sample data with no way forward. -->
+    <AppCard v-if="realMembers === 0" class="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
       <div class="mb-4">
-        <h2 class="text-lg font-semibold text-slate-800">Welcome to MemberBook!</h2>
-        <p class="text-sm text-slate-600 mt-1">Add your first 3 {{ t.members.toLowerCase() }} to see your dashboard come alive with stats, charts, and insights.</p>
+        <template v-if="hasDemoData">
+          <h2 class="text-lg font-semibold text-slate-800">You're looking at sample data</h2>
+          <p class="text-sm text-slate-600 mt-1">The {{ t.members.toLowerCase() }} below are made up. Add your real {{ t.members.toLowerCase() }} to start tracking renewals and dues, then clear the sample data.</p>
+        </template>
+        <template v-else>
+          <h2 class="text-lg font-semibold text-slate-800">Welcome to MemberBook!</h2>
+          <p class="text-sm text-slate-600 mt-1">Add your {{ t.members.toLowerCase() }} to see your dashboard come alive with renewals, dues, and insights.</p>
+        </template>
       </div>
       <div class="space-y-3">
         <!-- Create a plan -->
         <NuxtLink
-          v-if="plansCount === 0"
+          v-if="realPlans === 0"
           to="/dashboard/plans"
           class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow group"
         >
@@ -73,6 +81,48 @@
           <p class="text-sm font-medium text-slate-600">Subscription plan created</p>
         </div>
 
+        <!-- Import members (fastest way in) -->
+        <NuxtLink
+          to="/dashboard/members?import=1"
+          class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow group ring-1 ring-primary-200"
+        >
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-slate-800 group-hover:text-primary-700">Paste or upload your {{ t.members.toLowerCase() }} list</p>
+            <p class="text-xs text-slate-600">From Excel, Google Sheets or WhatsApp. Adds everyone at once.</p>
+          </div>
+          <svg class="w-4 h-4 text-slate-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </NuxtLink>
+
+        <!-- Done-for-you setup over WhatsApp -->
+        <a
+          v-if="registerHelpLink"
+          :href="registerHelpLink"
+          target="_blank"
+          rel="noopener"
+          class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow group"
+        >
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-slate-800 group-hover:text-primary-700">Only have a paper register?</p>
+            <p class="text-xs text-slate-600">Send us photos on WhatsApp and we'll add your {{ t.members.toLowerCase() }} for you, free.</p>
+          </div>
+          <svg class="w-4 h-4 text-slate-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </a>
+
         <!-- Add first member -->
         <NuxtLink
           to="/dashboard/members/new"
@@ -84,8 +134,8 @@
             </svg>
           </div>
           <div class="flex-1">
-            <p class="text-sm font-medium text-slate-800 group-hover:text-primary-700">Add your first {{ t.member.toLowerCase() }}</p>
-            <p class="text-xs text-slate-600">Start tracking {{ t.members.toLowerCase() }} and their subscriptions</p>
+            <p class="text-sm font-medium text-slate-800 group-hover:text-primary-700">Add {{ t.members.toLowerCase() }} one by one</p>
+            <p class="text-xs text-slate-600">Best if you only have a few</p>
           </div>
           <svg class="w-4 h-4 text-slate-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -112,8 +162,15 @@
         </NuxtLink>
       </div>
 
-      <!-- Load Sample Data button -->
+      <!-- Sample data: clear it once they've seen it, or load it to look around -->
+      <div v-if="hasDemoData" class="mt-4 flex flex-col gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm text-amber-900">Seen enough? Clear the sample data to start fresh.</p>
+        <AppButton size="sm" variant="secondary" :loading="clearingDemo" @click="clearDemoData">
+          Clear sample data
+        </AppButton>
+      </div>
       <button
+        v-else
         class="mt-4 w-full flex items-center gap-3 rounded-lg border-2 border-dashed border-amber-300 bg-amber-50 px-4 py-3 hover:bg-amber-100 hover:border-amber-400 transition-colors group"
         :disabled="loadingDemo"
         @click="loadDemoData"
@@ -132,8 +189,8 @@
       </button>
     </AppCard>
 
-    <!-- Today command center (shown when user has active members) -->
-    <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <!-- Today command center (shown when user has active members, sample or real) -->
+    <div v-if="stats.activeMembers > 0" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <NuxtLink
         v-for="card in priorityCards"
         :key="card.label"
@@ -258,7 +315,7 @@ definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const { formatCurrency } = useFormatCurrency();
 const { formatDate } = useFormatDate();
-const { orgId } = useOrg();
+const { orgId, currentOrg } = useOrg();
 const t = useTerminology();
 const { getWhatsAppLink, getReminderMessage } = useWhatsApp();
 const { colors, baseOptions, formatRevenueLabel, formatDateLabel, formatMonthLabel } = useCharts();
@@ -295,7 +352,7 @@ const [
   useFetch<DashboardData>(`/api/orgs/${orgId.value}/dashboard`),
   useFetch<{ expiring: ExpiringItem[] }>(`/api/orgs/${orgId.value}/members/expiring`),
   useFetch<{ plans: Array<{ id: number }> }>(`/api/orgs/${orgId.value}/plans`),
-  useFetch<{ hasDemoData: boolean }>(`/api/orgs/${orgId.value}/demo-data`),
+  useFetch<{ hasDemoData: boolean; realMembers: number; realPlans: number }>(`/api/orgs/${orgId.value}/demo-data`),
 ]);
 
 // Mini trend charts (reuse the analytics endpoints — no blocking, lazy fetch)
@@ -498,6 +555,15 @@ const memberGrowthOptions = computed(() => ({
 
 // Demo data
 const hasDemoData = computed(() => demoStatus.value?.hasDemoData ?? false);
+// Real (non-sample) counts drive the activation checklist. Fall back to the
+// plain counts if the request failed, so the checklist doesn't flash for active orgs.
+const realMembers = computed(() => demoStatus.value?.realMembers ?? stats.value.activeMembers);
+const realPlans = computed(() => demoStatus.value?.realPlans ?? plansCount.value);
+
+const { whatsappLink } = useSupport();
+const registerHelpLink = computed(() => whatsappLink(
+  `Hi MemberBook team, please help me add my ${t.value.members.toLowerCase()} to ${currentOrg.value?.name ?? "my workspace"}. I'll send photos of my register here.`,
+));
 
 const loadingDemo = ref(false);
 const clearingDemo = ref(false);

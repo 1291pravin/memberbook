@@ -82,4 +82,7 @@ export default defineEventHandler(async (event) => {
     orgId,
     role: membership.role as "owner" | "staff",
   };
+
+  // Return-visit tracking: one write per user, org and day.
+  await recordDailyActivity(event, session, orgId);
 });

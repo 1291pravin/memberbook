@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, uniqueIndex, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, uniqueIndex, index, primaryKey } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -7,6 +7,7 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash"),
   googleId: text("google_id"),
   sessionVersion: integer("session_version").notNull().default(0),
+  lastSeenAt: text("last_seen_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   googleIdIdx: index("users_google_id_idx").on(table.googleId),
@@ -20,6 +21,7 @@ export const organizations = sqliteTable("organizations", {
   currency: text("currency").notNull().default("INR"),
   ownerWhatsapp: text("owner_whatsapp"),
   setupHelpConsentAt: text("setup_help_consent_at"),
+  setupHelpHandledAt: text("setup_help_handled_at"),
   gracePeriodDays: integer("grace_period_days").notNull().default(0),
   demoDataIds: text("demo_data_ids"), // JSON blob of seeded record IDs, null = no demo data
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
@@ -270,3 +272,14 @@ export const authRateLimits = sqliteTable("auth_rate_limits", {
   windowStart: integer("window_start").notNull(),
   count: integer("count").notNull().default(0),
 });
+
+// One row per user, org and IST day the user opened the app (return-visit tracking).
+export const userActivityDays = sqliteTable("user_activity_days", {
+  userId: integer("user_id").notNull().references(() => users.id),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  day: text("day").notNull(), // YYYY-MM-DD in IST
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.orgId, table.day] }),
+  orgDayIdx: index("user_activity_days_org_idx").on(table.orgId, table.day),
+}));

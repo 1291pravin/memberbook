@@ -34,11 +34,83 @@
     </div>
 
     <template v-else-if="data">
+      <div
+        v-if="newSetupHelp.length"
+        role="alert"
+        class="flex flex-col gap-3 rounded-lg border border-red-300 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div>
+          <p class="font-semibold text-red-800">
+            {{ newSetupHelp.length }} new {{ newSetupHelp.length === 1 ? "owner wants" : "owners want" }} help setting up on WhatsApp
+          </p>
+          <p class="mt-0.5 text-sm text-red-700">
+            Oldest waiting since {{ formatDateTime(oldestNewSetupHelp) }}. Message them, then mark each one as contacted.
+          </p>
+        </div>
+        <a href="#setup-help" class="shrink-0 text-sm font-semibold text-red-800 underline">See requests</a>
+      </div>
+
+      <AppCard id="setup-help" title="WhatsApp setup-help requests">
+        <p class="mb-3 text-xs text-slate-600">
+          Owners who ticked "You can contact me on WhatsApp to help set up MemberBook" when they created their workspace.
+        </p>
+        <ul class="divide-y divide-slate-100">
+          <li
+            v-for="req in data.setupHelpRequests ?? []"
+            :key="`setup-${req.id}`"
+            class="flex flex-col gap-3 py-3 sm:flex-row sm:items-start sm:justify-between"
+          >
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <p class="font-semibold text-slate-800">{{ req.name }}</p>
+                <span :class="orgTypeColor(req.type)" class="inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium">{{ req.type }}</span>
+                <span
+                  v-if="!req.setup_help_handled_at"
+                  class="inline-flex rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-700"
+                >New</span>
+                <span v-else class="inline-flex rounded-full bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
+                  Contacted {{ formatDate(req.setup_help_handled_at) }}
+                </span>
+              </div>
+              <p class="mt-0.5 text-xs text-slate-600">
+                Asked {{ formatDateTime(req.setup_help_consent_at) }} &middot;
+                {{ req.owner_name || "No owner" }}
+                <template v-if="req.owner_email"> &middot; <a :href="`mailto:${req.owner_email}`" class="underline">{{ req.owner_email }}</a></template>
+              </p>
+              <p class="mt-1 text-xs text-slate-600">
+                {{ formatNumber(req.real_members) }} real {{ req.real_members === 1 ? "member" : "members" }}, {{ formatNumber(req.plans) }} {{ req.plans === 1 ? "plan" : "plans" }}<template v-if="req.has_sample_data">, sample data loaded</template>
+                &middot; {{ visitSummary(req.active_days, req.owner_last_seen_at) }}
+              </p>
+            </div>
+            <div class="flex shrink-0 flex-wrap gap-2">
+              <a
+                v-if="req.owner_whatsapp"
+                :href="setupHelpWhatsAppLink(req)"
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+              >
+                WhatsApp {{ req.owner_whatsapp }}
+              </a>
+              <AppButton
+                size="sm"
+                variant="secondary"
+                :loading="handlingOrgId === req.id"
+                @click="setSetupHelpHandled(req, !req.setup_help_handled_at)"
+              >
+                {{ req.setup_help_handled_at ? "Mark as new" : "Mark contacted" }}
+              </AppButton>
+            </div>
+          </li>
+          <li v-if="!data.setupHelpRequests?.length" class="py-4 text-sm text-slate-600">No setup-help requests yet.</li>
+        </ul>
+      </AppCard>
+
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <AppStatCard
           label="New signups"
           :value="formatNumber(data.periodTotals.real_orgs_new)"
-          :subtitle="`${formatNumber(data.periodTotals.users_new)} new users`"
+          :subtitle="`${formatNumber(data.periodTotals.orgs_returned)} came back on a later day`"
           icon-color="primary"
         >
           <template #icon>
@@ -212,6 +284,9 @@
                   </td>
                   <td class="whitespace-nowrap px-2 py-3 text-xs text-slate-600">
                     {{ formatNumber(org.members) }} members, {{ formatNumber(org.payments) }} payments, {{ formatNumber(org.inquiries) }} inquiries
+                    <p class="mt-0.5" :class="org.return_days > 0 ? 'text-green-700' : 'text-slate-600'">
+                      {{ visitSummary(org.active_days, org.owner_last_seen_at) }}
+                    </p>
                   </td>
                   <td class="px-2 py-3">
                     <AppButton
@@ -271,6 +346,7 @@
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Check-ins</th>
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Inquiries</th>
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Last active</th>
+                <th class="whitespace-nowrap px-2 py-2 font-semibold">Days used</th>
                 <th class="whitespace-nowrap px-2 py-2 font-semibold">Action</th>
               </tr>
             </thead>
@@ -291,6 +367,7 @@
                 <td class="px-2 py-3">{{ formatNumber(org.checkins) }}</td>
                 <td class="px-2 py-3">{{ formatNumber(org.inquiries) }}</td>
                 <td class="whitespace-nowrap px-2 py-3">{{ formatDate(org.last_activity_at) }}</td>
+                <td class="px-2 py-3">{{ formatNumber(org.active_days) }}</td>
                 <td class="px-2 py-3">
                   <AppButton
                     v-if="org.owner_email"
@@ -304,7 +381,7 @@
                 </td>
               </tr>
               <tr v-if="data.activeOrganizations.length === 0">
-                <td class="px-2 py-4 text-slate-600" colspan="10">No active organizations yet.</td>
+                <td class="px-2 py-4 text-slate-600" colspan="11">No active organizations yet.</td>
               </tr>
             </tbody>
           </table>
@@ -332,6 +409,25 @@ type AdminOrg = {
   checkins: number;
   inquiries: number;
   last_activity_at: string;
+  owner_last_seen_at: string | null;
+  active_days: number;
+  return_days: number;
+};
+
+type SetupHelpRequest = {
+  id: number;
+  name: string;
+  type: string;
+  owner_whatsapp: string | null;
+  setup_help_consent_at: string;
+  setup_help_handled_at: string | null;
+  owner_name: string | null;
+  owner_email: string | null;
+  owner_last_seen_at: string | null;
+  real_members: number;
+  has_sample_data: number;
+  plans: number;
+  active_days: number;
 };
 
 function orgTypeColor(type: string) {
@@ -348,6 +444,7 @@ type AdminUsage = {
   recentSignups: AdminOrg[];
   activeOrganizations: AdminOrg[];
   recentHelpRequests?: HelpRequest[];
+  setupHelpRequests?: SetupHelpRequest[];
 };
 
 type HelpRequest = {
@@ -370,11 +467,45 @@ function whatsAppLinkFor(phone: string) {
 const days = ref(28);
 const loginOrgId = ref<number | null>(null);
 
-const { data, pending, error } = await useAsyncData<AdminUsage>(
+const { data, pending, error, refresh } = await useAsyncData<AdminUsage>(
   "admin-usage",
   () => $fetch("/api/admin/usage", { query: { days: days.value } }),
   { watch: [days] },
 );
+
+// Setup-help requests: new ones raise an alert banner and a count in the tab title.
+const newSetupHelp = computed(() => (data.value?.setupHelpRequests ?? []).filter(r => !r.setup_help_handled_at));
+const oldestNewSetupHelp = computed(() =>
+  newSetupHelp.value.map(r => r.setup_help_consent_at).sort()[0] ?? null,
+);
+useHead({
+  title: computed(() => newSetupHelp.value.length ? `(${newSetupHelp.value.length}) Admin usage` : "Admin usage"),
+});
+
+const handlingOrgId = ref<number | null>(null);
+async function setSetupHelpHandled(req: SetupHelpRequest, handled: boolean) {
+  handlingOrgId.value = req.id;
+  try {
+    await $fetch(`/api/admin/setup-help/${req.id}`, { method: "POST", body: { handled } });
+    await refresh();
+  } finally {
+    handlingOrgId.value = null;
+  }
+}
+
+function setupHelpWhatsAppLink(req: SetupHelpRequest) {
+  const firstName = (req.owner_name || "").split(" ")[0] || "there";
+  return getWhatsAppLink(
+    req.owner_whatsapp!,
+    `Hi ${firstName}, this is the MemberBook team. You asked for help setting up ${req.name}. If you send us your member list (an Excel sheet, or even photos of your register), we'll add everyone for you. When is a good time to talk?`,
+  );
+}
+
+function visitSummary(activeDays: number, lastSeen: string | null) {
+  const n = Number(activeDays ?? 0);
+  if (!n) return "No visits tracked yet";
+  return `Used on ${n} ${n === 1 ? "day" : "days"}, last seen ${formatDate(lastSeen)}`;
+}
 
 const { colors, baseOptions, formatDateLabel } = useCharts();
 
@@ -476,6 +607,19 @@ function formatDate(value: string | null | undefined) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+  });
+}
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return "unknown";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "unknown";
+  return date.toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Asia/Kolkata",
   });
 }
 

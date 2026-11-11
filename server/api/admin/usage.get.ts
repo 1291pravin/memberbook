@@ -77,7 +77,13 @@ export default defineEventHandler(async (event) => {
       (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE created_at >= ${sinceDate}) AS payment_volume,
       (SELECT COUNT(*) FROM check_ins WHERE checked_in_at >= ${sinceDate}) AS checkins,
       (SELECT COUNT(*) FROM inquiries WHERE created_at >= ${sinceDate}) AS inquiries_created,
-      (SELECT COUNT(*) FROM contact_submissions WHERE created_at >= ${sinceDate}) AS contact_submissions
+      (SELECT COUNT(*) FROM contact_submissions WHERE created_at >= ${sinceDate}) AS contact_submissions,
+      (SELECT COUNT(*) FROM organizations o2
+        WHERE o2.created_at >= ${sinceDate}
+          AND EXISTS (
+            SELECT 1 FROM user_activity_days v
+            WHERE v.org_id = o2.id AND v.day > date(o2.created_at, '+330 minutes')
+          )) AS orgs_returned
   `) as Array<Record<string, unknown>>;
 
   const orgActivitySql = sql`
@@ -91,6 +97,9 @@ export default defineEventHandler(async (event) => {
       owner.id AS owner_id,
       owner.name AS owner_name,
       owner.email AS owner_email,
+      owner.last_seen_at AS owner_last_seen_at,
+      COALESCE(visit_counts.days, 0) AS active_days,
+      COALESCE(visit_counts.return_days, 0) AS return_days,
       COALESCE(member_counts.count, 0) AS members,
       COALESCE(plan_counts.count, 0) AS plans,
       COALESCE(payment_counts.count, 0) AS payments,
@@ -134,6 +143,17 @@ export default defineEventHandler(async (event) => {
       FROM inquiries
       GROUP BY org_id
     ) inquiry_counts ON inquiry_counts.org_id = o.id
+    LEFT JOIN (
+      -- Days anyone in the org opened the app, and how many of those came
+      -- after the signup day (IST). return_days > 0 means they came back.
+      SELECT
+        v.org_id,
+        COUNT(DISTINCT v.day) AS days,
+        COUNT(DISTINCT CASE WHEN v.day > date(vo.created_at, '+330 minutes') THEN v.day END) AS return_days
+      FROM user_activity_days v
+      JOIN organizations vo ON vo.id = v.org_id
+      GROUP BY v.org_id
+    ) visit_counts ON visit_counts.org_id = o.id
   `;
 
   const recentSignups = await db.all(sql`
@@ -159,6 +179,42 @@ export default defineEventHandler(async (event) => {
     FROM contact_submissions
     ORDER BY created_at DESC
     LIMIT 20
+  `);
+
+  // Owners who ticked "contact me on WhatsApp to help set up" during signup.
+  // Unhandled ones are new and get an alert on the admin page.
+  const setupHelpRequests = await db.all(sql`
+    SELECT
+      o.id,
+      o.name,
+      o.type,
+      o.owner_whatsapp,
+      o.setup_help_consent_at,
+      o.setup_help_handled_at,
+      owner.name AS owner_name,
+      owner.email AS owner_email,
+      owner.last_seen_at AS owner_last_seen_at,
+      MAX(
+        COALESCE(member_counts.count, 0)
+          - COALESCE(json_array_length(o.demo_data_ids, '$.memberIds'), 0),
+        0
+      ) AS real_members,
+      CASE WHEN o.demo_data_ids IS NOT NULL THEN 1 ELSE 0 END AS has_sample_data,
+      COALESCE(plan_counts.count, 0) AS plans,
+      COALESCE(visit_counts.days, 0) AS active_days
+    FROM organizations o
+    LEFT JOIN org_memberships owner_membership
+      ON owner_membership.org_id = o.id AND owner_membership.role = 'owner'
+    LEFT JOIN users owner ON owner.id = owner_membership.user_id
+    LEFT JOIN (SELECT org_id, COUNT(*) AS count FROM members GROUP BY org_id) member_counts
+      ON member_counts.org_id = o.id
+    LEFT JOIN (SELECT org_id, COUNT(*) AS count FROM subscription_plans GROUP BY org_id) plan_counts
+      ON plan_counts.org_id = o.id
+    LEFT JOIN (SELECT org_id, COUNT(DISTINCT day) AS days FROM user_activity_days GROUP BY org_id) visit_counts
+      ON visit_counts.org_id = o.id
+    WHERE o.setup_help_consent_at IS NOT NULL
+    ORDER BY (o.setup_help_handled_at IS NULL) DESC, o.setup_help_consent_at DESC
+    LIMIT 50
   `);
 
   const [
@@ -200,5 +256,6 @@ export default defineEventHandler(async (event) => {
     recentSignups,
     activeOrganizations,
     recentHelpRequests,
+    setupHelpRequests,
   };
 });
