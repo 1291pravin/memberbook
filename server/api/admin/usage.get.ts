@@ -153,6 +153,14 @@ export default defineEventHandler(async (event) => {
     LIMIT 25
   `);
 
+  // Latest messages from the website contact form and the in-app help form.
+  const recentHelpRequests = await db.all(sql`
+    SELECT id, name, phone, email, business_name, message, status, source_page, created_at
+    FROM contact_submissions
+    ORDER BY created_at DESC
+    LIMIT 20
+  `);
+
   const [
     usersDaily,
     orgsDaily,
@@ -191,5 +199,6 @@ export default defineEventHandler(async (event) => {
     }),
     recentSignups,
     activeOrganizations,
+    recentHelpRequests,
   };
 });

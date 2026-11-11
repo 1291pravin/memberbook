@@ -106,7 +106,7 @@
               style="display: inline-flex; gap: 8px; margin-top: 14px; color: var(--ink-3); align-items: center; font-size: 13px;"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M19.05 4.91A10 10 0 0 0 2.05 14.83l-1.4 5.16 5.28-1.39A10 10 0 1 0 19.05 4.9zm-7.04 15.37a8 8 0 0 1-4.06-1.11l-.29-.17-3.13.82.83-3.05-.19-.31a8 8 0 1 1 6.84 3.82zm4.39-6c-.24-.12-1.42-.7-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.92-1.18-.71-.63-1.18-1.41-1.32-1.65-.14-.24-.02-.37.1-.49.1-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.41h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28z" /></svg>
-              +91 91378 49812
+              {{ whatsappDisplay }}
             </a>
           </div>
           <div>
@@ -166,7 +166,8 @@ const { loggedIn, clear } = useUserSession();
 const mobileMenuOpen = ref(false);
 const { trackCtaClick } = useAnalytics();
 
-const WHATSAPP_NUMBER = "919137849812";
+const { whatsappNumber: supportWhatsappNumber, whatsappDisplay } = useSupport();
+const WHATSAPP_NUMBER = supportWhatsappNumber;
 
 // MemberBook mark: a compact ledger monogram with payment/member dots.
 const BrandMark = (props: { size?: number }) =>

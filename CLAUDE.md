@@ -110,6 +110,12 @@ Required in `.env`:
 - `NUXT_OAUTH_GOOGLE_CLIENT_ID` — Google OAuth client ID
 - `NUXT_OAUTH_GOOGLE_CLIENT_SECRET` — Google OAuth client secret
 
+Optional support channels (defaults in `nuxt.config.ts`, used by `useSupport()`):
+
+- `NUXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER` — WhatsApp number for the in-app help button (with country code, digits only)
+- `NUXT_PUBLIC_SUPPORT_EMAIL` — support email shown on the help page (default support@memberbook.in, forwarded to Gmail by Cloudflare Email Routing; hidden when empty)
+- `NUXT_PUBLIC_SUPPORT_HOURS` — support hours text, e.g. "Mon to Sat, 10 AM to 7 PM IST"
+
 ## WhatsApp
 
 - Pravin's WhatsApp number: **9137849812** (+91 91378 49812)
