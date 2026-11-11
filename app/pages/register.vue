@@ -6,7 +6,7 @@
         <p class="text-sm text-slate-600">Free to start. No credit card needed.</p>
       </div>
       <div class="flex flex-wrap gap-2 justify-center mb-6">
-        <span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full border border-primary-100">✓ 500+ businesses</span>
+        <span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full border border-primary-100">✓ Free setup help</span>
         <span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full border border-primary-100">✓ Setup in 2 minutes</span>
         <span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full border border-primary-100">✓ WhatsApp reminders</span>
       </div>

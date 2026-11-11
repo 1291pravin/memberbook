@@ -96,7 +96,7 @@ definePageMeta({ layout: "default" });
 
 const route = useRoute();
 const config = useRuntimeConfig();
-const appUrl = config.public.appUrl || "https://memberbook.app";
+const appUrl = config.public.appUrl || "https://memberbook.in";
 const slug = route.params.slug as string;
 
 const article = getBlogPost(slug);

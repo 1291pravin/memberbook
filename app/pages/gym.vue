@@ -4,18 +4,18 @@
     <section class="py-16 px-4 text-center bg-gradient-to-b from-primary-50 to-white">
       <div class="max-w-3xl mx-auto">
         <h1 class="text-4xl font-bold text-slate-800 sm:text-5xl">
-          Gym Management Software
-          <span class="text-primary-600">Made Simple</span>
+          Gym Management Software,
+          <span class="text-primary-600">Set Up for You</span>
         </h1>
         <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-          Stop managing gym members in spreadsheets. MemberBook helps you track memberships, collect payments, and send WhatsApp reminders - all in one place.
+          Send us photos of your gym register or your Excel sheet. We load every member, plan and due date into MemberBook for free, and set up WhatsApp renewal reminders so fees come in on time.
         </p>
-        <div class="mt-8 flex gap-3 justify-center">
+        <div class="mt-8 flex flex-wrap gap-3 justify-center">
+          <a :href="setupLink" target="_blank" rel="noopener">
+            <AppButton size="lg">Send us your register</AppButton>
+          </a>
           <NuxtLink to="/register">
-            <AppButton size="lg">Start Free Trial</AppButton>
-          </NuxtLink>
-          <NuxtLink to="/features">
-            <AppButton size="lg" variant="secondary">View Features</AppButton>
+            <AppButton size="lg" variant="secondary">Set it up myself</AppButton>
           </NuxtLink>
         </div>
       </div>
@@ -66,16 +66,18 @@
       </div>
     </section>
 
-    <!-- Social Proof -->
+    <!-- Done-for-you setup -->
     <section class="py-16 px-4 bg-slate-50">
-      <div class="max-w-3xl mx-auto">
-        <h2 class="text-2xl font-bold text-slate-800 mb-8">Join gym owners across India</h2>
-        <div class="grid md:grid-cols-3 gap-6">
-          <div v-for="stat in stats" :key="stat.label" class="flex items-baseline gap-2">
-            <span class="text-3xl font-bold text-slate-800">{{ stat.value }}</span>
-            <span class="text-slate-600 text-sm">{{ stat.label }}</span>
-          </div>
-        </div>
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-center text-slate-800 mb-4">We do the typing, you collect the fees</h2>
+        <p class="text-center text-slate-600 mb-12 max-w-2xl mx-auto">Most gym owners give up on software when they have to type 200 members in. So we do that part for you.</p>
+        <ol class="grid md:grid-cols-3 gap-6">
+          <li v-for="(step, i) in setupSteps" :key="step.title" class="bg-white rounded-xl p-6 border border-slate-200">
+            <div class="text-sm font-semibold text-primary-700 mb-2">Step {{ i + 1 }}</div>
+            <h3 class="font-semibold text-slate-800 mb-2">{{ step.title }}</h3>
+            <p class="text-sm text-slate-600">{{ step.text }}</p>
+          </li>
+        </ol>
       </div>
     </section>
 
@@ -89,13 +91,13 @@
             <h3 class="font-semibold text-slate-800 mb-2">Built for Indian gyms</h3>
             <p class="text-sm text-slate-600 mb-6">Supports INR pricing, UPI payments, WhatsApp reminders, and the plan structures Indian gym members expect — monthly, quarterly, half-yearly, and annual.</p>
             <h3 class="font-semibold text-slate-800 mb-2">No technical setup</h3>
-            <p class="text-sm text-slate-600 mb-6">Sign up, add your plans, and start tracking members in minutes. No downloads, no installations, no IT team needed. Works on any phone or computer.</p>
+            <p class="text-sm text-slate-600 mb-6">We set it up for you from your register. No downloads, no installations, no IT team needed. Works on any phone or computer.</p>
           </div>
           <div>
             <h3 class="font-semibold text-slate-800 mb-2">Reduce payment defaults</h3>
-            <p class="text-sm text-slate-600 mb-6">Automated WhatsApp renewal reminders reduce defaults by 30–50%. See exactly which members are about to expire and follow up before they lapse.</p>
-            <h3 class="font-semibold text-slate-800 mb-2">Free to start</h3>
-            <p class="text-sm text-slate-600 mb-6">No credit card required. Start managing your gym members today and upgrade only when you need advanced features.</p>
+            <p class="text-sm text-slate-600 mb-6">WhatsApp renewal reminders with your UPI ID go out before the plan ends. See exactly which members are about to expire and follow up before they lapse.</p>
+            <h3 class="font-semibold text-slate-800 mb-2">Free, setup included</h3>
+            <p class="text-sm text-slate-600 mb-6">MemberBook is free to use, and we set your gym up for free. No credit card, no contract.</p>
           </div>
         </div>
         <div class="mt-8 text-center">
@@ -110,13 +112,13 @@
     <!-- CTA -->
     <section class="py-16 px-4 text-center bg-slate-800 text-white">
       <div class="max-w-xl mx-auto">
-        <h2 class="text-3xl font-bold mb-4">Ready to grow your gym?</h2>
-        <p class="text-lg text-slate-400 mb-8">
-          Start your free trial today. No credit card required.
+        <h2 class="text-3xl font-bold mb-4">Get paid on time from next week</h2>
+        <p class="text-lg text-slate-300 mb-8">
+          Send us your register on WhatsApp today. MemberBook and setup are both free.
         </p>
-        <NuxtLink to="/register">
-          <AppButton size="lg" class="bg-white text-slate-800 hover:bg-slate-100">Start Free Trial</AppButton>
-        </NuxtLink>
+        <a :href="setupLink" target="_blank" rel="noopener">
+          <AppButton size="lg" class="bg-white text-slate-800 hover:bg-slate-100">Send us your register</AppButton>
+        </a>
       </div>
     </section>
   </div>
@@ -126,18 +128,18 @@
 definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
-const appUrl = config.public.appUrl || "https://memberbook.app";
+const appUrl = config.public.appUrl || "https://memberbook.in";
 
 useSeoMeta({
-  title: "Gym Management Software - Track Members & Payments | MemberBook",
-  description: "Best gym management software for India. Track gym members, manage subscriptions, collect payments via UPI, and send WhatsApp reminders. Free gym membership app — start in minutes.",
-  ogTitle: "Gym Management Software - Track Members & Payments | MemberBook",
+  title: "Gym Management Software India, Free Setup | MemberBook",
+  description: "Gym management software for Indian gyms, set up for you for free. Send us your register and we load members, plans and due dates, and set up WhatsApp renewal reminders with UPI.",
+  ogTitle: "Gym Management Software India, Free Setup | MemberBook",
   ogDescription: "Stop managing gym members in spreadsheets. Track memberships, payments, and attendance in one simple platform. Free gym membership app built for India.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/gym`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Gym Management Software - Track Members & Payments | MemberBook",
+  twitterTitle: "Gym Management Software India, Free Setup | MemberBook",
   twitterDescription: "Best gym management software for India. Track members, manage subscriptions, collect payments, send WhatsApp reminders. Free to start.",
   twitterImage: `${appUrl}/og-image.png`,
 });
@@ -162,11 +164,6 @@ useHead({
           "@type": "Offer",
           "price": "0",
           "priceCurrency": "INR",
-        },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "4.8",
-          "ratingCount": "127",
         },
         "description": "Best gym management software for India. Track gym members, manage subscriptions, collect payments via UPI, and send WhatsApp reminders. Free gym membership app.",
         "featureList": [
@@ -228,9 +225,12 @@ const gymTypes = [
   { emoji: "💃", name: "Dance Studios" },
 ];
 
-const stats = [
-  { value: "500+", label: "Active Gyms" },
-  { value: "50K+", label: "Members Managed" },
-  { value: "4.8★", label: "User Rating" },
+const setupSteps = [
+  { title: "Send us your register", text: "Photos of your register pages, or your Excel sheet, on WhatsApp." },
+  { title: "We set up your gym", text: "Every member, plan, fee and due date entered, with reminder messages in your language." },
+  { title: "Fees come in on time", text: "Members get WhatsApp reminders with your UPI ID before their plan ends." },
 ];
+
+const { whatsappLink } = useSupport();
+const setupLink = computed(() => whatsappLink("Hi MemberBook team, I want you to set up my gym register.\n\nGym name:\nCity:\nNumber of members (approx):\n\nI'll send photos of the register / Excel sheet next."));
 </script>

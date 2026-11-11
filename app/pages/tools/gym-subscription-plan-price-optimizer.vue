@@ -103,7 +103,7 @@
 definePageMeta({ layout: "default" })
 
 const config = useRuntimeConfig()
-const appUrl = config.public.appUrl || "https://memberbook.app"
+const appUrl = config.public.appUrl || "https://memberbook.in"
 const pageUrl = `${appUrl}/tools/gym-subscription-plan-price-optimizer`
 
 const input = reactive({
