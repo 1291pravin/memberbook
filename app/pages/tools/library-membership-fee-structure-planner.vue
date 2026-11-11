@@ -123,7 +123,7 @@
 definePageMeta({ layout: "default" })
 
 const config = useRuntimeConfig()
-const appUrl = config.public.appUrl || "https://memberbook.app"
+const appUrl = config.public.appUrl || "https://memberbook.in"
 const pageUrl = `${appUrl}/tools/library-membership-fee-structure-planner`
 
 const inputs = reactive({

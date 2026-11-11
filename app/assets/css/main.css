@@ -676,3 +676,19 @@ h1, h2, h3, h4, h5, h6 {
 .dashboard-shell .max-w-5xl {
   max-width: 1120px;
 }
+
+/* Home: done-for-you sections */
+.workflow-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1040px) { .workflow-grid--three { grid-template-columns: 1fr; } .workflow-grid--three .workflow-card { min-height: 0; } }
+.faq-item h3.faq-q { margin: 0; font-family: var(--font-heading); font-weight: 600; font-size: 20px; letter-spacing: -0.015em; color: var(--ink); }
+.compare-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap-card); margin-top: 48px; }
+.compare-card { background: var(--paper-2); border: 1px solid var(--border); border-radius: 22px; padding: 28px; }
+.compare-card h3 { margin: 0 0 18px; font-size: 22px; color: var(--ink); }
+.compare-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.compare-card li { position: relative; padding-left: 28px; color: var(--ink-2); font-size: 15px; line-height: 1.5; }
+.compare-card li::before { content: "\00D7"; position: absolute; left: 0; top: -1px; width: 18px; height: 18px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: var(--paper-3); color: var(--ink-2); }
+.compare-card--after { background: var(--ink); border-color: var(--ink); }
+.compare-card--after h3 { color: var(--paper); }
+.compare-card--after li { color: var(--paper-3); }
+.compare-card--after li::before { content: "\2713"; background: var(--accent); color: var(--paper); }
+@media (max-width: 760px) { .compare-grid { grid-template-columns: 1fr; } }

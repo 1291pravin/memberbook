@@ -16,9 +16,9 @@ export default defineNuxtConfig({
       },
       charset: "utf-8",
       viewport: "width=device-width, initial-scale=1",
-      title: "MemberBook - Gym, Library and Tuition Management Software India",
+      title: "MemberBook - Gym, Library and Coaching Fee Reminders, Set Up for You",
       meta: [
-        { name: "description", content: "Manage memberships, subscriptions, payments, check-ins and WhatsApp reminders for your gym, library or tuition center. Built for Indian small businesses. Free to start." },
+        { name: "description", content: "Send us your member register and we set up MemberBook for free: members, plans, due dates and WhatsApp renewal reminders with your UPI ID. For Indian gyms, libraries and coaching centres." },
         { name: "format-detection", content: "telephone=no" },
         // Open Graph defaults
         { property: "og:type", content: "website" },
@@ -43,9 +43,18 @@ export default defineNuxtConfig({
     },
   },
 
+  // Canonical site URL for the sitemap and SEO modules (also set via NUXT_SITE_URL).
+  site: {
+    url: "https://memberbook.in",
+    name: "MemberBook",
+  },
+
   // Sitemap configuration
   sitemap: {
     exclude: [
+      "/admin",
+      "/admin/**",
+      "/dashboard",
       "/dashboard/**",
       "/onboarding",
       "/invite/**",

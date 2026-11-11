@@ -8,16 +8,17 @@
           <span class="text-primary-600">Made Easy</span>
         </h1>
         <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-          Simple student and fee management for coaching classes and tuition centers. Track students, collect fees, and manage batches - all in one place.
+          Send us your student register or Excel sheet. We load every student, batch and fee date into MemberBook for free, and set up WhatsApp fee reminders to parents with your UPI ID.
         </p>
-        <div class="mt-8 flex gap-3 justify-center">
+        <div class="mt-8 flex flex-wrap gap-3 justify-center">
+          <a :href="setupLink" target="_blank" rel="noopener">
+            <AppButton size="lg">Send us your register</AppButton>
+          </a>
           <NuxtLink to="/register">
-            <AppButton size="lg">Start Free Trial</AppButton>
-          </NuxtLink>
-          <NuxtLink to="/features">
-            <AppButton size="lg" variant="secondary">View Features</AppButton>
+            <AppButton size="lg" variant="secondary">Set it up myself</AppButton>
           </NuxtLink>
         </div>
+        <p class="mt-4 text-sm text-slate-600">Free setup. We load your students, batches and fee dates for you.</p>
       </div>
     </section>
 
@@ -113,11 +114,13 @@
 definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
-const appUrl = config.public.appUrl || "https://memberbook.app";
+const { whatsappLink } = useSupport();
+const setupLink = computed(() => whatsappLink("Hi MemberBook team, I want you to set up my coaching centre register.\n\nCoaching centre name:\nCity:\nNumber of students (approx):\n\nI'll send photos of the register / Excel sheet next."));
+const appUrl = config.public.appUrl || "https://memberbook.in";
 
 useSeoMeta({
-  title: "Tuition Center Management Software India - MemberBook",
-  description: "Simple student and fee management for coaching classes and tuition centers. Track students, collect fees, send WhatsApp reminders. Built for India.",
+  title: "Coaching & Tuition Fee Management Software India | MemberBook",
+  description: "Fee management for coaching classes and tuition centres in India, set up for you for free. We load students and batches, and set up WhatsApp fee reminders to parents with UPI.",
   ogTitle: "Tuition Center Management Software Made Simple - MemberBook",
   ogDescription: "Manage students, track fees, and handle batches effortlessly. Perfect for coaching classes and tuition centers in India.",
   ogImage: `${appUrl}/og-image.png`,

@@ -3,8 +3,8 @@
     <!-- Announce bar -->
     <div class="announce">
       <span class="acc">NEW</span>
-      WhatsApp renewal reminders are now bundled in every plan —
-      <NuxtLink to="/features">see what's new &rarr;</NuxtLink>
+      Send us your member register and we set everything up for you, free —
+      <NuxtLink to="/#how-it-works">see how &rarr;</NuxtLink>
     </div>
 
     <header class="mb-nav">

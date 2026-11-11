@@ -8,16 +8,17 @@
           <span class="text-primary-600">for India</span>
         </h1>
         <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-          Simple member and subscription management for lending libraries and reading rooms. Track members, collect fees, and manage memberships effortlessly.
+          Send us your student register or Excel sheet. We load every student, seat, shift and due date into MemberBook for free, and set up WhatsApp fee reminders with your UPI ID.
         </p>
-        <div class="mt-8 flex gap-3 justify-center">
+        <div class="mt-8 flex flex-wrap gap-3 justify-center">
+          <a :href="setupLink" target="_blank" rel="noopener">
+            <AppButton size="lg">Send us your register</AppButton>
+          </a>
           <NuxtLink to="/register">
-            <AppButton size="lg">Start Free Trial</AppButton>
-          </NuxtLink>
-          <NuxtLink to="/features">
-            <AppButton size="lg" variant="secondary">View Features</AppButton>
+            <AppButton size="lg" variant="secondary">Set it up myself</AppButton>
           </NuxtLink>
         </div>
+        <p class="mt-4 text-sm text-slate-600">Free setup. We load your students, seats and due dates for you.</p>
       </div>
     </section>
 
@@ -102,11 +103,13 @@
 definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
-const appUrl = config.public.appUrl || "https://memberbook.app";
+const { whatsappLink } = useSupport();
+const setupLink = computed(() => whatsappLink("Hi MemberBook team, I want you to set up my library register.\n\nLibrary name:\nCity:\nNumber of students (approx):\n\nI'll send photos of the register / Excel sheet next."));
+const appUrl = config.public.appUrl || "https://memberbook.in";
 
 useSeoMeta({
-  title: "Library Management Software India - MemberBook",
-  description: "Simple library management software for Indian lending libraries and reading rooms. Track members, manage subscriptions, collect fees. Free to start.",
+  title: "Library Management Software India, Free Setup | MemberBook",
+  description: "Library and study room management software for India, set up for you for free. We load students, seats and due dates, and set up WhatsApp fee reminders with UPI.",
   ogTitle: "Library Management Software Made Simple - MemberBook",
   ogDescription: "Manage library members, subscriptions, and payments in one simple platform. Built for Indian libraries.",
   ogImage: `${appUrl}/og-image.png`,

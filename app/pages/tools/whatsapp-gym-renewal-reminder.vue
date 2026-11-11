@@ -252,7 +252,7 @@
 definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
-const appUrl = config.public.appUrl || "https://memberbook.app";
+const appUrl = config.public.appUrl || "https://memberbook.in";
 
 const PAGE_URL = `${appUrl}/tools/whatsapp-gym-renewal-reminder`;
 
