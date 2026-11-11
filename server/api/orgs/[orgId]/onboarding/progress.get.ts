@@ -23,7 +23,6 @@ export default defineEventHandler(async (event) => {
   // Build applicable steps based on business type
   const steps = [
     { key: 'orgSetup', label: 'Organization Setup', completed: progress.orgSetupCompleted, required: true },
-    { key: 'staffOnboarding', label: 'Invite Team Members', completed: progress.staffOnboardingCompleted, required: false },
     { key: 'plansSetup', label: 'Create Subscription Plans', completed: progress.plansSetupCompleted, required: false },
   ];
 
@@ -36,6 +35,14 @@ export default defineEventHandler(async (event) => {
       required: false,
     });
   }
+
+  // Optional and last: most owners run their business alone.
+  steps.push({
+    key: 'staffOnboarding',
+    label: 'Invite Team Members (optional)',
+    completed: progress.staffOnboardingCompleted,
+    required: false,
+  });
 
   steps.push({
     key: 'dashboardTour',
