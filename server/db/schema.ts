@@ -144,6 +144,25 @@ export const reminderLogs = sqliteTable("reminder_logs", {
   providerMessageIdx: index("reminder_logs_provider_message_idx").on(table.providerMessageId),
 }));
 
+// WhatsApp Cloud API inbox: messages to and from MemberBook's business number
+// (support chats from owners, replies from members to reminders).
+export const whatsappMessages = sqliteTable("whatsapp_messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  waMessageId: text("wa_message_id"), // Meta's message id (wamid...)
+  direction: text("direction").notNull(), // in, out
+  phone: text("phone").notNull(), // the other party, digits with country code
+  contactName: text("contact_name"),
+  type: text("type").notNull(), // text, image, button, ...
+  body: text("body").notNull(),
+  status: text("status").notNull(), // received, sent, delivered, read, failed
+  error: text("error"),
+  readAt: text("read_at"), // when an admin opened an inbound message
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => ({
+  waMessageIdUnique: uniqueIndex("whatsapp_messages_wa_id_unique").on(table.waMessageId),
+  phoneIdx: index("whatsapp_messages_phone_idx").on(table.phone, table.createdAt),
+}));
+
 export const inquiries = sqliteTable("inquiries", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   orgId: integer("org_id").notNull().references(() => organizations.id),
