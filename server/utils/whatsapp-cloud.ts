@@ -168,3 +168,115 @@ export function describeIncomingMessage(m: IncomingWhatsAppMessage): string {
     default: return `[${m.type ?? "unknown"} message]`;
   }
 }
+
+interface GraphError { error?: { message?: string; code?: number } }
+
+async function graph<T>(path: string, init?: { method?: string; body?: unknown }): Promise<{ ok: boolean; data: T & GraphError; status: number }> {
+  const c = getWhatsAppCloudConfig();
+  const res = await fetch(`https://graph.facebook.com/${c.apiVersion || "v22.0"}/${path}`, {
+    method: init?.method ?? "GET",
+    headers: {
+      "Authorization": `Bearer ${c.accessToken}`,
+      ...(init?.body ? { "Content-Type": "application/json" } : {}),
+    },
+    body: init?.body ? JSON.stringify(init.body) : undefined,
+  });
+  const data = await res.json().catch(() => ({})) as T & GraphError;
+  return { ok: res.ok && !data.error, data, status: res.status };
+}
+
+function graphError(r: { data: GraphError; status: number }): string {
+  return `${r.data.error?.code ?? r.status}: ${r.data.error?.message ?? "Unknown error"}`.slice(0, 500);
+}
+
+export interface PhoneNumberStatus {
+  ok: boolean;
+  error?: string;
+  phoneNumberId?: string;
+  displayPhoneNumber?: string;
+  verifiedName?: string;
+  nameStatus?: string;
+  status?: string;
+  platformType?: string;
+  qualityRating?: string;
+  businessAccountId?: string | null;
+  webhooksSubscribed?: boolean | null;
+}
+
+/** Find the WhatsApp Business Account that owns our phone number, from the token's granted scopes. */
+async function findBusinessAccountId(): Promise<string | null> {
+  const c = getWhatsAppCloudConfig();
+  const debug = await graph<{ data?: { granular_scopes?: { scope: string; target_ids?: string[] }[] } }>(
+    `debug_token?input_token=${encodeURIComponent(c.accessToken)}`,
+  );
+  const ids = new Set<string>();
+  for (const s of debug.data.data?.granular_scopes ?? []) {
+    if (s.scope.startsWith("whatsapp_business")) s.target_ids?.forEach(id => ids.add(id));
+  }
+  for (const id of ids) {
+    const nums = await graph<{ data?: { id: string }[] }>(`${id}/phone_numbers?fields=id`);
+    if (nums.data.data?.some(n => n.id === c.phoneNumberId)) return id;
+  }
+  return null;
+}
+
+/** Current state of the business number in Meta (registration, display name review, webhook link). */
+export async function getPhoneNumberStatus(): Promise<PhoneNumberStatus> {
+  const c = getWhatsAppCloudConfig();
+  if (!canSendWhatsAppCloud()) return { ok: false, error: "Access token or phone number ID is not set" };
+  try {
+    const r = await graph<{
+      id?: string; display_phone_number?: string; verified_name?: string; name_status?: string;
+      status?: string; platform_type?: string; quality_rating?: string;
+    }>(`${c.phoneNumberId}?fields=display_phone_number,verified_name,name_status,status,platform_type,quality_rating`);
+    if (!r.ok) return { ok: false, error: graphError(r) };
+
+    const businessAccountId = await findBusinessAccountId().catch(() => null);
+    let webhooksSubscribed: boolean | null = null;
+    if (businessAccountId) {
+      const subs = await graph<{ data?: unknown[] }>(`${businessAccountId}/subscribed_apps`);
+      webhooksSubscribed = subs.ok ? (subs.data.data?.length ?? 0) > 0 : null;
+    }
+    return {
+      ok: true,
+      phoneNumberId: r.data.id,
+      displayPhoneNumber: r.data.display_phone_number,
+      verifiedName: r.data.verified_name,
+      nameStatus: r.data.name_status,
+      status: r.data.status,
+      platformType: r.data.platform_type,
+      qualityRating: r.data.quality_rating,
+      businessAccountId,
+      webhooksSubscribed,
+    };
+  }
+  catch (err) {
+    return { ok: false, error: String(err).slice(0, 500) };
+  }
+}
+
+/**
+ * Register the number for the Cloud API (sets its two-step verification PIN)
+ * and subscribe our app to its account's webhooks, so incoming messages and
+ * delivery receipts reach /api/webhooks/whatsapp.
+ */
+export async function registerPhoneNumber(pin: string): Promise<{ ok: boolean; error?: string; subscribed?: boolean }> {
+  const c = getWhatsAppCloudConfig();
+  if (!canSendWhatsAppCloud()) return { ok: false, error: "Access token or phone number ID is not set" };
+  try {
+    const reg = await graph<{ success?: boolean }>(`${c.phoneNumberId}/register`, {
+      method: "POST",
+      body: { messaging_product: "whatsapp", pin },
+    });
+    if (!reg.ok) return { ok: false, error: graphError(reg) };
+
+    const wabaId = await findBusinessAccountId().catch(() => null);
+    if (!wabaId) return { ok: true, subscribed: false, error: "Registered, but could not find the WhatsApp account to subscribe webhooks" };
+    const sub = await graph<{ success?: boolean }>(`${wabaId}/subscribed_apps`, { method: "POST" });
+    if (!sub.ok) return { ok: true, subscribed: false, error: `Registered, but webhook subscription failed: ${graphError(sub)}` };
+    return { ok: true, subscribed: true };
+  }
+  catch (err) {
+    return { ok: false, error: String(err).slice(0, 500) };
+  }
+}

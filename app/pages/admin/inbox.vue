@@ -15,6 +15,42 @@
       Replies are off until the WhatsApp number is connected (access token and phone number ID).
     </div>
 
+    <div v-else-if="number" class="rounded-lg border border-slate-200 bg-white p-3 text-sm">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <p class="font-semibold text-slate-800">
+          {{ number.verifiedName || "WhatsApp number" }} {{ number.displayPhoneNumber }}
+        </p>
+        <AppBadge :color="numberReady ? 'green' : 'yellow'">
+          {{ number.ok ? (number.status || "unknown") : "error" }}
+        </AppBadge>
+        <span v-if="number.nameStatus" class="text-slate-600">Display name: {{ number.nameStatus.toLowerCase().replace(/_/g, " ") }}</span>
+        <span v-if="number.webhooksSubscribed === false" class="text-amber-800">Incoming messages not linked yet</span>
+      </div>
+      <p v-if="!number.ok" class="mt-1 text-red-700">{{ number.error }}</p>
+      <form
+        v-if="number.ok && !numberReady"
+        class="mt-3 flex flex-wrap items-end gap-2"
+        @submit.prevent="registerNumber"
+      >
+        <div>
+          <label for="wa-pin" class="block text-xs font-medium text-slate-700">Choose a 6-digit PIN for the number</label>
+          <input
+            id="wa-pin"
+            v-model="pin"
+            inputmode="numeric"
+            maxlength="6"
+            pattern="\d{6}"
+            class="mt-1 w-32 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-500"
+            placeholder="123456"
+          >
+        </div>
+        <AppButton type="submit" :loading="registering" :disabled="!/^\d{6}$/.test(pin)">
+          Connect number
+        </AppButton>
+        <p v-if="registerError" class="w-full text-xs text-red-700">{{ registerError }}</p>
+      </form>
+    </div>
+
     <div class="grid gap-4 md:grid-cols-[320px_1fr]">
       <!-- Conversations -->
       <div
@@ -155,6 +191,39 @@ const { data: list, pending: listPending, refresh: refreshList } = await useFetc
   "/api/admin/inbox",
   { key: "admin-inbox" },
 );
+
+interface NumberStatus {
+  ok: boolean;
+  error?: string;
+  displayPhoneNumber?: string;
+  verifiedName?: string;
+  nameStatus?: string;
+  status?: string;
+  webhooksSubscribed?: boolean | null;
+}
+const { data: number, refresh: refreshNumber } = await useFetch<NumberStatus>("/api/admin/whatsapp/status", { key: "admin-wa-number", lazy: true, server: false });
+const numberReady = computed(() => number.value?.ok && number.value.status === "CONNECTED" && number.value.webhooksSubscribed !== false);
+const pin = ref("");
+const registering = ref(false);
+const registerError = ref("");
+
+async function registerNumber() {
+  registering.value = true;
+  registerError.value = "";
+  try {
+    const res = await $fetch<{ error?: string }>("/api/admin/whatsapp/register", { method: "POST", body: { pin: pin.value } });
+    if (res.error) registerError.value = res.error;
+    pin.value = "";
+  }
+  catch (err) {
+    const e = err as { data?: { statusMessage?: string }; statusMessage?: string };
+    registerError.value = e?.data?.statusMessage || e?.statusMessage || "Could not connect the number.";
+  }
+  finally {
+    registering.value = false;
+    refreshNumber();
+  }
+}
 
 const selected = ref<string | null>(null);
 const thread = ref<Thread | null>(null);
