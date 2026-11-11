@@ -30,6 +30,8 @@ export default defineNuxtConfig({
         // Indian market targeting
         { name: "geo.region", content: "IN" },
         { name: "geo.placename", content: "India" },
+        // Meta business domain verification (WhatsApp Cloud API)
+        { name: "facebook-domain-verification", content: "dysv658f5r5hg964g2i8yh9fq7j0pj" },
       ],
       link: [
         // Favicons
