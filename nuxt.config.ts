@@ -60,6 +60,7 @@ export default defineNuxtConfig({
       "/invite/**",
       "/login",
       "/register",
+      "/pay/**",
     ],
     defaults: {
       changefreq: "weekly",
@@ -96,6 +97,11 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   nitro: {
     preset: "cloudflare-module",
+    experimental: { tasks: true },
+    // 03:30 UTC = 09:00 IST. The same cron must be listed in wrangler.jsonc "triggers".
+    scheduledTasks: {
+      "30 3 * * *": ["reminders:daily"],
+    },
   },
   hub: {
     hosting: "cloudflare",
@@ -109,6 +115,20 @@ export default defineNuxtConfig({
   runtimeConfig: {
     adminApiToken: "",
     adminPasswords: "",
+    // Meta WhatsApp Cloud API for automatic fee reminders. Off until
+    // NUXT_WHATSAPP_CLOUD_ENABLED=true and the token and phone number id are set
+    // (NUXT_WHATSAPP_CLOUD_ACCESS_TOKEN, NUXT_WHATSAPP_CLOUD_PHONE_NUMBER_ID, ...).
+    // Setup steps: docs/whatsapp-cloud-api-setup.md
+    whatsappCloud: {
+      enabled: false,
+      accessToken: "",
+      phoneNumberId: "",
+      appSecret: "",
+      webhookVerifyToken: "",
+      templateName: "fee_reminder",
+      templateLanguage: "en",
+      apiVersion: "v22.0",
+    },
     session: {
       maxAge: 60 * 60 * 24 * 365, // 1 year — effectively "no timeout"
     },

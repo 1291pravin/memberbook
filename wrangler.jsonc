@@ -21,6 +21,10 @@
       "bucket_name": "memberbook-blob",
     },
   ],
+  // Daily fee reminders at 09:00 IST (see nitro.scheduledTasks in nuxt.config.ts).
+  "triggers": {
+    "crons": ["30 3 * * *"],
+  },
   "observability": {
     "logs": {
       "enabled": true,

@@ -24,6 +24,10 @@ export const organizations = sqliteTable("organizations", {
   setupHelpHandledAt: text("setup_help_handled_at"),
   gracePeriodDays: integer("grace_period_days").notNull().default(0),
   demoDataIds: text("demo_data_ids"), // JSON blob of seeded record IDs, null = no demo data
+  upiId: text("upi_id"), // owner's UPI ID; reminders include a pay link to it
+  upiPayeeName: text("upi_payee_name"), // name shown in the UPI app, defaults to the org name
+  autoRemindersEnabled: integer("auto_reminders_enabled", { mode: "boolean" }).notNull().default(false),
+  reminderDaysBefore: integer("reminder_days_before").notNull().default(3),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -100,6 +104,44 @@ export const payments = sqliteTable("payments", {
   orgDateIdx: index("payments_org_date_idx").on(table.orgId, table.date),
   subscriptionIdx: index("payments_subscription_idx").on(table.subscriptionId),
   memberIdx: index("payments_member_idx").on(table.memberId),
+}));
+
+// Fee collection (Collections page): public pay links and the reminders sent.
+export const paymentLinks = sqliteTable("payment_links", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  memberId: integer("member_id").notNull().references(() => members.id),
+  subscriptionId: integer("subscription_id").notNull().references(() => memberSubscriptions.id),
+  kind: text("kind").notNull(), // due (unpaid balance), renewal (next period)
+  amount: integer("amount").notNull(), // in paise
+  token: text("token").notNull(),
+  status: text("status").notNull().default("open"), // open, paid
+  claimedAt: text("claimed_at"), // member tapped "I have paid"
+  paidAt: text("paid_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => ({
+  tokenUnique: uniqueIndex("payment_links_token_unique").on(table.token),
+  subscriptionKindUnique: uniqueIndex("payment_links_subscription_kind_unique").on(table.subscriptionId, table.kind),
+  orgIdx: index("payment_links_org_idx").on(table.orgId),
+}));
+
+export const reminderLogs = sqliteTable("reminder_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  memberId: integer("member_id").notNull().references(() => members.id),
+  subscriptionId: integer("subscription_id").notNull().references(() => memberSubscriptions.id),
+  kind: text("kind").notNull(), // due, renewal
+  channel: text("channel").notNull(), // whatsapp_link (tap-to-send), whatsapp_api (Cloud API)
+  status: text("status").notNull(), // opened, sent, delivered, read, failed
+  amount: integer("amount").notNull(), // in paise
+  providerMessageId: text("provider_message_id"),
+  error: text("error"),
+  sentBy: integer("sent_by").references(() => users.id), // null = automatic
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => ({
+  orgSubscriptionIdx: index("reminder_logs_org_subscription_idx").on(table.orgId, table.subscriptionId),
+  providerMessageIdx: index("reminder_logs_provider_message_idx").on(table.providerMessageId),
 }));
 
 export const inquiries = sqliteTable("inquiries", {
