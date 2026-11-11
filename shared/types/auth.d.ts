@@ -6,6 +6,8 @@ declare module '#auth-utils' {
   }
 
   interface UserSession {
+    // Must match users.session_version; bumping the column revokes older sessions.
+    sessionVersion?: number
     admin?: {
       authenticated: boolean
       loggedInAt: string

@@ -1,10 +1,16 @@
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
+  requireOwner(access);
   const body = await readBody(event);
   const { name, price, durationType, durationValue } = body;
 
   if (!name || !price || !durationType || !durationValue) {
     throw createError({ statusCode: 400, statusMessage: "Name, price, duration type, and duration value are required" });
+  }
+
+  const priceValue = Number(price);
+  if (!Number.isInteger(priceValue) || priceValue <= 0) {
+    throw createError({ statusCode: 400, statusMessage: "Price must be a positive amount" });
   }
 
   const validTypes = ["daily", "weekly", "monthly", "yearly"];
@@ -19,7 +25,7 @@ export default defineEventHandler(async (event) => {
   const result = await db.insert(schema.subscriptionPlans).values({
     orgId: access.orgId,
     name: name.trim(),
-    price: Number(price),
+    price: priceValue,
     durationType,
     durationValue: Number(durationValue),
   }).returning();

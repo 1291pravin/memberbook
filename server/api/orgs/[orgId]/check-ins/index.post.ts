@@ -1,4 +1,4 @@
-import { eq, and, isNull, desc } from "drizzle-orm";
+import { eq, and, isNull, desc, sql } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -141,7 +141,7 @@ export default defineEventHandler(async (event) => {
 
   let subscriptionStatus = "none";
   let warning = "";
-  const today = new Date().toISOString().split("T")[0]!;
+  const today = todayIST();
 
   if (latestSub[0]) {
     if (latestSub[0].status === "active" && latestSub[0].endDate >= today) {
@@ -157,17 +157,39 @@ export default defineEventHandler(async (event) => {
     warning = "Member has no subscription";
   }
 
-  const result = await db.insert(schema.checkIns).values({
-    orgId: access.orgId,
-    memberId: Number(memberId),
-    checkedInBy: access.userId,
-    subscriptionStatus,
-    seatId: finalSeatId || null,
-    seatNumber: seatNumber || null,
-    batchId: finalBatchId || null,
-    batchName: batchName || null,
-    notes: notes || null,
-  }).returning();
+  // Insert only if the member still has no open check-in and the seat is
+  // still free, in one statement. The checks above give friendly errors; this
+  // closes the gap where a double-tap ran both requests past them.
+  const now = new Date().toISOString();
+  const seatValue = finalSeatId ? Number(finalSeatId) : null;
+  const inserted = await db.all<{ id: number }>(sql`
+    INSERT INTO check_ins (
+      org_id, member_id, checked_in_by, checked_in_at, auto_checked_out,
+      subscription_status, seat_id, seat_number, batch_id, batch_name, notes, created_at
+    )
+    SELECT ${access.orgId}, ${Number(memberId)}, ${access.userId}, ${now}, 0,
+      ${subscriptionStatus}, ${seatValue}, ${seatNumber || null}, ${finalBatchId || null},
+      ${batchName || null}, ${notes || null}, ${now}
+    WHERE NOT EXISTS (
+      SELECT 1 FROM check_ins
+      WHERE org_id = ${access.orgId} AND member_id = ${Number(memberId)} AND checked_out_at IS NULL
+    )
+    AND (${seatValue} IS NULL OR NOT EXISTS (
+      SELECT 1 FROM check_ins
+      WHERE seat_id = ${seatValue} AND checked_out_at IS NULL
+    ))
+    RETURNING id
+  `);
 
-  return { checkIn: result[0], warning };
+  if (!inserted[0]) {
+    throw createError({ statusCode: 409, statusMessage: "Member is already checked in or the seat was just taken" });
+  }
+
+  const [checkIn] = await db
+    .select()
+    .from(schema.checkIns)
+    .where(eq(schema.checkIns.id, inserted[0].id))
+    .limit(1);
+
+  return { checkIn, warning };
 });

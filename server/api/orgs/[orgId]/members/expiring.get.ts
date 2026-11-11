@@ -1,4 +1,4 @@
-import { eq, and, between, sql } from "drizzle-orm";
+import { eq, and, between, gte, lt, sql } from "drizzle-orm";
 
 // Only consider the latest subscription per member (highest ID = most recent)
 const latestSubFilter = sql`${schema.memberSubscriptions.id} = (
@@ -10,10 +10,8 @@ const latestSubFilter = sql`${schema.memberSubscriptions.id} = (
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
 
-  const today = new Date().toISOString().split("T")[0];
-  const weekLater = new Date();
-  weekLater.setDate(weekLater.getDate() + 7);
-  const weekStr = weekLater.toISOString().split("T")[0];
+  const today = todayIST();
+  const weekStr = dateIST(7);
 
   // The grace period setting and the expiring list don't depend on each other,
   // so fetch them concurrently.
@@ -55,9 +53,7 @@ export default defineEventHandler(async (event) => {
   // Subscriptions in grace period (endDate passed but within grace window)
   let inGracePeriod: typeof expiring = [];
   if (gracePeriodDays > 0) {
-    const graceCutoff = new Date();
-    graceCutoff.setDate(graceCutoff.getDate() - gracePeriodDays);
-    const graceCutoffStr = graceCutoff.toISOString().split("T")[0];
+    const graceCutoffStr = dateIST(-gracePeriodDays);
 
     inGracePeriod = await db
       .select({
@@ -76,7 +72,10 @@ export default defineEventHandler(async (event) => {
         and(
           eq(schema.memberSubscriptions.orgId, access.orgId),
           eq(schema.memberSubscriptions.status, "active"),
-          between(schema.memberSubscriptions.endDate, graceCutoffStr, today),
+          // Strictly before today: plans ending today are already in the
+          // "expiring" list above, and must not be listed (and messaged) twice.
+          gte(schema.memberSubscriptions.endDate, graceCutoffStr),
+          lt(schema.memberSubscriptions.endDate, today),
           latestSubFilter,
         ),
       )

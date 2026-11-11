@@ -326,15 +326,15 @@ function memberInitials(name: string): string {
 
 function isExpired(member: Member): boolean {
   if (!member.subscriptionEndDate) return false;
-  return member.subscriptionEndDate < new Date().toISOString().split("T")[0];
+  return member.subscriptionEndDate < todayLocal();
 }
 
 function isExpiringSoon(member: Member): boolean {
   if (!member.subscriptionEndDate) return false;
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const weekLater = new Date();
   weekLater.setDate(weekLater.getDate() + 7);
-  const weekStr = weekLater.toISOString().split("T")[0];
+  const weekStr = toLocalDateString(weekLater);
   return member.subscriptionEndDate >= today && member.subscriptionEndDate <= weekStr;
 }
 

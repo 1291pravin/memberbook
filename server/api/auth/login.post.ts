@@ -9,7 +9,12 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const user = await findUserByEmail(email.toLowerCase().trim());
+  const normalizedEmail = String(email).toLowerCase().trim();
+  const ip = getClientIp(event);
+  await enforceRateLimit(`login:ip:${ip}`, { limit: 20, windowSeconds: 900 });
+  await enforceRateLimit(`login:email:${normalizedEmail}`, { limit: 10, windowSeconds: 900 });
+
+  const user = await findUserByEmail(normalizedEmail);
   if (!user || !user.passwordHash) {
     throw createError({
       statusCode: 401,
@@ -28,9 +33,13 @@ export default defineEventHandler(async (event) => {
   const orgs = await getUserOrgs(user.id);
   const currentOrg = orgs.length > 0 ? orgs[0] : undefined;
 
-  await setUserSession(event, {
+  // Replace (not merge) so nothing from a previous user's session survives.
+  const previous = await getUserSession(event);
+  await replaceUserSession(event, {
+    admin: previous.admin,
     user: { id: user.id, email: user.email, name: user.name },
     currentOrg,
+    sessionVersion: user.sessionVersion,
   });
 
   return {

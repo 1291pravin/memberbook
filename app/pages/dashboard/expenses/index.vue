@@ -171,8 +171,8 @@ const datePresets = [
     getRange: () => {
       const now = new Date();
       return {
-        startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0],
-        endDate: new Date().toISOString().split("T")[0],
+        startDate: toLocalDateString(new Date(now.getFullYear(), now.getMonth(), 1)),
+        endDate: todayLocal(),
       };
     },
   },
@@ -183,8 +183,8 @@ const datePresets = [
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
       return {
-        startDate: lastMonth.toISOString().split("T")[0],
-        endDate: lastMonthEnd.toISOString().split("T")[0],
+        startDate: toLocalDateString(lastMonth),
+        endDate: toLocalDateString(lastMonthEnd),
       };
     },
   },
@@ -194,8 +194,8 @@ const datePresets = [
       const now = new Date();
       const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
       return {
-        startDate: threeMonthsAgo.toISOString().split("T")[0],
-        endDate: new Date().toISOString().split("T")[0],
+        startDate: toLocalDateString(threeMonthsAgo),
+        endDate: todayLocal(),
       };
     },
   },
@@ -204,8 +204,8 @@ const datePresets = [
     getRange: () => {
       const now = new Date();
       return {
-        startDate: new Date(now.getFullYear(), 0, 1).toISOString().split("T")[0],
-        endDate: new Date().toISOString().split("T")[0],
+        startDate: toLocalDateString(new Date(now.getFullYear(), 0, 1)),
+        endDate: todayLocal(),
       };
     },
   },

@@ -24,11 +24,18 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (amount <= 0) {
+  const amountValue = Number(amount);
+  if (!Number.isFinite(amountValue) || amountValue <= 0) {
     throw createError({
       statusCode: 400,
       statusMessage: "Amount must be greater than zero",
     });
+  }
+  if (!isIsoDate(date)) {
+    throw createError({ statusCode: 400, statusMessage: "Date must be YYYY-MM-DD" });
+  }
+  if (paymentMethod && !isPaymentMethod(paymentMethod)) {
+    throw createError({ statusCode: 400, statusMessage: "Invalid payment method" });
   }
 
   // Validate category exists and belongs to org
@@ -56,7 +63,7 @@ export default defineEventHandler(async (event) => {
     .values({
       orgId: access.orgId,
       categoryId,
-      amount: Math.round(amount), // Ensure integer (paise)
+      amount: Math.round(amountValue), // Ensure integer (paise)
       date,
       description: description.trim(),
       paymentMethod: paymentMethod || "cash",

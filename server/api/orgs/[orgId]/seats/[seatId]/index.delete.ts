@@ -49,11 +49,21 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Soft delete - set isActive to false
-  await db
-    .update(schema.librarySeats)
-    .set({ isActive: false })
-    .where(eq(schema.librarySeats.id, Number(seatId)));
+  // Soft delete - set isActive to false, and drop default seat assignments so
+  // members assigned to this seat can still check in (otherwise check-in
+  // tries the deleted seat and fails with "Seat not found or inactive").
+  await db.batch([
+    db
+      .delete(schema.memberSeatAssignments)
+      .where(and(
+        eq(schema.memberSeatAssignments.seatId, Number(seatId)),
+        eq(schema.memberSeatAssignments.orgId, access.orgId),
+      )),
+    db
+      .update(schema.librarySeats)
+      .set({ isActive: false })
+      .where(and(eq(schema.librarySeats.id, Number(seatId)), eq(schema.librarySeats.orgId, access.orgId))),
+  ]);
 
 
   return { success: true, message: "Seat deleted successfully" };

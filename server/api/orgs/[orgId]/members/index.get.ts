@@ -11,10 +11,8 @@ export default defineEventHandler(async (event) => {
   const sort = (query.sort as string) || "newest";
   const { page, limit, offset } = parsePagination(event, 20);
 
-  const today = new Date().toISOString().split("T")[0];
-  const weekLater = new Date();
-  weekLater.setDate(weekLater.getDate() + 7);
-  const weekStr = weekLater.toISOString().split("T")[0];
+  const today = todayIST();
+  const weekStr = dateIST(7);
 
   // Subquery: latest subscription per member
   const latestSub = db

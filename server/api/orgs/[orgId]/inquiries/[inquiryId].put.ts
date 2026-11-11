@@ -10,8 +10,18 @@ export default defineEventHandler(async (event) => {
   if (body.phone !== undefined) updates.phone = body.phone?.trim() || null;
   if (body.email !== undefined) updates.email = body.email?.trim() || null;
   if (body.interest !== undefined) updates.interest = body.interest?.trim() || null;
-  if (body.followUpDate !== undefined) updates.followUpDate = body.followUpDate || null;
-  if (body.status) updates.status = body.status;
+  if (body.followUpDate !== undefined) {
+    if (body.followUpDate && !isIsoDate(body.followUpDate)) {
+      throw createError({ statusCode: 400, statusMessage: "Follow-up date must be YYYY-MM-DD" });
+    }
+    updates.followUpDate = body.followUpDate || null;
+  }
+  if (body.status) {
+    if (!["new", "contacted", "converted", "lost"].includes(body.status)) {
+      throw createError({ statusCode: 400, statusMessage: "Invalid inquiry status" });
+    }
+    updates.status = body.status;
+  }
   if (body.notes !== undefined) updates.notes = body.notes?.trim() || null;
 
   if (Object.keys(updates).length === 0) {

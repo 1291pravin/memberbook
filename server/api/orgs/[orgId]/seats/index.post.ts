@@ -12,7 +12,8 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Check if seat number already exists for this org
+  // Check if seat number already exists for this org. Deleted seats are
+  // soft-deleted (isActive = false) and must not block reusing the number.
   const existing = await db
     .select()
     .from(schema.librarySeats)
@@ -20,6 +21,7 @@ export default defineEventHandler(async (event) => {
       and(
         eq(schema.librarySeats.orgId, access.orgId),
         eq(schema.librarySeats.seatNumber, body.seatNumber.trim()),
+        eq(schema.librarySeats.isActive, true),
       ),
     )
     .limit(1);

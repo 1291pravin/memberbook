@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { normalizePhone } from "~~/shared/utils/phone";
 
 interface ImportRow {
   name: string;
@@ -16,6 +17,25 @@ interface ImportRow {
 }
 
 const BATCH_SIZE = 50;
+
+function validateImportRow(row: ImportRow): string | null {
+  if (row.phone?.trim() && !normalizePhone(row.phone)) {
+    return "Phone must be a valid 10-digit mobile number";
+  }
+  if (row.startDate?.trim() && !isIsoDate(row.startDate.trim())) {
+    return "Start date must be YYYY-MM-DD";
+  }
+  if (row.amountPaid !== undefined && row.amountPaid !== null && String(row.amountPaid).trim() !== "") {
+    const amount = Number(row.amountPaid);
+    if (!Number.isFinite(amount) || amount < 0) {
+      return "Amount paid must be a positive number";
+    }
+  }
+  if (row.paymentMethod?.trim() && !isPaymentMethod(row.paymentMethod.trim())) {
+    return "Payment method must be cash, upi, card or bank_transfer";
+  }
+  return null;
+}
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -54,6 +74,19 @@ export default defineEventHandler(async (event) => {
       const row = batch[j]!;
       if (!row.name?.trim()) {
         results[i + j] = { success: false, error: "Name is required" };
+        continue;
+      }
+      // Validate and normalize the same way as adding a member by hand.
+      const rowError = validateImportRow(row);
+      if (rowError) {
+        results[i + j] = { success: false, error: rowError };
+        continue;
+      }
+      row.phone = row.phone?.trim() ? normalizePhone(row.phone)! : undefined;
+      row.startDate = row.startDate?.trim() || undefined;
+      const rowPlan = row.plan?.trim() ? planMap.get(row.plan.toLowerCase().trim()) : undefined;
+      if (rowPlan && row.startDate && row.amountPaid && Math.round(Number(row.amountPaid) * 100) > rowPlan.price) {
+        results[i + j] = { success: false, error: `Amount paid is more than the "${rowPlan.name}" plan price` };
         continue;
       }
       if (row.plan?.trim() && row.startDate?.trim()) {
@@ -116,6 +149,7 @@ export default defineEventHandler(async (event) => {
 
         const endDate = calculateEndDate(row.startDate!, plan.durationType, plan.durationValue);
         const amountPaid = row.amountPaid ? Math.round(Number(row.amountPaid) * 100) : 0;
+
         let paymentStatus = "unpaid";
         if (amountPaid > 0) {
           paymentStatus = amountPaid >= plan.price ? "paid" : "partial";
@@ -138,7 +172,7 @@ export default defineEventHandler(async (event) => {
             memberId: member.id,
             subscriptionId: subscription.id,
             amount: amountPaid,
-            method: row.paymentMethod || "cash",
+            method: (row.paymentMethod?.trim() || "cash") as typeof paymentMethods[number],
             date: row.startDate!,
             notes: "Imported via CSV",
           });

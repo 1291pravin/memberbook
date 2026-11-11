@@ -159,7 +159,7 @@ const form = reactive({
   batch: "",
   notes: "",
   planId: "",
-  startDate: new Date().toISOString().split("T")[0],
+  startDate: todayLocal(),
   recordPayment: false,
   paymentAmount: "",
   paymentMethod: "cash",
@@ -221,7 +221,7 @@ function resetForm() {
   form.batch = "";
   form.notes = "";
   form.planId = "";
-  form.startDate = new Date().toISOString().split("T")[0];
+  form.startDate = todayLocal();
   form.recordPayment = false;
   form.paymentAmount = "";
   form.paymentMethod = "cash";

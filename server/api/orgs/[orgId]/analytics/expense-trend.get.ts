@@ -7,24 +7,17 @@ export default defineEventHandler(async (event) => {
 
     let dateFormat: any;
     let startDate: string;
-    const now = new Date();
 
     if (period === "daily") {
       dateFormat = schema.expenses.date;
-      const thirtyDaysAgo = new Date(now);
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      startDate = thirtyDaysAgo.toISOString().split("T")[0];
+      startDate = dateIST(-30);
     } else if (period === "weekly") {
       dateFormat = sql<string>`DATE(${schema.expenses.date}, 'weekday 0', '-6 days')`;
-      const eightyFourDaysAgo = new Date(now);
-      eightyFourDaysAgo.setDate(eightyFourDaysAgo.getDate() - 84);
-      startDate = eightyFourDaysAgo.toISOString().split("T")[0];
+      startDate = dateIST(-84);
     } else {
       // monthly
       dateFormat = sql<string>`SUBSTR(${schema.expenses.date}, 1, 7)`;
-      const oneEightyDaysAgo = new Date(now);
-      oneEightyDaysAgo.setDate(oneEightyDaysAgo.getDate() - 180);
-      startDate = oneEightyDaysAgo.toISOString().split("T")[0];
+      startDate = dateIST(-180);
     }
 
     const data = await db

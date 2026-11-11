@@ -2,13 +2,25 @@ import { eq, and } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
+  requireOwner(access);
   const planId = Number(getRouterParam(event, "planId"));
   const body = await readBody(event);
 
   const updates: Record<string, unknown> = {};
   if (body.name) updates.name = body.name.trim();
-  if (body.price !== undefined) updates.price = Number(body.price);
-  if (body.active !== undefined) updates.active = body.active;
+  if (body.price !== undefined) {
+    const price = Number(body.price);
+    if (!Number.isInteger(price) || price <= 0) {
+      throw createError({ statusCode: 400, statusMessage: "Price must be a positive amount" });
+    }
+    updates.price = price;
+  }
+  if (body.active !== undefined) {
+    if (typeof body.active !== "boolean") {
+      throw createError({ statusCode: 400, statusMessage: "Active must be true or false" });
+    }
+    updates.active = body.active;
+  }
 
   if (body.durationType !== undefined) {
     const validTypes = ["daily", "weekly", "monthly", "yearly"];

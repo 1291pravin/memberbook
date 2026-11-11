@@ -4,12 +4,11 @@ export default defineEventHandler(async (event) => {
   const access = event.context.access;
     const query = getQuery(event);
 
-    const now = new Date();
     const startDate =
       (query.startDate as string) ||
-      new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+      monthStartIST();
     const endDate =
-      (query.endDate as string) || new Date().toISOString().split("T")[0];
+      (query.endDate as string) || todayIST();
 
     const data = await db
       .select({

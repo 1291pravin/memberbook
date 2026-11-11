@@ -6,6 +6,7 @@ export const users = sqliteTable("users", {
   name: text("name").notNull(),
   passwordHash: text("password_hash"),
   googleId: text("google_id"),
+  sessionVersion: integer("session_version").notNull().default(0),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   googleIdIdx: index("users_google_id_idx").on(table.googleId),
@@ -262,4 +263,10 @@ export const adminAuditLogs = sqliteTable("admin_audit_logs", {
   userAgent: text("user_agent"),
   metadata: text("metadata"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const authRateLimits = sqliteTable("auth_rate_limits", {
+  key: text("key").primaryKey(),
+  windowStart: integer("window_start").notNull(),
+  count: integer("count").notNull().default(0),
 });

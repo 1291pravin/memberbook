@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
 
   const paidMap = new Map(subPayments.map(p => [p.subscriptionId, p.totalPaid]));
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIST();
   const subscriptionsWithPaid = subscriptions.map(s => ({
     ...s,
     status: s.status === "active" && s.endDate < today ? "expired" : s.status,

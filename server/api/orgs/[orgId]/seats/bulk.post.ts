@@ -1,4 +1,4 @@
-import { eq, max } from "drizzle-orm";
+import { and, eq, inArray, max } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (endNumber - startNumber > 100) {
+  if (endNumber - startNumber + 1 > 100) {
     throw createError({
       statusCode: 400,
       statusMessage: "Cannot create more than 100 seats at once",
@@ -55,6 +55,25 @@ export default defineEventHandler(async (event) => {
       displayOrder: displayOrder++,
       notes: null,
       createdAt: new Date().toISOString(),
+    });
+  }
+
+  // Refuse seat numbers that already exist (active seats only; deleted
+  // seats are soft-deleted and their numbers can be reused).
+  const requestedNumbers = seatsToCreate.map((s) => s.seatNumber);
+  const duplicates = await db
+    .select({ seatNumber: schema.librarySeats.seatNumber })
+    .from(schema.librarySeats)
+    .where(and(
+      eq(schema.librarySeats.orgId, access.orgId),
+      eq(schema.librarySeats.isActive, true),
+      inArray(schema.librarySeats.seatNumber, requestedNumbers),
+    ));
+  if (duplicates.length > 0) {
+    const list = duplicates.slice(0, 5).map((d) => d.seatNumber).join(", ");
+    throw createError({
+      statusCode: 409,
+      statusMessage: `Seat numbers already exist: ${list}${duplicates.length > 5 ? "…" : ""}`,
     });
   }
 

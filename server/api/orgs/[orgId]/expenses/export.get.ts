@@ -71,14 +71,14 @@ export default defineEventHandler(async (event) => {
   const csvContent = [
     headers.join(","),
     ...rows.map((row) =>
-      row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      row.map((cell) => escapeCsvField(cell)).join(",")
     ),
   ].join("\n");
 
   // Set headers for CSV download
   setResponseHeaders(event, {
     "Content-Type": "text/csv",
-    "Content-Disposition": `attachment; filename="expenses-${new Date().toISOString().split("T")[0]}.csv"`,
+    "Content-Disposition": `attachment; filename="expenses-${todayIST()}.csv"`,
   });
 
   return csvContent;
