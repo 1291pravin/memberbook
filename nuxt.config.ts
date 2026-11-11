@@ -112,6 +112,12 @@ export default defineNuxtConfig({
     public: {
       appUrl: "",
       releaseId,
+      // Customer support channels shown in the app and on the website.
+      // Override with NUXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER, NUXT_PUBLIC_SUPPORT_EMAIL
+      // and NUXT_PUBLIC_SUPPORT_HOURS. Leave the email empty to hide it.
+      supportWhatsappNumber: "919137849812",
+      supportEmail: "",
+      supportHours: "Mon to Sat, 10 AM to 7 PM IST",
     },
   },
 });

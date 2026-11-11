@@ -234,6 +234,29 @@
         </AppCard>
       </div>
 
+      <AppCard title="Help requests">
+        <p class="mb-3 text-xs text-slate-600">Latest messages from the in-app help form and the website contact form.</p>
+        <ul class="divide-y divide-slate-100">
+          <li v-for="req in data.recentHelpRequests ?? []" :key="`help-${req.id}`" class="py-3">
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <p class="font-semibold text-slate-800">{{ req.business_name }}</p>
+              <span
+                class="inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium"
+                :class="req.source_page === '/dashboard/help' ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-700'"
+              >{{ req.source_page === '/dashboard/help' ? 'In-app' : 'Website' }}</span>
+              <span class="text-xs text-slate-600">{{ formatDate(req.created_at) }}</span>
+            </div>
+            <p class="mt-0.5 text-xs text-slate-600">
+              {{ req.name }} &middot;
+              <a :href="`mailto:${req.email}`" class="underline">{{ req.email }}</a>
+              <template v-if="req.phone"> &middot; <a :href="whatsAppLinkFor(req.phone)" target="_blank" rel="noopener" class="underline">{{ req.phone }}</a></template>
+            </p>
+            <p class="mt-1.5 whitespace-pre-line text-sm text-slate-700">{{ req.message }}</p>
+          </li>
+          <li v-if="!data.recentHelpRequests?.length" class="py-4 text-sm text-slate-600">No help requests yet.</li>
+        </ul>
+      </AppCard>
+
       <AppCard title="Most active organizations">
         <div class="overflow-x-auto">
           <table class="min-w-full text-left text-sm">
@@ -324,7 +347,25 @@ type AdminUsage = {
   daily: Array<Record<string, number | string> & { date: string }>;
   recentSignups: AdminOrg[];
   activeOrganizations: AdminOrg[];
+  recentHelpRequests?: HelpRequest[];
 };
+
+type HelpRequest = {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  business_name: string;
+  message: string;
+  status: string;
+  source_page: string | null;
+  created_at: string;
+};
+
+const { getWhatsAppLink } = useWhatsApp();
+function whatsAppLinkFor(phone: string) {
+  return getWhatsAppLink(phone, "Hi, this is the MemberBook team replying to your help request.");
+}
 
 const days = ref(28);
 const loginOrgId = ref<number | null>(null);
