@@ -76,3 +76,7 @@ Each gym still has to opt in: Collections → Payment settings → "Send reminde
 - Then at most every 3 days, up to 3 reminders per payment. After that the member stays on the Overdue list for the owner to call.
 - Skips members who tapped "I have paid" on the pay page, until the owner confirms.
 - Renewals lapsed more than 30 days ago are not chased.
+
+## 7c. Connect the number (register + link incoming messages)
+
+After the phone number ID secret is set, open **Admin → Inbox**. The card at the top shows the number's state in Meta. If it isn't `CONNECTED`, pick a 6-digit PIN and press **Connect number**. That calls `/{phone-number-id}/register` (which sets the number's two-step verification PIN) and subscribes the app to the WhatsApp account's webhooks, so incoming messages and delivery receipts arrive. Keep the PIN somewhere safe; Meta asks for it if the number is ever re-registered.
