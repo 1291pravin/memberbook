@@ -169,7 +169,16 @@ export function describeIncomingMessage(m: IncomingWhatsAppMessage): string {
   }
 }
 
-interface GraphError { error?: { message?: string; code?: number } }
+interface GraphError {
+  error?: {
+    message?: string;
+    code?: number;
+    error_subcode?: number;
+    error_user_title?: string;
+    error_user_msg?: string;
+    error_data?: { details?: string } | string;
+  };
+}
 
 async function graph<T>(path: string, init?: { method?: string; body?: unknown }): Promise<{ ok: boolean; data: T & GraphError; status: number }> {
   const c = getWhatsAppCloudConfig();
@@ -186,7 +195,11 @@ async function graph<T>(path: string, init?: { method?: string; body?: unknown }
 }
 
 function graphError(r: { data: GraphError; status: number }): string {
-  return `${r.data.error?.code ?? r.status}: ${r.data.error?.message ?? "Unknown error"}`.slice(0, 500);
+  const e = r.data.error;
+  const details = typeof e?.error_data === "string" ? e.error_data : e?.error_data?.details;
+  const extra = [e?.error_subcode ? `subcode ${e.error_subcode}` : "", e?.error_user_title, e?.error_user_msg, details]
+    .filter(Boolean).join(" | ");
+  return `${e?.code ?? r.status}: ${e?.message ?? "Unknown error"}${extra ? ` (${extra})` : ""}`.slice(0, 800);
 }
 
 export interface PhoneNumberStatus {
