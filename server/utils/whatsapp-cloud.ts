@@ -400,6 +400,21 @@ export async function updateBusinessProfile(input: BusinessProfileInput): Promis
  * callback URL. Uses the app token (app id | app secret), so it works without
  * opening the Meta dashboard. Returns the app's WhatsApp subscription after.
  */
+/** The Meta app's WhatsApp webhook subscription (callback URL and fields). */
+export async function getAppWebhook(): Promise<{ ok: boolean; error?: string; subs?: { callback_url?: string; active?: boolean; fields?: string[] }[] }> {
+  const c = getWhatsAppCloudConfig();
+  if (!c.appId || !c.appSecret) return { ok: false, error: "App id or app secret is not set" };
+  try {
+    const r = await fetch(`https://graph.facebook.com/${c.apiVersion || "v22.0"}/${c.appId}/subscriptions?access_token=${encodeURIComponent(`${c.appId}|${c.appSecret}`)}`);
+    const d = await r.json().catch(() => ({})) as { data?: { object: string; callback_url?: string; active?: boolean; fields?: { name: string }[] }[] } & GraphError;
+    if (!r.ok || d.error) return { ok: false, error: graphError({ data: d, status: r.status }) };
+    return { ok: true, subs: (d.data ?? []).filter(x => x.object === "whatsapp_business_account").map(x => ({ callback_url: x.callback_url, active: x.active, fields: x.fields?.map(f => f.name) })) };
+  }
+  catch (err) {
+    return { ok: false, error: String(err).slice(0, 500) };
+  }
+}
+
 export async function ensureAppWebhook(callbackUrl: string): Promise<{ ok: boolean; error?: string; before?: unknown; after?: unknown }> {
   const c = getWhatsAppCloudConfig();
   if (!c.appId || !c.appSecret || !c.webhookVerifyToken) return { ok: false, error: "App id, app secret or webhook verify token is not set" };
