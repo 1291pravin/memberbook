@@ -13,6 +13,12 @@
             Usage
           </NuxtLink>
           <NuxtLink
+            to="/admin/setup"
+            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            Set up
+          </NuxtLink>
+          <NuxtLink
             to="/admin/inbox"
             class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >

@@ -248,6 +248,7 @@ export const orgInvites = sqliteTable("org_invites", {
   orgId: integer("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   invitedByUserId: integer("invited_by_user_id").notNull().references(() => users.id),
   token: text("token").notNull().unique(),
+  role: text("role").notNull().default("staff"), // staff, or owner for a business we set up for its owner
   status: text("status").notNull().default("pending"), // pending, accepted, expired, revoked
   expiresAt: text("expires_at").notNull(),
   acceptedByUserId: integer("accepted_by_user_id").references(() => users.id),
@@ -257,6 +258,26 @@ export const orgInvites = sqliteTable("org_invites", {
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
+
+// Data an owner sends us once (files and/or pasted text) for the AI loading routine.
+export const dataUploads = sqliteTable("data_uploads", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  uploadedBy: integer("uploaded_by").references(() => users.id), // null = added by admin
+  source: text("source").notNull().default("owner"), // owner, admin
+  files: text("files").notNull().default("[]"), // JSON: [{ key, name, type, size }]
+  text: text("text"), // pasted list
+  note: text("note"), // anything the owner wants us to know
+  status: text("status").notNull().default("pending"), // pending, processing, done, failed
+  result: text("result"), // JSON: { plansCreated, membersLoaded, skipped: [{ name, reason }] }
+  message: text("message"), // shown to the owner, e.g. why it failed
+  claimedAt: text("claimed_at"),
+  processedAt: text("processed_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  statusIdx: index("data_uploads_status_idx").on(table.status, table.createdAt),
+  orgIdx: index("data_uploads_org_idx").on(table.orgId, table.createdAt),
+}));
 
 export const expenseCategories = sqliteTable("expense_categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),

@@ -49,6 +49,25 @@
         </template>
       </div>
       <div class="space-y-3">
+        <!-- Fastest path: send us the list and we load it -->
+        <NuxtLink
+          to="/dashboard/upload"
+          class="flex items-center gap-3 rounded-lg bg-primary-600 px-4 py-3 text-white shadow-sm transition-shadow hover:shadow-md"
+        >
+          <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/20">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-semibold">Send us your {{ t.members.toLowerCase() }} list and we'll add everything</p>
+            <p class="text-xs text-primary-50">Excel, register photos or pasted text. Free, usually within a few hours.</p>
+          </div>
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </NuxtLink>
+        <p class="text-xs font-medium text-slate-600">Or do it yourself:</p>
         <!-- Create a plan -->
         <NuxtLink
           v-if="realPlans === 0"

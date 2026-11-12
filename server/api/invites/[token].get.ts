@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
       id: schema.orgInvites.id,
       orgId: schema.orgInvites.orgId,
       status: schema.orgInvites.status,
+      role: schema.orgInvites.role,
       expiresAt: schema.orgInvites.expiresAt,
       orgName: schema.organizations.name,
       orgType: schema.organizations.type,
@@ -66,6 +67,7 @@ export default defineEventHandler(async (event) => {
       status: "valid",
       orgName: invite.orgName,
       orgType: invite.orgType,
+      role: invite.role,
     };
   }
 

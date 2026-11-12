@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
     .where(
       and(
         eq(schema.orgInvites.id, inviteId),
+        eq(schema.orgInvites.role, "staff"),
         eq(schema.orgInvites.orgId, access.orgId),
         eq(schema.orgInvites.status, "pending")
       )

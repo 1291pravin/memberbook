@@ -80,7 +80,7 @@ async function handleCreate() {
       business_type: res.org.type,
     });
     await refreshSession();
-    navigateTo("/onboarding/wizard/plans");
+    navigateTo("/onboarding/wizard/upload");
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };
     error.value = err.data?.statusMessage || "Failed to create workspace";
