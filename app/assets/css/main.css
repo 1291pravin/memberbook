@@ -692,3 +692,74 @@ h1, h2, h3, h4, h5, h6 {
 .compare-card--after li { color: var(--paper-3); }
 .compare-card--after li::before { content: "\2713"; background: var(--accent); color: var(--paper); }
 @media (max-width: 760px) { .compare-grid { grid-template-columns: 1fr; } }
+
+/* Admin panel: "Clear" look. Light, neutral greys, one blue accent.
+   Scoped to .admin-shell so merchant screens keep their own theme. */
+.admin-shell {
+  --admin-bg: #F6F7F9;
+  --admin-surface: #FFFFFF;
+  --admin-subtle: #F9FAFB;
+  --admin-line: #E4E7EC;
+  --admin-line-soft: #F2F4F7;
+  --admin-ink: #101828;
+  --admin-text: #344054;
+  --admin-muted: #475467;
+  --admin-accent: #1F4FD1;
+  --admin-accent-strong: #173DA6;
+  --admin-accent-soft: #EEF3FF;
+
+  /* Remap the brand scale to blue inside the admin panel. */
+  --color-primary-50: #EEF3FF;
+  --color-primary-100: #DCE6FE;
+  --color-primary-200: #B9CCFD;
+  --color-primary-300: #8AA9F8;
+  --color-primary-400: #5A82EE;
+  --color-primary-500: #3563E0;
+  --color-primary-600: #1F4FD1;
+  --color-primary-700: #173DA6;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "tnum" 1, "cv11" 1;
+  color: var(--admin-ink);
+  background: var(--admin-bg);
+}
+.admin-shell h1, .admin-shell h2, .admin-shell h3 { font-family: inherit; }
+.admin-shell h1 { letter-spacing: -0.01em; }
+
+.admin-sidebar { background: var(--admin-surface); border-color: var(--admin-line); }
+.admin-logo { background: var(--admin-accent); color: #fff; }
+.admin-muted { color: var(--admin-muted); }
+.admin-nav-link { color: var(--admin-text); transition: background-color .15s, color .15s; }
+.admin-nav-link:hover { background: var(--admin-line-soft); color: var(--admin-ink); }
+.admin-nav-link--active,
+.admin-nav-link--active:hover { background: var(--admin-accent-soft); color: var(--admin-accent); font-weight: 600; }
+
+/* Calm surfaces: hairline borders, no drop shadows. */
+.admin-shell .bg-slate-50 { background-color: var(--admin-subtle); }
+.admin-shell .rounded-xl { border-radius: 10px; }
+.admin-shell .border-slate-200\/80,
+.admin-shell .border-slate-200 { border-color: var(--admin-line); }
+.admin-shell .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.admin-shell .border-slate-100 { border-color: var(--admin-line-soft); }
+.admin-shell .shadow-sm,
+.admin-shell .hover\:shadow-md:hover,
+.admin-shell .hover\:shadow-sm:hover,
+.admin-shell .hover\:shadow-primary-500\/25:hover { box-shadow: none; }
+
+.admin-shell .rounded-lg { border-radius: 8px; }
+.admin-shell .rounded-md { border-radius: 6px; }
+
+/* Let charts and wide tables shrink and scroll inside their card. */
+.admin-shell .grid > * { min-width: 0; }
+
+/* Card titles read as section headings. */
+.admin-shell .rounded-xl > h3:first-child { font-size: 15px; font-weight: 600; color: var(--admin-ink); margin-bottom: 12px; }
+
+/* Tables: quiet sentence-case headers on a subtle band. */
+.admin-shell thead { text-transform: none; color: var(--admin-muted); }
+.admin-shell thead th { font-weight: 500; background: var(--admin-subtle); }
+
+/* Secondary buttons: white with a border instead of a grey fill. */
+.admin-shell button.bg-slate-100 { background: #fff; box-shadow: inset 0 0 0 1px #D0D5DD; }
+.admin-shell button.bg-slate-100:hover { background: var(--admin-subtle); }
+.admin-shell .focus\:ring-primary-500:focus { --tw-ring-color: var(--admin-accent); }

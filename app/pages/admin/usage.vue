@@ -2,8 +2,7 @@
   <div class="space-y-6">
     <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
-        <p class="text-sm font-semibold text-primary-600">Admin</p>
-        <h1 class="mt-1 text-2xl font-bold text-slate-800">Usage</h1>
+        <h1 class="text-2xl font-semibold text-slate-900">Usage</h1>
         <p class="mt-1 text-sm text-slate-600">
           Signups, activation, and customer activity.
         </p>
@@ -37,17 +36,20 @@
       <div
         v-if="newSetupHelp.length"
         role="alert"
-        class="flex flex-col gap-3 rounded-lg border border-red-300 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+        class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div>
-          <p class="font-semibold text-red-800">
+        <div class="flex items-center gap-3">
+          <span class="h-2 w-2 shrink-0 rounded-full bg-red-600" aria-hidden="true" />
+          <div>
+          <p class="text-sm font-semibold text-slate-900">
             {{ newSetupHelp.length }} new {{ newSetupHelp.length === 1 ? "owner wants" : "owners want" }} help setting up on WhatsApp
           </p>
-          <p class="mt-0.5 text-sm text-red-700">
+          <p class="mt-0.5 text-sm text-slate-600">
             Oldest waiting since {{ formatDateTime(oldestNewSetupHelp) }}. Message them, then mark each one as contacted.
           </p>
+          </div>
         </div>
-        <a href="#setup-help" class="shrink-0 text-sm font-semibold text-red-800 underline">See requests</a>
+        <a href="#setup-help" class="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-900 hover:bg-slate-50">See requests</a>
       </div>
 
       <AppCard id="setup-help" title="WhatsApp setup-help requests">
@@ -66,9 +68,10 @@
                 <span :class="orgTypeColor(req.type)" class="inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium">{{ req.type }}</span>
                 <span
                   v-if="!req.setup_help_handled_at"
-                  class="inline-flex rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-700"
-                >New</span>
-                <span v-else class="inline-flex rounded-full bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
+                  class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700"
+                ><span class="h-1.5 w-1.5 rounded-full bg-red-600" aria-hidden="true" />New</span>
+                <span v-else class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
+                  <span class="h-1.5 w-1.5 rounded-full bg-green-600" aria-hidden="true" />
                   Contacted {{ formatDate(req.setup_help_handled_at) }}
                 </span>
               </div>
@@ -88,7 +91,7 @@
                 :href="setupHelpWhatsAppLink(req)"
                 target="_blank"
                 rel="noopener"
-                class="inline-flex items-center rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+                class="inline-flex items-center rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
               >
                 WhatsApp {{ req.owner_whatsapp }}
               </a>
@@ -106,79 +109,16 @@
         </ul>
       </AppCard>
 
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <AppStatCard
-          label="New signups"
-          :value="formatNumber(data.periodTotals.real_orgs_new)"
-          :subtitle="`${formatNumber(data.periodTotals.orgs_returned)} came back on a later day`"
-          icon-color="primary"
+      <div class="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-100 sm:grid-cols-3 xl:grid-cols-6">
+        <div
+          v-for="stat in statStrip"
+          :key="stat.label"
+          class="bg-white px-4 py-4 sm:px-5"
         >
-          <template #icon>
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-            </svg>
-          </template>
-        </AppStatCard>
-        <AppStatCard
-          label="Active organizations"
-          :value="formatNumber(data.activeOrganizations.length)"
-          :subtitle="`${formatNumber(data.totals.real_orgs_total)} real orgs total`"
-          icon-color="info"
-        >
-          <template #icon>
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-            </svg>
-          </template>
-        </AppStatCard>
-        <AppStatCard
-          label="Members added"
-          :value="formatNumber(data.periodTotals.members_added)"
-          :subtitle="`${formatNumber(data.periodTotals.plans_created)} plans created`"
-          icon-color="success"
-        >
-          <template #icon>
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-            </svg>
-          </template>
-        </AppStatCard>
-        <AppStatCard
-          label="Payments"
-          :value="formatCurrency(data.periodTotals.payment_volume)"
-          :subtitle="`${formatNumber(data.periodTotals.payments_recorded)} recorded`"
-          icon-color="success"
-        >
-          <template #icon>
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-            </svg>
-          </template>
-        </AppStatCard>
-        <AppStatCard
-          label="Inquiries"
-          :value="formatNumber(data.periodTotals.inquiries_created)"
-          :subtitle="`${formatNumber(data.totals.inquiries_total)} total`"
-          icon-color="warning"
-        >
-          <template #icon>
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-            </svg>
-          </template>
-        </AppStatCard>
-        <AppStatCard
-          label="Check-ins"
-          :value="formatNumber(data.periodTotals.checkins)"
-          :subtitle="`${formatNumber(data.totals.checkins_total)} total`"
-          icon-color="info"
-        >
-          <template #icon>
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </template>
-        </AppStatCard>
+          <p class="text-[13px] font-medium text-slate-600">{{ stat.label }}</p>
+          <p class="mt-1.5 text-2xl font-semibold tracking-tight text-slate-900">{{ stat.value }}</p>
+          <p class="mt-1 text-xs text-slate-600">{{ stat.subtitle }}</p>
+        </div>
       </div>
 
       <div class="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
@@ -188,8 +128,8 @@
               <button
                 v-for="s in activitySeries"
                 :key="s.key"
-                class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
-                :class="activeSeries[s.key] ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                class="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors"
+                :class="activeSeries[s.key] ? 'border-slate-300 bg-white text-slate-900' : 'border-transparent bg-slate-100 text-slate-600 hover:bg-slate-200'"
                 @click="toggleSeries(s.key)"
               >
                 <span class="h-2 w-2 rounded-full" :style="{ backgroundColor: s.color }" />
@@ -275,7 +215,7 @@
                     <p class="font-semibold text-slate-800">{{ org.name }}</p>
                     <div class="mt-0.5 flex items-center gap-1.5">
                       <span :class="orgTypeColor(org.type)" class="inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium">{{ org.type }}</span>
-                      <span class="text-xs text-slate-500">{{ formatDate(org.created_at) }}</span>
+                      <span class="whitespace-nowrap text-xs text-slate-600">{{ formatDate(org.created_at) }}</span>
                     </div>
                   </td>
                   <td class="px-2 py-3">
@@ -316,8 +256,7 @@
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
               <p class="font-semibold text-slate-800">{{ req.business_name }}</p>
               <span
-                class="inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium"
-                :class="req.source_page === '/dashboard/help' ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-700'"
+                class="inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700"
               >{{ req.source_page === '/dashboard/help' ? 'In-app' : 'Website' }}</span>
               <span class="text-xs text-slate-600">{{ formatDate(req.created_at) }}</span>
             </div>
@@ -430,12 +369,23 @@ type SetupHelpRequest = {
   active_days: number;
 };
 
-function orgTypeColor(type: string) {
-  if (type === "gym") return "bg-green-100 text-green-700";
-  if (type === "library") return "bg-blue-100 text-blue-700";
-  if (type === "tuition") return "bg-amber-100 text-amber-700";
-  return "bg-slate-100 text-slate-600";
+function orgTypeColor(_type: string) {
+  // One neutral chip for every type keeps colour for status only.
+  return "rounded-md bg-slate-100 text-slate-700 capitalize";
 }
+
+const statStrip = computed(() => {
+  const d = data.value;
+  if (!d) return [];
+  return [
+    { label: "New signups", value: formatNumber(d.periodTotals.real_orgs_new), subtitle: `${formatNumber(d.periodTotals.orgs_returned)} came back on a later day` },
+    { label: "Active orgs", value: formatNumber(d.activeOrganizations.length), subtitle: `${formatNumber(d.totals.real_orgs_total)} real orgs total` },
+    { label: "Members added", value: formatNumber(d.periodTotals.members_added), subtitle: `${formatNumber(d.periodTotals.plans_created)} plans created` },
+    { label: "Payments", value: formatCurrency(d.periodTotals.payment_volume), subtitle: `${formatNumber(d.periodTotals.payments_recorded)} recorded` },
+    { label: "Inquiries", value: formatNumber(d.periodTotals.inquiries_created), subtitle: `${formatNumber(d.totals.inquiries_total)} total` },
+    { label: "Check-ins", value: formatNumber(d.periodTotals.checkins), subtitle: `${formatNumber(d.totals.checkins_total)} total` },
+  ];
+});
 
 type AdminUsage = {
   totals: Record<string, number>;
@@ -467,9 +417,12 @@ function whatsAppLinkFor(phone: string) {
 const days = ref(28);
 const loginOrgId = ref<number | null>(null);
 
+// useRequestFetch forwards the admin cookie during server rendering, so a
+// direct page load or refresh of /admin/usage does not fail with 401.
+const requestFetch = useRequestFetch();
 const { data, pending, error, refresh } = await useAsyncData<AdminUsage>(
   "admin-usage",
-  () => $fetch("/api/admin/usage", { query: { days: days.value } }),
+  () => requestFetch("/api/admin/usage", { query: { days: days.value } }),
   { watch: [days] },
 );
 
@@ -510,7 +463,7 @@ function visitSummary(activeDays: number, lastSeen: string | null) {
 const { colors, baseOptions, formatDateLabel } = useCharts();
 
 const activitySeries = [
-  { key: "organizations", label: "Orgs", color: colors.indigo, alpha: colors.indigoAlpha },
+  { key: "organizations", label: "Orgs", color: "#1F4FD1", alpha: "rgba(31, 79, 209, 0.08)" },
   { key: "members", label: "Members", color: colors.green, alpha: colors.greenAlpha },
   { key: "payments", label: "Payments", color: colors.blue, alpha: colors.blueAlpha },
   { key: "checkIns", label: "Check-ins", color: colors.purple, alpha: colors.purpleAlpha },
@@ -571,8 +524,8 @@ const signupsChartData = computed(() => ({
     {
       label: "New organizations",
       data: dailyRows.value.map((row) => Number(row.organizations ?? 0)),
-      backgroundColor: colors.indigo,
-      borderRadius: 4,
+      backgroundColor: "#1F4FD1",
+      borderRadius: 3,
       maxBarThickness: 28,
     },
   ],

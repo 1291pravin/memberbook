@@ -1,9 +1,12 @@
 <template>
-  <div class="min-h-[80vh] bg-slate-50 px-4 py-10">
-    <div class="mx-auto flex w-full max-w-sm flex-col justify-center">
-      <div class="mb-8">
-        <p class="text-sm font-semibold text-primary-600">MemberBook</p>
-        <h1 class="mt-2 text-2xl font-bold text-slate-800">Admin login</h1>
+  <div class="admin-shell flex min-h-[80vh] items-center px-4 py-10">
+    <div class="mx-auto w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 sm:p-8">
+      <div class="mb-6 flex items-center gap-2.5">
+        <span class="admin-logo flex h-8 w-8 items-center justify-center rounded-md text-sm font-bold">M</span>
+        <div>
+          <h1 class="text-lg font-semibold text-slate-900">Admin login</h1>
+          <p class="text-xs text-slate-600">MemberBook</p>
+        </div>
       </div>
 
       <div

@@ -1,8 +1,7 @@
 <template>
   <div class="space-y-6">
     <div>
-      <p class="text-sm font-semibold text-primary-600">Admin</p>
-      <h1 class="mt-1 text-2xl font-bold text-slate-800">Set up a business</h1>
+      <h1 class="text-2xl font-semibold text-slate-900">Set up a business</h1>
       <p class="mt-1 max-w-2xl text-sm text-slate-600">
         For owners who sent us their register. Create the business here, open it to add plans and members,
         then send the owner their link. When they open it and sign in, the business becomes theirs.
@@ -48,8 +47,8 @@
             class="py-4"
             :class="{ 'rounded-lg bg-primary-50 px-3': biz.id === highlightId }"
           >
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div class="min-w-0">
+            <div class="flex flex-col gap-3 2xl:flex-row 2xl:items-start 2xl:justify-between">
+              <div class="min-w-0 flex-1">
                 <p class="font-semibold text-slate-800">
                   {{ biz.name }}
                   <span class="ml-1 text-xs font-normal capitalize text-slate-600">{{ biz.type }}</span>
@@ -96,7 +95,7 @@
                     :href="whatsAppLink(biz)"
                     target="_blank"
                     rel="noopener"
-                    class="inline-flex items-center rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+                    class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                   >
                     Send link on WhatsApp
                   </a>
