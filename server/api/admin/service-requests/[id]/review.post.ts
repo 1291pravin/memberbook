@@ -31,6 +31,7 @@ export default defineEventHandler(async (event) => {
       reviewedAt: now,
       updatedAt: now,
     }).where(eq(schema.serviceRequests.id, req.id));
+    wakeAiRunSoon(event, "services", `admin sent request #${req.id} back with changes`);
     return { status: "new" };
   }
   throw createError({ statusCode: 400, statusMessage: "action must be approve or reject" });
