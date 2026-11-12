@@ -1,8 +1,7 @@
 <template>
   <div class="space-y-4">
     <div>
-      <p class="text-sm font-semibold text-primary-600">Admin</p>
-      <h1 class="mt-1 text-2xl font-bold text-slate-800">WhatsApp inbox</h1>
+      <h1 class="text-2xl font-semibold text-slate-900">WhatsApp inbox</h1>
       <p class="mt-1 text-sm text-slate-600">
         Messages to MemberBook's WhatsApp number. You can reply for 24 hours after their last message.
       </p>
@@ -85,7 +84,7 @@
               </div>
               <span
                 v-if="c.unread"
-                class="mt-1 inline-flex min-w-5 shrink-0 justify-center rounded-full bg-green-600 px-1.5 text-xs font-semibold text-white"
+                class="mt-1 inline-flex min-w-5 shrink-0 justify-center rounded-full bg-primary-600 px-1.5 text-xs font-semibold text-white"
               >{{ c.unread }}</span>
             </button>
           </li>
@@ -117,7 +116,7 @@
             >
               <div
                 class="max-w-[80%] whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm shadow-sm"
-                :class="m.direction === 'out' ? 'bg-green-100 text-slate-800' : 'bg-white text-slate-800'"
+                :class="m.direction === 'out' ? 'bg-primary-50 text-slate-800' : 'bg-white text-slate-800'"
               >
                 {{ m.body }}
                 <p class="mt-1 text-right text-[11px] text-slate-600">
