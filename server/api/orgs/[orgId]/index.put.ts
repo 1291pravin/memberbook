@@ -1,3 +1,4 @@
+import { ORG_TYPES } from "../../../utils/org-setup";
 import { eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
@@ -10,7 +11,7 @@ export default defineEventHandler(async (event) => {
   const updates: Record<string, unknown> = {};
   if (name) updates.name = name.trim();
   if (type) {
-    if (!["gym", "library", "tuition", "other"].includes(type)) {
+    if (!(ORG_TYPES as readonly string[]).includes(type)) {
       throw createError({ statusCode: 400, statusMessage: "Invalid organization type" });
     }
     updates.type = type;

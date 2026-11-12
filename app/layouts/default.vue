@@ -11,7 +11,7 @@
       <div class="wrap nav-inner">
         <NuxtLink to="/" class="brand" aria-label="MemberBook home">
           <BrandMark :size="30" />
-          <span class="brand-name">MemberBook</span>
+          <span class="brand-name">memberbook</span>
         </NuxtLink>
 
         <!-- Desktop nav -->
@@ -96,9 +96,9 @@
           <div>
             <div class="brand">
               <BrandMark :size="28" />
-              <span class="brand-name">MemberBook</span>
+              <span class="brand-name">memberbook</span>
             </div>
-            <p class="blurb">The friendly way to run a gym, library, or tuition center in India. Made with care.</p>
+            <p class="blurb">The friendly front desk for gyms, libraries, coaching centres, clinics and studios in India.</p>
             <a
               :href="`https://wa.me/${WHATSAPP_NUMBER}`"
               target="_blank"
@@ -159,8 +159,6 @@
 </template>
 
 <script setup lang="ts">
-import { h } from "vue";
-
 const route = useRoute();
 const { loggedIn, clear } = useUserSession();
 const mobileMenuOpen = ref(false);
@@ -168,23 +166,6 @@ const { trackCtaClick } = useAnalytics();
 
 const { whatsappNumber: supportWhatsappNumber, whatsappDisplay } = useSupport();
 const WHATSAPP_NUMBER = supportWhatsappNumber;
-
-// MemberBook mark: a compact ledger monogram with payment/member dots.
-const BrandMark = (props: { size?: number }) =>
-  h("svg", { width: props.size ?? 30, height: props.size ?? 30, viewBox: "0 0 48 48", fill: "none", "aria-hidden": "true" }, [
-    h("rect", { x: 3, y: 3, width: 42, height: 42, rx: 13, fill: "var(--ink)" }),
-    h("path", {
-      d: "M13.5 31.5v-14c0-2 1.5-3.5 3.5-3.5h3.4c1.2 0 2.3.7 2.9 1.7l.7 1.3.7-1.3c.6-1 1.7-1.7 2.9-1.7H31c2 0 3.5 1.5 3.5 3.5v14",
-      stroke: "var(--paper)",
-      "stroke-width": 3,
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    }),
-    h("path", { d: "M18 22h3M27 22h3", stroke: "var(--accent)", "stroke-width": 2.4, "stroke-linecap": "round" }),
-    h("circle", { cx: 19, cy: 28, r: 2.1, fill: "var(--positive)" }),
-    h("circle", { cx: 29, cy: 28, r: 2.1, fill: "var(--saffron)" }),
-    h("path", { d: "M20 35c2.5 1.3 5.5 1.3 8 0", stroke: "var(--paper)", "stroke-width": 2.4, "stroke-linecap": "round", opacity: ".9" }),
-  ]);
 
 watch(() => route.path, () => {
   mobileMenuOpen.value = false;

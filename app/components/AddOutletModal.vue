@@ -48,6 +48,8 @@ const businessTypes = [
   { value: "gym", label: "Gym / Fitness Center" },
   { value: "library", label: "Library" },
   { value: "tuition", label: "Tuition / Coaching Center" },
+  { value: "clinic", label: "Clinic / Physio" },
+  { value: "studio", label: "Yoga / Dance / Classes" },
   { value: "other", label: "Other" },
 ];
 

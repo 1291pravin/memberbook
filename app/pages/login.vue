@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-[80vh] flex items-center justify-center px-4">
-    <div class="w-full max-w-sm">
+  <div class="min-h-[80vh] flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8">
       <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-slate-800 mb-1">Sign in to MemberBook</h1>
-        <p class="text-sm text-slate-600">Members, payments, and renewals in one place</p>
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-800">Welcome <span class="serif-accent text-primary-600">back.</span></h1>
+        <p class="mt-2 text-slate-600">Sign in to see who has paid and who needs a nudge.</p>
       </div>
 
       <div
         v-if="error"
-        class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700"
+        class="mb-4 rounded-2xl bg-red-50 p-3 text-sm text-red-700"
       >
         {{ error }}
       </div>
@@ -28,7 +28,7 @@
           placeholder="Your password"
           required
         />
-        <AppButton type="submit" class="w-full" :loading="loading">
+        <AppButton type="submit" size="lg" class="w-full" :loading="loading">
           Sign In
         </AppButton>
       </form>
@@ -38,13 +38,13 @@
           <div class="w-full border-t border-slate-200" />
         </div>
         <div class="relative flex justify-center text-sm">
-          <span class="bg-slate-50 px-2 text-slate-600">or</span>
+          <span class="bg-white px-2 text-slate-600">or</span>
         </div>
       </div>
 
       <a
         href="/auth/google"
-        class="flex items-center justify-center gap-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        class="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
       >
         <svg class="w-5 h-5" viewBox="0 0 24 24">
           <path
