@@ -17,7 +17,10 @@ export type TodoKind =
   | "follow_up"
   | "claims"
   | "slipping"
-  | "new_signup";
+  | "new_signup"
+  | "addon_review"
+  | "addon_stuck"
+  | "addon_bill";
 
 export interface TodoItem {
   kind: TodoKind;
@@ -201,6 +204,46 @@ export async function getAdminToday() {
       at: b.createdAt,
       orgId: b.id,
       link: `/admin/businesses/${b.id}`,
+    });
+  }
+
+  // Add-on services: website drafts to check, stuck jobs, bills to verify.
+  const [addOnRequests, claimedBills] = await Promise.all([
+    db.all(sql`
+      SELECT r.id, r.org_id, r.type, r.status, r.created_at, r.delivered_at, o.name AS org_name
+      FROM service_requests r JOIN organizations o ON o.id = r.org_id
+      WHERE r.status = 'needs_review' OR (r.status IN ('new', 'working') AND r.created_at < ${stuckBeforeIso})
+      ORDER BY r.id LIMIT 30
+    `),
+    db.all(sql`
+      SELECT b.id, b.org_id, b.amount, b.upi_ref, b.claimed_at, o.name AS org_name
+      FROM add_on_bills b JOIN organizations o ON o.id = b.org_id
+      WHERE b.status = 'claimed' ORDER BY b.claimed_at LIMIT 30
+    `),
+  ]) as Raw[][];
+  for (const r of addOnRequests!) {
+    const review = r.status === "needs_review";
+    todos.push({
+      kind: review ? "addon_review" : "addon_stuck",
+      priority: review ? 78 : 74,
+      title: review ? `Check ${r.org_name}'s website draft` : `${r.org_name}'s ${String(r.type).replace("_", " ")} request is still waiting`,
+      detail: review
+        ? "Approve it so the owner can publish, or send it back with what to fix."
+        : `Asked ${hoursAgo(String(r.created_at))} hours ago. Check the hourly add-on routine.`,
+      at: String(r.delivered_at || r.created_at),
+      orgId: Number(r.org_id),
+      link: `/admin/services?request=${r.id}`,
+    });
+  }
+  for (const b of claimedBills!) {
+    todos.push({
+      kind: "addon_bill",
+      priority: 65,
+      title: `${b.org_name} says they paid ${formatRupeesShort(Number(b.amount))}`,
+      detail: `Check UPI reference ${b.upi_ref} in your bank app, then mark it paid.`,
+      at: String(b.claimed_at),
+      orgId: Number(b.org_id),
+      link: "/admin/services#bills",
     });
   }
 

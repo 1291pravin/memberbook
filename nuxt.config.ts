@@ -67,6 +67,7 @@ export default defineNuxtConfig({
       "/login",
       "/register",
       "/pay/**",
+      "/checkin/**",
     ],
     defaults: {
       changefreq: "weekly",
@@ -106,7 +107,7 @@ export default defineNuxtConfig({
     experimental: { tasks: true },
     // 03:30 UTC = 09:00 IST. The same cron must be listed in wrangler.jsonc "triggers".
     scheduledTasks: {
-      "30 3 * * *": ["reminders:daily", "admin:digest"],
+      "30 3 * * *": ["reminders:daily", "addons:billing", "admin:digest"],
     },
   },
   hub: {
@@ -128,6 +129,10 @@ export default defineNuxtConfig({
     // Email for new WhatsApp inbox messages (must be a verified Email Routing
     // destination; sent through the ALERT_EMAIL send_email binding).
     inboxAlertEmail: "",
+    // MemberBook's own UPI ID for add-on bills (NUXT_BILLING_UPI_ID). Until it is
+    // set, owners with a bill see "we'll send payment details on WhatsApp".
+    billingUpiId: "",
+    billingPayeeName: "MemberBook",
     whatsappCloud: {
       enabled: false,
       accessToken: "",
