@@ -157,10 +157,11 @@ export async function loadOrgData(orgId: number, input: LoadInput): Promise<Load
   let membersLoaded = 0;
   let membersWithoutDueDate = 0;
   let dueNow = 0;
-  let statements: ReturnType<typeof db.run>[] = [];
+  let statements: unknown[] = [];
   const flush = async () => {
     if (!statements.length) return;
     // Run in one batch (a single transaction); each member's rows chain on last_insert_rowid().
+    // These must be query builders (db.insert), not db.run(sql``): D1 batch can't bind raw SQL.
     await db.batch(statements as unknown as Parameters<typeof db.batch>[0]);
     statements = [];
   };
@@ -218,28 +219,48 @@ export async function loadOrgData(orgId: number, input: LoadInput): Promise<Load
     }
 
     const gender = raw.gender === "male" || raw.gender === "female" ? raw.gender : null;
-    statements.push(db.run(sql`
-      INSERT INTO members (org_id, name, phone, email, gender, status, notes, father_name, address, batch, created_at)
-      VALUES (${orgId}, ${name}, ${phone}, ${clean(raw.email, 200)}, ${gender}, 'active', ${clean(raw.notes)},
-        ${clean(raw.fatherName, 100)}, ${clean(raw.address)}, ${clean(raw.batch, 100)}, ${new Date().toISOString()})
-    `));
+    const createdAt = new Date().toISOString();
+    statements.push(db.insert(schema.members).values({
+      orgId,
+      name,
+      phone,
+      email: clean(raw.email, 200),
+      gender,
+      status: "active",
+      notes: clean(raw.notes),
+      fatherName: clean(raw.fatherName, 100),
+      address: clean(raw.address),
+      batch: clean(raw.batch, 100),
+      createdAt,
+    }));
 
     if (plan && period) {
       const status = period.paid >= plan.price ? "paid" : period.paid > 0 ? "partial" : "unpaid";
       if (status !== "paid" && period.start <= today) dueNow++;
-      statements.push(db.run(sql`
-        INSERT INTO member_subscriptions (org_id, member_id, plan_id, start_date, end_date, amount, status, auto_renew, payment_status, created_at)
-        VALUES (${orgId}, last_insert_rowid(), ${plan.id}, ${period.start}, ${period.end}, ${plan.price},
-          ${period.end >= today ? "active" : "expired"}, 1, ${status}, ${new Date().toISOString()})
-      `));
+      statements.push(db.insert(schema.memberSubscriptions).values({
+        orgId,
+        memberId: sql`last_insert_rowid()`,
+        planId: plan.id,
+        startDate: period.start,
+        endDate: period.end,
+        amount: plan.price,
+        status: period.end >= today ? "active" : "expired",
+        autoRenew: true,
+        paymentStatus: status,
+        createdAt,
+      }));
       if (period.paid > 0) {
         const method = PAYMENT_METHODS.includes(String(raw.paymentMethod)) ? String(raw.paymentMethod) : "cash";
-        statements.push(db.run(sql`
-          INSERT INTO payments (org_id, member_id, subscription_id, amount, method, date, notes, created_at)
-          SELECT ${orgId}, ms.member_id, ms.id, ${period.paid}, ${method}, ${period.start},
-            'Paid before MemberBook (loaded from your data)', ${new Date().toISOString()}
-          FROM member_subscriptions ms WHERE ms.id = last_insert_rowid()
-        `));
+        statements.push(db.insert(schema.payments).values({
+          orgId,
+          memberId: sql`(SELECT member_id FROM member_subscriptions WHERE id = last_insert_rowid())`,
+          subscriptionId: sql`last_insert_rowid()`,
+          amount: period.paid,
+          method,
+          date: period.start,
+          notes: "Paid before MemberBook (loaded from your data)",
+          createdAt,
+        }));
       }
     }
     else {
