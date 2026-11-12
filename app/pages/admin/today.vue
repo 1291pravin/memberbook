@@ -168,7 +168,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: "admin", middleware: "admin" });
 
-type TodoKind = "whatsapp" | "setup_help" | "help_form" | "upload_failed" | "upload_stuck" | "follow_up" | "claims" | "slipping" | "new_signup";
+type TodoKind = "whatsapp" | "setup_help" | "help_form" | "upload_failed" | "upload_stuck" | "follow_up" | "claims" | "slipping" | "new_signup" | "addon_review" | "addon_stuck" | "addon_bill";
 
 interface TodoItem {
   kind: TodoKind;
@@ -210,6 +210,9 @@ const KIND_META: Record<TodoKind, { label: string; short: string; dot: string }>
   claims: { label: "Payment claims", short: "Claims", dot: "bg-amber-500" },
   slipping: { label: "Going quiet", short: "Quiet", dot: "bg-amber-500" },
   new_signup: { label: "New signup", short: "Signups", dot: "bg-sky-500" },
+  addon_review: { label: "Website to check", short: "Add-ons", dot: "bg-red-600" },
+  addon_stuck: { label: "Add-on waiting", short: "Add-ons", dot: "bg-amber-500" },
+  addon_bill: { label: "Bill paid?", short: "Bills", dot: "bg-amber-500" },
 };
 
 const { formatNumber, formatRupees, ago } = useAdmin();

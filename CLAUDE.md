@@ -121,6 +121,10 @@ Optional support channels (defaults in `nuxt.config.ts`, used by `useSupport()`)
 
 `/dashboard/collections` lists overdue and due-soon payments (`server/utils/collections.ts`). Reminders carry a public pay link `/pay/<token>` that opens the member's UPI app to pay the owner's UPI ID directly. Tap-to-send works today; automatic sending via Meta WhatsApp Cloud API is off until `NUXT_WHATSAPP_CLOUD_ENABLED=true` plus its secrets are set (see `docs/whatsapp-cloud-api-setup.md`). Daily job: `server/tasks/reminders/daily.ts`, cron in `wrangler.jsonc`.
 
+## Add-ons (paid extras)
+
+`/dashboard/add-ons` lists add-on services (catalog in `shared/utils/add-ons.ts`, state in `org_add_ons`). Paid add-ons get a free month, then a monthly bill (`add_on_bills`, daily task `addons:billing`) paid by UPI to `NUXT_BILLING_UPI_ID` and verified by hand on `/admin/services`. Add-ons with `ready: false` are feature-flagged: admins can switch one on for a single business from `/admin/services`. Websites, website changes and review replies/summaries go into `service_requests`, worked by an hourly Claude routine (`docs/service-delivery.md`, `scripts/services.mjs`); website drafts need admin approval, then the owner publishes. Sites are served script-free at `/s/<slug>` (and `<slug>.memberbook.in` once wildcard DNS is set). Self check-in: public `/checkin/<token>`.
+
 ## WhatsApp
 
 - Pravin's WhatsApp number: **9137849812** (+91 91378 49812)

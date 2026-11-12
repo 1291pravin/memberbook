@@ -28,6 +28,7 @@ export const organizations = sqliteTable("organizations", {
   upiPayeeName: text("upi_payee_name"), // name shown in the UPI app, defaults to the org name
   autoRemindersEnabled: integer("auto_reminders_enabled", { mode: "boolean" }).notNull().default(false),
   reminderDaysBefore: integer("reminder_days_before").notNull().default(3),
+  checkInToken: text("check_in_token"), // public self check-in link /checkin/<token>, null = not set up
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -237,6 +238,7 @@ export const checkIns = sqliteTable("check_ins", {
   batchId: integer("batch_id").references(() => seatBatches.id),
   batchName: text("batch_name"), // Denormalized for history
   notes: text("notes"),
+  source: text("source").notNull().default("staff"), // staff, self (member scanned the QR at the door)
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   orgCheckedInIdx: index("check_ins_org_checked_in_idx").on(table.orgId, table.checkedInAt),
@@ -385,4 +387,84 @@ export const userActivityDays = sqliteTable("user_activity_days", {
 }, (table) => ({
   pk: primaryKey({ columns: [table.userId, table.orgId, table.day] }),
   orgDayIdx: index("user_activity_days_org_idx").on(table.orgId, table.day),
+}));
+
+
+// Add-on services a business has switched on. Also the per-business feature
+// flag: admin_enabled lets one business use an add-on before it opens to all.
+export const orgAddOns = sqliteTable("org_add_ons", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  addOn: text("add_on").notNull(), // see ADD_ONS in shared/utils/add-ons.ts
+  status: text("status").notNull().default("off"), // off, active, notify (asked to hear when it's ready)
+  adminEnabled: integer("admin_enabled", { mode: "boolean" }).notNull().default(false),
+  price: integer("price").notNull().default(0), // paise a month, locked when started
+  trialEndsOn: text("trial_ends_on"), // YYYY-MM-DD (IST), billing starts the day after
+  startedAt: text("started_at"),
+  notifyRequestedAt: text("notify_requested_at"),
+  cancelledAt: text("cancelled_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  orgAddOnUnique: uniqueIndex("org_add_ons_org_add_on_unique").on(table.orgId, table.addOn),
+}));
+
+// Work for the hourly delivery routine: website builds and changes, review
+// reply drafts and review summaries.
+export const serviceRequests = sqliteTable("service_requests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  type: text("type").notNull(), // website_build, website_change, review_reply, review_summary
+  // new -> working -> needs_review (websites: admin checks) -> ready (owner can publish) -> done
+  // or failed / cancelled
+  status: text("status").notNull().default("new"),
+  input: text("input").notNull().default("{}"), // JSON: what the owner asked for
+  result: text("result"), // JSON: { text } for reviews, { summary } for websites
+  adminNote: text("admin_note"), // admin's change request when sending a draft back
+  message: text("message"), // shown to the owner (why it failed, what changed)
+  requestedBy: integer("requested_by").references(() => users.id),
+  claimedAt: text("claimed_at"),
+  deliveredAt: text("delivered_at"),
+  reviewedAt: text("reviewed_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  statusIdx: index("service_requests_status_idx").on(table.status, table.createdAt),
+  orgIdx: index("service_requests_org_idx").on(table.orgId, table.createdAt),
+}));
+
+// The website we build for a business, served at /s/<slug>.
+export const orgWebsites = sqliteTable("org_websites", {
+  orgId: integer("org_id").primaryKey().references(() => organizations.id),
+  slug: text("slug").notNull(),
+  status: text("status").notNull().default("draft"), // draft, live, off
+  details: text("details").notNull().default("{}"), // JSON: WebsiteDetails the owner confirmed
+  files: text("files").notNull().default("[]"), // JSON: [{ key, name, type, size, kind: logo|photo }]
+  draftHtml: text("draft_html"),
+  draftApprovedAt: text("draft_approved_at"), // admin checked the draft
+  liveHtml: text("live_html"),
+  publishedAt: text("published_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  slugUnique: uniqueIndex("org_websites_slug_unique").on(table.slug),
+}));
+
+// Monthly bill for paid add-ons once their free month ends. Paid to
+// MemberBook's UPI ID; the admin verifies the UPI reference by hand.
+export const addOnBills = sqliteTable("add_on_bills", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  period: text("period").notNull(), // YYYY-MM
+  amount: integer("amount").notNull(), // paise
+  items: text("items").notNull().default("[]"), // JSON: [{ addOn, name, amount }]
+  status: text("status").notNull().default("due"), // due, claimed (owner entered a UPI ref), paid, waived
+  upiRef: text("upi_ref"),
+  claimedAt: text("claimed_at"),
+  paidAt: text("paid_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  orgPeriodUnique: uniqueIndex("add_on_bills_org_period_unique").on(table.orgId, table.period),
+  statusIdx: index("add_on_bills_status_idx").on(table.status),
 }));
