@@ -40,7 +40,15 @@ export function isValidAdminToken(event: H3Event) {
   const config = useRuntimeConfig(event);
   const expectedToken = config.adminApiToken || process.env.NUXT_ADMIN_API_TOKEN || process.env.ADMIN_API_TOKEN || "";
 
-  return constantTimeMatch(getAdminToken(event), String(expectedToken));
+  const token = getAdminToken(event);
+  if (!token) {
+    return false;
+  }
+
+  // Scheduled routines authenticate with a bearer token. Accept either the
+  // dedicated API token or one of the admin passwords.
+  return constantTimeMatch(token, String(expectedToken))
+    || getConfiguredAdminPasswords(event).some(password => constantTimeMatch(token, password));
 }
 
 export async function requireAdminAccess(event: H3Event) {
