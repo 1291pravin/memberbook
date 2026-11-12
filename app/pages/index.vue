@@ -32,7 +32,7 @@
             <figure class="hero-photo-frame demo-frame">
               <video
                 ref="demoVideo"
-                poster="/brand/memberbook-demo-poster.webp"
+                poster="/brand/memberbook-ad-poster.webp"
                 width="1280"
                 height="720"
                 autoplay
@@ -41,13 +41,13 @@
                 playsinline
                 controls
                 preload="metadata"
-                aria-label="45 second demo: a gym's members, fees due, a reminder with a UPI pay link, and add-ons in MemberBook"
+                aria-label="One minute video: chasing fees from a paper register, and how MemberBook loads your register and collects fees with WhatsApp reminders and UPI links"
               >
-                <source src="/brand/memberbook-demo.webm" type="video/webm">
-                <source src="/brand/memberbook-demo.mp4" type="video/mp4">
+                <source src="/brand/memberbook-ad.webm" type="video/webm">
+                <source src="/brand/memberbook-ad.mp4" type="video/mp4">
               </video>
             </figure>
-            <p class="demo-caption">A 45-second look at a sample gym</p>
+            <p class="demo-caption">The 1-minute story. Tap the speaker for sound.</p>
           </div>
         </div>
       </div>
@@ -316,7 +316,7 @@ useSeoMeta({
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: appUrl,
   ogType: "website",
-  ogVideo: `${appUrl}/brand/memberbook-demo.mp4`,
+  ogVideo: `${appUrl}/brand/memberbook-ad.mp4`,
   twitterCard: "summary_large_image",
   twitterTitle: seoTitle,
   twitterDescription: seoDescription,
@@ -344,12 +344,12 @@ useHead({
       children: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "VideoObject",
-        "name": "MemberBook demo",
-        "description": "A 45-second tour of MemberBook on a sample gym: members, fees due, a WhatsApp reminder with a UPI pay link, and add-ons.",
-        "thumbnailUrl": `${appUrl}/brand/memberbook-demo-poster.webp`,
-        "contentUrl": `${appUrl}/brand/memberbook-demo.mp4`,
+        "name": "MemberBook: you run the place, we collect the fees",
+        "description": "A one-minute look at the monthly fee chase in gyms, libraries and coaching centres, and how MemberBook loads your register and collects fees with WhatsApp reminders and UPI pay links.",
+        "thumbnailUrl": `${appUrl}/brand/memberbook-ad-poster.webp`,
+        "contentUrl": `${appUrl}/brand/memberbook-ad.mp4`,
         "uploadDate": "2026-11-12",
-        "duration": "PT44S",
+        "duration": "PT58S",
       }),
     },
     {
