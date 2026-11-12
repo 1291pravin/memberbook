@@ -27,7 +27,7 @@
       </div>
       <p v-if="!number.ok" class="mt-1 text-red-700">{{ number.error }}</p>
       <form
-        v-if="number.ok && !numberReady"
+        v-if="number.ok && number.status !== 'CONNECTED'"
         class="mt-3 flex flex-wrap items-end gap-2"
         @submit.prevent="registerNumber"
       >
@@ -48,6 +48,15 @@
         </AppButton>
         <p v-if="registerError" class="w-full text-xs text-red-700">{{ registerError }}</p>
       </form>
+      <div v-if="number.ok && number.status === 'CONNECTED'" class="mt-3 flex flex-wrap items-center gap-2">
+        <AppButton v-if="number.webhooksSubscribed !== true" :loading="linking" @click="linkWebhooks">
+          Link incoming messages
+        </AppButton>
+        <AppButton variant="secondary" :loading="savingProfile" @click="saveProfile">
+          Update WhatsApp profile
+        </AppButton>
+        <p v-if="actionMessage" class="w-full text-xs" :class="actionError ? 'text-red-700' : 'text-green-700'">{{ actionMessage }}</p>
+      </div>
     </div>
 
     <div class="grid gap-4 md:grid-cols-[320px_1fr]">
@@ -201,7 +210,7 @@ interface NumberStatus {
   webhooksSubscribed?: boolean | null;
 }
 const { data: number, refresh: refreshNumber } = await useFetch<NumberStatus>("/api/admin/whatsapp/status", { key: "admin-wa-number", lazy: true, server: false });
-const numberReady = computed(() => number.value?.ok && number.value.status === "CONNECTED" && number.value.webhooksSubscribed !== false);
+const numberReady = computed(() => number.value?.ok && number.value.status === "CONNECTED" && number.value.webhooksSubscribed === true);
 const pin = ref("");
 const registering = ref(false);
 const registerError = ref("");
@@ -225,6 +234,51 @@ async function registerNumber() {
 }
 
 const route = useRoute();
+const linking = ref(false);
+const savingProfile = ref(false);
+const actionMessage = ref("");
+const actionError = ref(false);
+
+function errorText(err: unknown, fallback: string) {
+  const e = err as { data?: { statusMessage?: string }; statusMessage?: string };
+  return e?.data?.statusMessage || e?.statusMessage || fallback;
+}
+
+async function linkWebhooks() {
+  linking.value = true;
+  actionMessage.value = "";
+  try {
+    await $fetch("/api/admin/whatsapp/subscribe", { method: "POST" });
+    actionError.value = false;
+    actionMessage.value = "Incoming messages are linked. Send a test message to the number.";
+  }
+  catch (err) {
+    actionError.value = true;
+    actionMessage.value = errorText(err, "Could not link incoming messages.");
+  }
+  finally {
+    linking.value = false;
+    refreshNumber();
+  }
+}
+
+async function saveProfile() {
+  savingProfile.value = true;
+  actionMessage.value = "";
+  try {
+    const res = await $fetch<{ error?: string; photo?: boolean }>("/api/admin/whatsapp/profile", { method: "POST" });
+    actionError.value = !!res.error;
+    actionMessage.value = res.error || "WhatsApp profile updated (photo, about, description, email, website).";
+  }
+  catch (err) {
+    actionError.value = true;
+    actionMessage.value = errorText(err, "Could not update the profile.");
+  }
+  finally {
+    savingProfile.value = false;
+  }
+}
+
 const selected = ref<string | null>(null);
 const thread = ref<Thread | null>(null);
 const draft = ref("");

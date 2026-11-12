@@ -45,5 +45,8 @@
     "NUXT_PUBLIC_GTAG_ID": "G-0X02PJLVRK",
     // Support number is connected to the WhatsApp Cloud API, so show WhatsApp contact links.
     "NUXT_PUBLIC_SUPPORT_WHATSAPP_LIVE": "true",
+    // Not secret: Meta WhatsApp Business Account and app ids (webhook link + profile photo upload).
+    "NUXT_WHATSAPP_CLOUD_BUSINESS_ACCOUNT_ID": "1686210686459455",
+    "NUXT_WHATSAPP_CLOUD_APP_ID": "2076715572848640",
   },
 }

@@ -142,6 +142,8 @@ export default defineNuxtConfig({
       templateName: "fee_reminder",
       templateLanguage: "en",
       apiVersion: "v22.0",
+      businessAccountId: "",
+      appId: "",
     },
     session: {
       maxAge: 60 * 60 * 24 * 365, // 1 year — effectively "no timeout"

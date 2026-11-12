@@ -16,6 +16,10 @@ interface CloudConfig {
   templateName: string;
   templateLanguage: string;
   apiVersion: string;
+  /** WhatsApp Business Account id, used to link webhooks (found from the token when empty). */
+  businessAccountId?: string;
+  /** Meta app id, needed to upload the profile photo. */
+  appId?: string;
 }
 
 export function getWhatsAppCloudConfig(): CloudConfig {
@@ -219,6 +223,7 @@ export interface PhoneNumberStatus {
 /** Find the WhatsApp Business Account that owns our phone number, from the token's granted scopes. */
 async function findBusinessAccountId(): Promise<string | null> {
   const c = getWhatsAppCloudConfig();
+  if (c.businessAccountId) return String(c.businessAccountId);
   const debug = await graph<{ data?: { granular_scopes?: { scope: string; target_ids?: string[] }[] } }>(
     `debug_token?input_token=${encodeURIComponent(c.accessToken)}`,
   );
@@ -288,6 +293,90 @@ export async function registerPhoneNumber(pin: string): Promise<{ ok: boolean; e
     const sub = await graph<{ success?: boolean }>(`${wabaId}/subscribed_apps`, { method: "POST" });
     if (!sub.ok) return { ok: true, subscribed: false, error: `Registered, but webhook subscription failed: ${graphError(sub)}` };
     return { ok: true, subscribed: true };
+  }
+  catch (err) {
+    return { ok: false, error: String(err).slice(0, 500) };
+  }
+}
+
+/** Link Meta webhooks (incoming messages, delivery status) to this app for the business account. */
+export async function subscribeWebhooks(): Promise<{ ok: boolean; error?: string }> {
+  if (!canSendWhatsAppCloud()) return { ok: false, error: "Access token or phone number ID is not set" };
+  try {
+    const wabaId = await findBusinessAccountId().catch(() => null);
+    if (!wabaId) return { ok: false, error: "Could not find the WhatsApp Business Account. Set NUXT_WHATSAPP_CLOUD_BUSINESS_ACCOUNT_ID." };
+    const sub = await graph<{ success?: boolean }>(`${wabaId}/subscribed_apps`, { method: "POST" });
+    if (!sub.ok) return { ok: false, error: graphError(sub) };
+    return { ok: true };
+  }
+  catch (err) {
+    return { ok: false, error: String(err).slice(0, 500) };
+  }
+}
+
+export interface BusinessProfileInput {
+  about: string;
+  description: string;
+  email: string;
+  websites: string[];
+  address?: string;
+  vertical?: string;
+  /** Public URL of a square JPG/PNG (at least 192px) for the profile photo. */
+  photoUrl?: string;
+}
+
+/** Upload a photo with Meta's Resumable Upload API and return its handle. */
+async function uploadProfilePhoto(photoUrl: string): Promise<{ ok: boolean; handle?: string; error?: string }> {
+  const c = getWhatsAppCloudConfig();
+  if (!c.appId) return { ok: false, error: "NUXT_WHATSAPP_CLOUD_APP_ID is not set" };
+  const img = await fetch(photoUrl);
+  if (!img.ok) return { ok: false, error: `Could not download the photo (${img.status})` };
+  const bytes = await img.arrayBuffer();
+  const type = img.headers.get("content-type")?.split(";")[0] || "image/png";
+  const base = `https://graph.facebook.com/${c.apiVersion || "v22.0"}`;
+
+  const start = await fetch(`${base}/${c.appId}/uploads?file_length=${bytes.byteLength}&file_type=${encodeURIComponent(type)}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${c.accessToken}` },
+  });
+  const session = await start.json().catch(() => ({})) as { id?: string } & GraphError;
+  if (!start.ok || !session.id) return { ok: false, error: graphError({ data: session, status: start.status }) };
+
+  const up = await fetch(`${base}/${session.id}`, {
+    method: "POST",
+    headers: { Authorization: `OAuth ${c.accessToken}`, file_offset: "0" },
+    body: bytes,
+  });
+  const done = await up.json().catch(() => ({})) as { h?: string } & GraphError;
+  if (!up.ok || !done.h) return { ok: false, error: graphError({ data: done, status: up.status }) };
+  return { ok: true, handle: done.h };
+}
+
+/** Set the WhatsApp Business profile (photo, about, description, contact details). */
+export async function updateBusinessProfile(input: BusinessProfileInput): Promise<{ ok: boolean; error?: string; photo?: boolean }> {
+  const c = getWhatsAppCloudConfig();
+  if (!canSendWhatsAppCloud()) return { ok: false, error: "Access token or phone number ID is not set" };
+  try {
+    let handle: string | undefined;
+    let photoError: string | undefined;
+    if (input.photoUrl) {
+      const photo = await uploadProfilePhoto(input.photoUrl);
+      if (photo.ok) handle = photo.handle;
+      else photoError = photo.error;
+    }
+    const body: Record<string, unknown> = {
+      messaging_product: "whatsapp",
+      about: input.about.slice(0, 139),
+      description: input.description.slice(0, 512),
+      email: input.email,
+      websites: input.websites.slice(0, 2),
+    };
+    if (input.address) body.address = input.address.slice(0, 256);
+    if (input.vertical) body.vertical = input.vertical;
+    if (handle) body.profile_picture_handle = handle;
+    const r = await graph<{ success?: boolean }>(`${c.phoneNumberId}/whatsapp_business_profile`, { method: "POST", body });
+    if (!r.ok) return { ok: false, error: graphError(r) };
+    return { ok: true, photo: !!handle, error: photoError ? `Profile saved, but the photo failed: ${photoError}` : undefined };
   }
   catch (err) {
     return { ok: false, error: String(err).slice(0, 500) };
