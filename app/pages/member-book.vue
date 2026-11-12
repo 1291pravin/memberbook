@@ -72,17 +72,17 @@ const { trackCtaClick } = useAnalytics();
 useSeoMeta({
   title: "Member Book Software (Free) | MemberBook",
   description:
-    "Looking for member book software? Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free to start with MemberBook.",
+    "Looking for member book software? Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free forever with MemberBook.",
   ogTitle: "Member Book Software (Free) | MemberBook",
   ogDescription:
-    "Looking for member book software? Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free to start with MemberBook.",
+    "Looking for member book software? Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free forever with MemberBook.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: pageUrl,
   ogType: "website",
   twitterCard: "summary_large_image",
   twitterTitle: "Member Book Software (Free) | MemberBook",
   twitterDescription:
-    "Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free to start with MemberBook.",
+    "Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free forever with MemberBook.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
@@ -115,10 +115,10 @@ useHead({
           },
           {
             "@type": "Question",
-            "name": "Is MemberBook free to start?",
+            "name": "Is MemberBook free?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. MemberBook is free to start for gyms, libraries, and tuition centers.",
+              "text": "Yes. MemberBook is free forever for gyms, libraries and tuition centers, and we set it up for you for free. Only optional add-ons, like your own website, are paid.",
             },
           },
           {

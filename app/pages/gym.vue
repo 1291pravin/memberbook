@@ -96,8 +96,8 @@
           <div>
             <h3 class="font-semibold text-slate-800 mb-2">Reduce payment defaults</h3>
             <p class="text-sm text-slate-600 mb-6">WhatsApp renewal reminders with your UPI ID go out before the plan ends. See exactly which members are about to expire and follow up before they lapse.</p>
-            <h3 class="font-semibold text-slate-800 mb-2">Free, setup included</h3>
-            <p class="text-sm text-slate-600 mb-6">MemberBook is free to use, and we set your gym up for free. No credit card, no contract.</p>
+            <h3 class="font-semibold text-slate-800 mb-2">Free forever, setup included</h3>
+            <p class="text-sm text-slate-600 mb-6">MemberBook is free forever, and we set your gym up for free. No credit card, no contract. Optional add-ons, like your own website, are priced separately.</p>
           </div>
         </div>
         <div class="mt-8 text-center">
@@ -140,7 +140,7 @@ useSeoMeta({
   ogType: "website",
   twitterCard: "summary_large_image",
   twitterTitle: "Gym Management Software India, Free Setup | MemberBook",
-  twitterDescription: "Best gym management software for India. Track members, manage subscriptions, collect payments, send WhatsApp reminders. Free to start.",
+  twitterDescription: "Best gym management software for India. Track members, manage subscriptions, collect payments, send WhatsApp reminders. Free forever.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
