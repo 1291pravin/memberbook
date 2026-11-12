@@ -16,8 +16,25 @@
 
       <!-- Step Content -->
       <AppCard>
+        <!-- Upload Step: the owner sends their data once and we load it -->
+        <div v-if="currentStep === 'upload'">
+          <div class="text-center mb-6">
+            <div class="text-4xl mb-3">📤</div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Send us your {{ t.membersLower }} list</h2>
+            <p class="text-slate-600">Excel, register photos or a pasted list, in any format. We add your plans, {{ t.membersLower }} and due dates for you, free.</p>
+          </div>
+
+          <DataUploadForm @uploaded="navigateTo('/dashboard/upload?sent=1')" />
+
+          <p class="mt-6 text-center text-sm text-slate-600">
+            <button type="button" class="font-medium text-primary-700 hover:underline" @click="goToNext">
+              I'd rather set it up myself
+            </button>
+          </p>
+        </div>
+
         <!-- Members Step: get real members in before anything else -->
-        <div v-if="currentStep === 'members'">
+        <div v-else-if="currentStep === 'members'">
           <div class="text-center mb-6">
             <div class="text-4xl mb-3">📋</div>
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Add Your {{ t.members }}</h2>
@@ -206,7 +223,7 @@
         </div>
 
         <!-- Navigation -->
-        <div class="mt-6 flex justify-between" v-if="currentStep !== 'complete' && !(currentStep === 'staff' && !wantsInvite && !inviteUrl)">
+        <div class="mt-6 flex justify-between" v-if="currentStep !== 'complete' && currentStep !== 'upload' && !(currentStep === 'staff' && !wantsInvite && !inviteUrl)">
           <AppButton variant="secondary" @click="skipStep">
             Skip for now
           </AppButton>
@@ -238,7 +255,10 @@ const currentStep = computed(() => route.params.step as string);
 // Step numbering
 const wizardSteps = computed(() => {
   const isLibrary = currentOrg.value?.type === 'library';
-  const steps = [{ key: 'plans', label: 'Create Your First Plan' }];
+  const steps = [
+    { key: 'upload', label: `Send Your ${t.value.members} List` },
+    { key: 'plans', label: 'Create Your First Plan' },
+  ];
   if (isLibrary) steps.push({ key: 'seats', label: 'Setup Library Seats' });
   steps.push({ key: 'members', label: `Add Your ${t.value.members}` });
   steps.push({ key: 'staff', label: 'Your Team (optional)' });

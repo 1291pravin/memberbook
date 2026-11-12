@@ -15,13 +15,16 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 class="mt-4 text-xl font-bold text-slate-800">You're Invited!</h2>
-          <p class="mt-2 text-sm text-slate-600">
+          <h2 class="mt-4 text-xl font-bold text-slate-800">{{ isOwner ? "Your MemberBook is ready" : "You're Invited!" }}</h2>
+          <p v-if="isOwner" class="mt-2 text-sm text-slate-600">
+            We've set up <span class="font-semibold">{{ inviteData?.orgName }}</span> for you, with your members and plans added.
+          </p>
+          <p v-else class="mt-2 text-sm text-slate-600">
             You've been invited to join <span class="font-semibold">{{ inviteData?.orgName }}</span> as a staff member.
           </p>
           <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <p class="text-sm text-blue-800">
-              To accept this invitation, please sign in or create an account first.
+              {{ isOwner ? "Sign in or create an account to open it. It takes less than a minute." : "To accept this invitation, please sign in or create an account first." }}
             </p>
           </div>
         </div>
@@ -46,8 +49,11 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 class="mt-4 text-xl font-bold text-slate-800">Accept Invitation</h2>
-          <p class="mt-2 text-sm text-slate-600">
+          <h2 class="mt-4 text-xl font-bold text-slate-800">{{ isOwner ? "Open your MemberBook" : "Accept Invitation" }}</h2>
+          <p v-if="isOwner" class="mt-2 text-sm text-slate-600">
+            Take over <span class="font-semibold">{{ inviteData?.orgName }}</span> as its owner. Your members and plans are already in.
+          </p>
+          <p v-else class="mt-2 text-sm text-slate-600">
             Join <span class="font-semibold">{{ inviteData?.orgName }}</span> as a staff member.
           </p>
         </div>
@@ -56,7 +62,7 @@
         </div>
         <div class="pt-4">
           <AppButton class="w-full" :loading="accepting" @click="handleAccept">
-            Accept Invitation
+            {{ isOwner ? "Open my dashboard" : "Accept Invitation" }}
           </AppButton>
         </div>
       </div>
@@ -150,7 +156,8 @@ const loading = ref(true);
 const accepting = ref(false);
 const state = ref<"loading" | "valid-not-logged-in" | "valid-logged-in" | "expired" | "revoked" | "already-accepted" | "already-member" | "error">("loading");
 const error = ref("");
-const inviteData = ref<{ orgName: string; orgType: string } | null>(null);
+const inviteData = ref<{ orgName: string; orgType: string; role?: string } | null>(null);
+const isOwner = computed(() => inviteData.value?.role === "owner");
 
 onMounted(async () => {
   await validateInvite();
@@ -160,7 +167,7 @@ async function validateInvite() {
   loading.value = true;
   try {
     const data = await $fetch(`/api/invites/${token}`);
-    inviteData.value = { orgName: data.orgName, orgType: data.orgType };
+    inviteData.value = { orgName: data.orgName, orgType: data.orgType, role: data.role };
 
     if (data.status === "expired") {
       state.value = "expired";

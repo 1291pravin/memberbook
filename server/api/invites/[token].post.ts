@@ -1,4 +1,5 @@
 import { eq, and } from "drizzle-orm";
+import { getSetupUser } from "../../utils/org-setup";
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event);
@@ -75,11 +76,23 @@ export default defineEventHandler(async (event) => {
   }
 
   // Now safe to insert membership
+  const role = invite.role === "owner" ? "owner" : "staff";
   await db.insert(schema.orgMemberships).values({
     userId: user.id,
     orgId: invite.orgId,
-    role: "staff",
+    role,
   });
+
+  // A business we set up hands over to its owner: the setup account steps out.
+  if (role === "owner") {
+    const setupUser = await getSetupUser();
+    if (setupUser.id !== user.id) {
+      await db.delete(schema.orgMemberships).where(and(
+        eq(schema.orgMemberships.orgId, invite.orgId),
+        eq(schema.orgMemberships.userId, setupUser.id),
+      ));
+    }
+  }
 
   // Get org details
   const [org] = await db
@@ -119,7 +132,7 @@ export default defineEventHandler(async (event) => {
       name: org.name,
       slug: org.slug,
       type: org.type,
-      role: "staff",
+      role,
     },
   };
 });

@@ -1,4 +1,4 @@
-import { eq, desc, inArray } from "drizzle-orm";
+import { and, eq, desc, inArray } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -21,7 +21,8 @@ export default defineEventHandler(async (event) => {
     })
     .from(schema.orgInvites)
     .innerJoin(schema.users, eq(schema.orgInvites.invitedByUserId, schema.users.id))
-    .where(eq(schema.orgInvites.orgId, access.orgId))
+    // Owner handover links from admin setup are not staff invites.
+    .where(and(eq(schema.orgInvites.orgId, access.orgId), eq(schema.orgInvites.role, "staff")))
     .orderBy(desc(schema.orgInvites.createdAt));
 
   // Collect all unique user IDs that need to be fetched
