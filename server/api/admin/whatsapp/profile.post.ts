@@ -3,6 +3,8 @@ export default defineEventHandler(async (event) => {
   await requireAdminAccess(event);
   const pub = useRuntimeConfig().public as { appUrl?: string; supportEmail?: string; supportHours?: string };
   const site = (pub.appUrl || "https://memberbook.in").replace(/\/$/, "");
+  // Bundled server asset: a Worker can't fetch its own public URL (Cloudflare returns 522).
+  const photo = await useStorage("assets:server").getItemRaw<ArrayBuffer | Uint8Array>("whatsapp-profile.png");
   const hours = pub.supportHours || "Mon to Sat, 10 AM to 7 PM IST";
 
   const result = await updateBusinessProfile({
@@ -11,7 +13,7 @@ export default defineEventHandler(async (event) => {
     email: pub.supportEmail || "support@memberbook.in",
     websites: [site],
     vertical: "PROF_SERVICES",
-    photoUrl: `${site}/brand/whatsapp-profile.png`,
+    photo: photo ? { bytes: photo, type: "image/png" } : undefined,
   });
   await recordAdminAuditLog(event, "whatsapp_update_profile", { metadata: { ok: result.ok, photo: result.photo ?? false, error: result.error?.slice(0, 300) } });
   if (!result.ok) throw createError({ statusCode: 502, statusMessage: `Meta did not update the profile: ${result.error}` });
