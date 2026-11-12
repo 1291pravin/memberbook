@@ -44,8 +44,23 @@ export interface TemplateSendResult {
  * (e.g. "Monthly membership renewal"), {{4}} due date text, {{5}} amount.
  * The URL button's dynamic suffix is the pay link token (/pay/{{1}}).
  */
-export async function sendFeeReminderTemplate(to: string, body: [string, string, string, string, string], payToken: string): Promise<TemplateSendResult> {
-  const c = getWhatsAppCloudConfig();
+/**
+ * Who a message goes out from. Defaults to MemberBook's own number; a
+ * business that connected its own WhatsApp (embedded signup) passes its own
+ * phone number id, token and template here.
+ */
+export interface WhatsAppSender {
+  phoneNumberId: string;
+  accessToken: string;
+  templateName?: string;
+  templateLanguage?: string;
+}
+
+export async function sendFeeReminderTemplate(to: string, body: [string, string, string, string, string], payToken: string, sender?: WhatsAppSender): Promise<TemplateSendResult> {
+  const base = getWhatsAppCloudConfig();
+  const c = sender
+    ? { ...base, ...sender, templateName: sender.templateName || base.templateName, templateLanguage: sender.templateLanguage || base.templateLanguage }
+    : base;
   // Template variables may not contain newlines, tabs or 4+ spaces in a row.
   const clean = (s: string) => s.replace(/[\n\t]+/g, " ").replace(/ {4,}/g, "   ").trim().slice(0, 200);
 
@@ -109,8 +124,8 @@ export function canSendWhatsAppCloud(): boolean {
  * Send a free-form text reply from the inbox. WhatsApp only allows this within
  * 24 hours of the person's last message to us (the customer service window).
  */
-export async function sendWhatsAppText(to: string, text: string): Promise<TemplateSendResult> {
-  const c = getWhatsAppCloudConfig();
+export async function sendWhatsAppText(to: string, text: string, sender?: WhatsAppSender): Promise<TemplateSendResult> {
+  const c = sender ? { ...getWhatsAppCloudConfig(), ...sender } : getWhatsAppCloudConfig();
   try {
     const res = await fetch(`https://graph.facebook.com/${c.apiVersion || "v22.0"}/${c.phoneNumberId}/messages`, {
       method: "POST",

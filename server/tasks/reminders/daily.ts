@@ -4,8 +4,9 @@ import { db, schema } from "@nuxthub/db";
 /**
  * Daily automatic fee reminders over the WhatsApp Cloud API (09:00 IST).
  *
- * Does nothing unless the Cloud API is configured (NUXT_WHATSAPP_CLOUD_ENABLED)
- * and the org has switched on automatic reminders and set a UPI ID.
+ * Sends for orgs that switched on automatic reminders and set a UPI ID, from
+ * the org's own connected WhatsApp number (own_number add-on) or, when the
+ * Cloud API is switched on (NUXT_WHATSAPP_CLOUD_ENABLED), from MemberBook's.
  *
  * Per subscription: the first reminder goes `reminderDaysBefore` days before a
  * renewal (or as soon as a balance is due), then at most every
@@ -18,10 +19,8 @@ export default defineTask({
     description: "Send automatic WhatsApp fee reminders",
   },
   async run() {
-    if (!isWhatsAppCloudEnabled()) {
-      return { result: "skipped: WhatsApp Cloud API not configured" };
-    }
-
+    // Businesses with their own connected number send even while MemberBook's
+    // number is switched off; reminderSending() decides per business.
     const orgs = await db.select({ id: schema.organizations.id })
       .from(schema.organizations)
       .where(and(eq(schema.organizations.autoRemindersEnabled, true), isNotNull(schema.organizations.upiId)));
@@ -33,6 +32,8 @@ export default defineTask({
     for (const { id } of orgs) {
       const org = await getOrgCollectionSettings(id);
       if (!org?.upiId) continue;
+      const sending = await reminderSending(id);
+      if (!sending.available) continue;
 
       const items = await getCollections(id, org.reminderDaysBefore);
       const toSend = items.filter(i =>
@@ -45,7 +46,7 @@ export default defineTask({
 
       await ensurePaymentLinks(id, toSend);
       for (const item of toSend) {
-        const result = await sendCloudReminder(item, org, null);
+        const result = await sendCloudReminder(item, org, null, sending.sender);
         if (result.ok) sent++;
         else failed++;
       }

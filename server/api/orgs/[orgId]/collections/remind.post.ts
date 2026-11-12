@@ -20,9 +20,10 @@ export default defineEventHandler(async (event) => {
   if (!item) throw createError({ statusCode: 404, statusMessage: "Nothing is due for this member any more" });
   await ensurePaymentLinks(access.orgId, [item]);
 
-  const sendsViaCloud = isWhatsAppCloudEnabled() && org.autoRemindersEnabled && !!org.upiId;
+  const sending = await reminderSending(access.orgId);
+  const sendsViaCloud = sending.available && org.autoRemindersEnabled && !!org.upiId;
   if (sendsViaCloud && body.channel !== "link") {
-    const result = await sendCloudReminder(item, org, session.user?.id ?? null);
+    const result = await sendCloudReminder(item, org, session.user?.id ?? null, sending.sender);
     if (!result.ok) {
       throw createError({ statusCode: 502, statusMessage: `WhatsApp could not send the message (${result.error}). Try the tap-to-send option.` });
     }

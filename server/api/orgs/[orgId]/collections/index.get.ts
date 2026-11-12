@@ -3,7 +3,10 @@ export default defineEventHandler(async (event) => {
   const org = await getOrgCollectionSettings(access.orgId);
   if (!org) throw createError({ statusCode: 404, statusMessage: "Organization not found" });
 
-  const items = await getCollections(access.orgId, org.reminderDaysBefore);
+  const [items, sending] = await Promise.all([
+    getCollections(access.orgId, org.reminderDaysBefore),
+    reminderSending(access.orgId),
+  ]);
   await ensurePaymentLinks(access.orgId, items);
 
   const overdue = items.filter(i => i.overdue);
@@ -16,9 +19,12 @@ export default defineEventHandler(async (event) => {
       autoRemindersEnabled: org.autoRemindersEnabled,
       reminderDaysBefore: org.reminderDaysBefore,
     },
-    cloudAvailable: isWhatsAppCloudEnabled(),
-    // Reminders go out from MemberBook's number only when both are on.
-    sendsViaCloud: isWhatsAppCloudEnabled() && org.autoRemindersEnabled && !!org.upiId,
+    cloudAvailable: sending.available,
+    // Reminders go out automatically only when both are on: from the business's
+    // own WhatsApp number if it connected one, else from MemberBook's.
+    sendsViaCloud: sending.available && org.autoRemindersEnabled && !!org.upiId,
+    sendsFrom: sending.via,
+    sendsFromNumber: sending.displayPhoneNumber,
     summary: {
       overdueCount: overdue.length,
       overdueAmount: overdue.reduce((s, i) => s + i.amount, 0),

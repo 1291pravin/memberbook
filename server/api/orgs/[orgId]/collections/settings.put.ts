@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   if (body.autoRemindersEnabled !== undefined) {
     const on = body.autoRemindersEnabled === true;
     if (on) {
-      if (!isWhatsAppCloudEnabled()) {
+      if (!(await reminderSending(access.orgId)).available) {
         throw createError({ statusCode: 400, statusMessage: "Automatic WhatsApp reminders are not available yet." });
       }
       const current = await getOrgCollectionSettings(access.orgId);
