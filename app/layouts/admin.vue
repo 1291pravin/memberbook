@@ -60,6 +60,7 @@ useHead({
 const nav = [
   { to: "/admin/today", label: "Today", icon: "M9 11l3 3 8-8M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11" },
   { to: "/admin/businesses", label: "Businesses", icon: "M3 7h18M3 12h18M3 17h18" },
+  { to: "/admin/analytics", label: "Visitors", icon: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" },
   { to: "/admin/usage", label: "Usage", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
   { to: "/admin/setup", label: "Set up", icon: "M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" },
   { to: "/admin/services", label: "Add-ons", icon: "M12 3v18M3 12h18M5 5h14v14H5z" },

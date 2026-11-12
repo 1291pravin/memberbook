@@ -35,12 +35,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const passwordHash = await hashPassword(password);
+  const attribution = await signupAttribution(event);
   const result = await db
     .insert(schema.users)
     .values({
       email: normalizedEmail,
       name: name.trim(),
       passwordHash,
+      ...attribution,
     })
     .returning();
 

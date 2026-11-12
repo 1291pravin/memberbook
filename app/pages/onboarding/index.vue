@@ -69,6 +69,15 @@ const error = ref("");
 const loading = ref(false);
 const { trackFunnelStep } = useAnalytics();
 
+// New Google sign-ups land here with ?signup=google (email sign-ups are tracked on /register).
+const route = useRoute();
+onMounted(() => {
+  if (route.query.signup === "google") {
+    trackFunnelStep("registration_success", { method: "google" });
+    navigateTo({ query: {} }, { replace: true });
+  }
+});
+
 const businessTypes = [
   { value: "gym", label: "Gym or fitness", icon: "M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11" },
   { value: "library", label: "Library or study room", icon: "M4 19.5V5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zm0 0A2 2 0 006 22h13" },
