@@ -82,7 +82,7 @@
           Try MemberBook free and see how easy member management can be.
         </p>
         <NuxtLink to="/register">
-          <AppButton size="lg">Start Free Trial</AppButton>
+          <AppButton size="lg">Start free</AppButton>
         </NuxtLink>
       </div>
     </section>

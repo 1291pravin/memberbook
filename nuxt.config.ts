@@ -18,7 +18,7 @@ export default defineNuxtConfig({
       viewport: "width=device-width, initial-scale=1",
       title: "MemberBook - Gym, Library and Coaching Fee Reminders, Set Up for You",
       meta: [
-        { name: "description", content: "Send us your member register and we set up MemberBook for free: members, plans, due dates and WhatsApp renewal reminders with your UPI ID. For Indian gyms, libraries and coaching centres." },
+        { name: "description", content: "Free forever software for Indian gyms, libraries and coaching centres. Send us your register and we set it up for you: members, plans, due dates and WhatsApp reminders with your UPI pay link." },
         { name: "format-detection", content: "telephone=no" },
         // Open Graph defaults
         { property: "og:type", content: "website" },

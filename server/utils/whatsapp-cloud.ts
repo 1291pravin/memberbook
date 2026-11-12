@@ -336,18 +336,15 @@ export interface BusinessProfileInput {
   websites: string[];
   address?: string;
   vertical?: string;
-  /** Public URL of a square JPG/PNG (at least 192px) for the profile photo. */
-  photoUrl?: string;
+  /** Square JPG/PNG (at least 192px) for the profile photo. */
+  photo?: { bytes: ArrayBuffer | Uint8Array; type: string };
 }
 
 /** Upload a photo with Meta's Resumable Upload API and return its handle. */
-async function uploadProfilePhoto(photoUrl: string): Promise<{ ok: boolean; handle?: string; error?: string }> {
+async function uploadProfilePhoto(photo: { bytes: ArrayBuffer | Uint8Array; type: string }): Promise<{ ok: boolean; handle?: string; error?: string }> {
   const c = getWhatsAppCloudConfig();
   if (!c.appId) return { ok: false, error: "NUXT_WHATSAPP_CLOUD_APP_ID is not set" };
-  const img = await fetch(photoUrl);
-  if (!img.ok) return { ok: false, error: `Could not download the photo (${img.status})` };
-  const bytes = await img.arrayBuffer();
-  const type = img.headers.get("content-type")?.split(";")[0] || "image/png";
+  const { bytes, type } = photo;
   const base = `https://graph.facebook.com/${c.apiVersion || "v22.0"}`;
 
   const start = await fetch(`${base}/${c.appId}/uploads?file_length=${bytes.byteLength}&file_type=${encodeURIComponent(type)}`, {
@@ -360,7 +357,7 @@ async function uploadProfilePhoto(photoUrl: string): Promise<{ ok: boolean; hand
   const up = await fetch(`${base}/${session.id}`, {
     method: "POST",
     headers: { Authorization: `OAuth ${c.accessToken}`, file_offset: "0" },
-    body: bytes,
+    body: bytes instanceof Uint8Array ? new Blob([bytes as BlobPart]) : bytes,
   });
   const done = await up.json().catch(() => ({})) as { h?: string } & GraphError;
   if (!up.ok || !done.h) return { ok: false, error: graphError({ data: done, status: up.status }) };
@@ -374,8 +371,8 @@ export async function updateBusinessProfile(input: BusinessProfileInput): Promis
   try {
     let handle: string | undefined;
     let photoError: string | undefined;
-    if (input.photoUrl) {
-      const photo = await uploadProfilePhoto(input.photoUrl);
+    if (input.photo) {
+      const photo = await uploadProfilePhoto(input.photo);
       if (photo.ok) handle = photo.handle;
       else photoError = photo.error;
     }
@@ -392,6 +389,42 @@ export async function updateBusinessProfile(input: BusinessProfileInput): Promis
     const r = await graph<{ success?: boolean }>(`${c.phoneNumberId}/whatsapp_business_profile`, { method: "POST", body });
     if (!r.ok) return { ok: false, error: graphError(r) };
     return { ok: true, photo: !!handle, error: photoError ? `Profile saved, but the photo failed: ${photoError}` : undefined };
+  }
+  catch (err) {
+    return { ok: false, error: String(err).slice(0, 500) };
+  }
+}
+
+/**
+ * Make sure the Meta app sends WhatsApp webhooks (the "messages" field) to our
+ * callback URL. Uses the app token (app id | app secret), so it works without
+ * opening the Meta dashboard. Returns the app's WhatsApp subscription after.
+ */
+export async function ensureAppWebhook(callbackUrl: string): Promise<{ ok: boolean; error?: string; before?: unknown; after?: unknown }> {
+  const c = getWhatsAppCloudConfig();
+  if (!c.appId || !c.appSecret || !c.webhookVerifyToken) return { ok: false, error: "App id, app secret or webhook verify token is not set" };
+  const base = `https://graph.facebook.com/${c.apiVersion || "v22.0"}/${c.appId}/subscriptions`;
+  const appToken = `${c.appId}|${c.appSecret}`;
+  const read = async () => {
+    const r = await fetch(`${base}?access_token=${encodeURIComponent(appToken)}`);
+    const d = await r.json().catch(() => ({})) as { data?: { object: string; callback_url?: string; active?: boolean; fields?: { name: string }[] }[] } & GraphError;
+    return (d.data ?? []).filter(x => x.object === "whatsapp_business_account")
+      .map(x => ({ callback_url: x.callback_url, active: x.active, fields: x.fields?.map(f => f.name) }));
+  };
+  try {
+    const before = await read();
+    const form = new URLSearchParams({
+      object: "whatsapp_business_account",
+      callback_url: callbackUrl,
+      verify_token: c.webhookVerifyToken,
+      fields: "messages",
+      include_values: "true",
+      access_token: appToken,
+    });
+    const r = await fetch(base, { method: "POST", body: form });
+    const d = await r.json().catch(() => ({})) as { success?: boolean } & GraphError;
+    if (!r.ok || d.error) return { ok: false, error: graphError({ data: d, status: r.status }), before };
+    return { ok: true, before, after: await read() };
   }
   catch (err) {
     return { ok: false, error: String(err).slice(0, 500) };

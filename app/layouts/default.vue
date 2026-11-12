@@ -3,8 +3,8 @@
     <!-- Announce bar -->
     <div class="announce">
       <span class="acc">NEW</span>
-      Send us your member register and we set everything up for you, free —
-      <NuxtLink to="/#how-it-works">see how &rarr;</NuxtLink>
+      MemberBook is free forever. Get your own website as an add-on, first month free.
+      <NuxtLink to="/#pricing">See pricing &rarr;</NuxtLink>
     </div>
 
     <header class="mb-nav">
