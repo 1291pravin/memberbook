@@ -11,6 +11,7 @@ export default defineOAuthGoogleEventHandler({
 
     // Try to find by Google ID first
     let user = await findUserByGoogleId(googleUser.sub);
+    let isNewUser = false;
 
     if (!user) {
       // Try to find by email and link
@@ -35,10 +36,12 @@ export default defineOAuthGoogleEventHandler({
         user = updated ?? user;
       } else {
         // Create new user
+        isNewUser = true;
         const result = await db.insert(schema.users).values({
           email,
           name: googleUser.name || email,
           googleId: googleUser.sub,
+          ...(await signupAttribution(event)),
         }).returning();
         user = result[0]!;
       }
@@ -62,7 +65,7 @@ export default defineOAuthGoogleEventHandler({
 
     const destination = orgs.length > 1
       ? "/outlets"
-      : currentOrg ? "/dashboard" : "/onboarding";
+      : currentOrg ? "/dashboard" : isNewUser ? "/onboarding?signup=google" : "/onboarding";
     return sendRedirect(event, destination);
   },
   onError(event, error) {

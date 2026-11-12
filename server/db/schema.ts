@@ -8,6 +8,15 @@ export const users = sqliteTable("users", {
   googleId: text("google_id"),
   sessionVersion: integer("session_version").notNull().default(0),
   lastSeenAt: text("last_seen_at"),
+  // Signup attribution (see server/utils/site-analytics.ts)
+  visitorId: text("visitor_id"),
+  signupSource: text("signup_source"),
+  signupMedium: text("signup_medium"),
+  signupCampaign: text("signup_campaign"),
+  signupLanding: text("signup_landing"),
+  signupCountry: text("signup_country"),
+  signupRegion: text("signup_region"),
+  signupCity: text("signup_city"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   googleIdIdx: index("users_google_id_idx").on(table.googleId),
@@ -389,6 +398,26 @@ export const userActivityDays = sqliteTable("user_activity_days", {
   orgDayIdx: index("user_activity_days_org_idx").on(table.orgId, table.day),
 }));
 
+// One row per page view on the public site (first-party analytics, no IP or user agent stored).
+export const siteVisits = sqliteTable("site_visits", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  visitorId: text("visitor_id").notNull(),
+  day: text("day").notNull(), // YYYY-MM-DD in IST
+  path: text("path").notNull(),
+  isLanding: integer("is_landing", { mode: "boolean" }).notNull().default(false),
+  source: text("source"), // e.g. Google, WhatsApp, Instagram, Direct
+  medium: text("medium"), // search, social, referral, paid, direct, email
+  campaign: text("campaign"),
+  referrerHost: text("referrer_host"),
+  country: text("country"),
+  region: text("region"),
+  city: text("city"),
+  device: text("device"), // mobile, tablet, desktop
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => ({
+  dayIdx: index("site_visits_day_idx").on(table.day),
+  visitorIdx: index("site_visits_visitor_idx").on(table.visitorId, table.createdAt),
+}));
 
 // Add-on services a business has switched on. Also the per-business feature
 // flag: admin_enabled lets one business use an add-on before it opens to all.
