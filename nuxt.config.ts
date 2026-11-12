@@ -140,7 +140,7 @@ export default defineNuxtConfig({
     aiRuns: {
       uploadsTriggerId: "trig_01JjNHwLeZYWntyTDmchbYP9",
       uploadsToken: "",
-      servicesTriggerId: "trig_01LY2zM6ache6TxrXAKhbKqU",
+      servicesTriggerId: "trig_01PuQM49Eco6HLaXMiExcEkR",
       servicesToken: "",
     },
     whatsappCloud: {
