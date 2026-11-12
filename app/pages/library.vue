@@ -18,7 +18,7 @@
             <AppButton size="lg" variant="secondary">Set it up myself</AppButton>
           </NuxtLink>
         </div>
-        <p class="mt-4 text-sm text-slate-600">Free to use, with free setup. We load your students, seats and due dates for you.</p>
+        <p class="mt-4 text-sm text-slate-600">Free forever, with free setup. We load your students, seats and due dates for you.</p>
       </div>
     </section>
 
@@ -89,10 +89,10 @@
       <div class="max-w-xl mx-auto">
         <h2 class="text-3xl font-bold mb-4">Ready to modernize your library?</h2>
         <p class="text-lg text-slate-400 mb-8">
-          Join library owners across India using MemberBook. Free to start.
+          Join library owners across India using MemberBook. Free forever.
         </p>
         <NuxtLink to="/register">
-          <AppButton size="lg" class="bg-white text-slate-800 hover:bg-slate-100">Start Free Trial</AppButton>
+          <AppButton size="lg" class="bg-white text-slate-800 hover:bg-slate-100">Start free</AppButton>
         </NuxtLink>
       </div>
     </section>

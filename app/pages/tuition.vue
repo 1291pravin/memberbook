@@ -18,7 +18,7 @@
             <AppButton size="lg" variant="secondary">Set it up myself</AppButton>
           </NuxtLink>
         </div>
-        <p class="mt-4 text-sm text-slate-600">Free to use, with free setup. We load your students, batches and fee dates for you.</p>
+        <p class="mt-4 text-sm text-slate-600">Free forever, with free setup. We load your students, batches and fee dates for you.</p>
       </div>
     </section>
 
@@ -103,7 +103,7 @@
           Join coaching centers across India. Start managing students the smart way.
         </p>
         <NuxtLink to="/register">
-          <AppButton size="lg" class="bg-white text-slate-800 hover:bg-slate-100">Start Free Trial</AppButton>
+          <AppButton size="lg" class="bg-white text-slate-800 hover:bg-slate-100">Start free</AppButton>
         </NuxtLink>
       </div>
     </section>

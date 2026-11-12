@@ -156,8 +156,8 @@ const reasons = [
   },
   {
     emoji: "💰",
-    title: "Affordable",
-    description: "Free to start with transparent pricing. No hidden fees. Pay only for what you use.",
+    title: "Free forever",
+    description: "The app and setup are free forever. You pay only for optional add-ons you choose, and each starts with a free month.",
   },
   {
     emoji: "📱",
