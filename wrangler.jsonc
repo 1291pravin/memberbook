@@ -28,7 +28,7 @@
       "name": "ALERT_EMAIL",
     },
   ],
-  // Daily fee reminders at 09:00 IST (see nitro.scheduledTasks in nuxt.config.ts).
+  // Daily fee reminders and the admin digest email at 09:00 IST (see nitro.scheduledTasks in nuxt.config.ts).
   "triggers": {
     "crons": ["30 3 * * *"],
   },

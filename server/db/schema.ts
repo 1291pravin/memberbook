@@ -349,6 +349,27 @@ export const adminAuditLogs = sqliteTable("admin_audit_logs", {
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+// Admin CRM: where each business stands with us and when to follow up.
+export const adminOrgCrm = sqliteTable("admin_org_crm", {
+  orgId: integer("org_id").primaryKey().references(() => organizations.id),
+  stage: text("stage"), // null = not set; see ADMIN_STAGES in server/utils/business-health.ts
+  followUpOn: text("follow_up_on"), // YYYY-MM-DD (IST), null = no follow-up planned
+  followUpReason: text("follow_up_reason"),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  followUpIdx: index("admin_org_crm_follow_up_idx").on(table.followUpOn),
+}));
+
+// Free-text notes the admin keeps about a business (calls, promises, context).
+export const adminOrgNotes = sqliteTable("admin_org_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  body: text("body").notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  orgIdx: index("admin_org_notes_org_idx").on(table.orgId, table.createdAt),
+}));
+
 export const authRateLimits = sqliteTable("auth_rate_limits", {
   key: text("key").primaryKey(),
   windowStart: integer("window_start").notNull(),

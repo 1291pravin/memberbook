@@ -224,6 +224,7 @@ async function registerNumber() {
   }
 }
 
+const route = useRoute();
 const selected = ref<string | null>(null);
 const thread = ref<Thread | null>(null);
 const draft = ref("");
@@ -271,6 +272,9 @@ async function send() {
 // Poll for new messages while the page is open.
 let timer: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
+  // /admin/inbox?phone=91... (from the Today page) opens that chat straight away.
+  const phone = String(route.query.phone ?? "").replace(/\D/g, "");
+  if (phone) open(phone);
   timer = setInterval(() => {
     refreshList();
     if (selected.value && !sending.value) loadThread(selected.value);
