@@ -138,7 +138,7 @@ export default defineNuxtConfig({
     // AI tasks on claude.ai started only when work is queued (server/utils/ai-runs.ts).
     // Tokens are secrets: NUXT_AI_RUNS_UPLOADS_TOKEN, NUXT_AI_RUNS_SERVICES_TOKEN.
     aiRuns: {
-      uploadsTriggerId: "trig_019e5E3YVzwtstvT6CoCF4hm",
+      uploadsTriggerId: "trig_01JjNHwLeZYWntyTDmchbYP9",
       uploadsToken: "",
       servicesTriggerId: "trig_01LY2zM6ache6TxrXAKhbKqU",
       servicesToken: "",
