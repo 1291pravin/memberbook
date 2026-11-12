@@ -113,6 +113,7 @@ Required in `.env`:
 Optional support channels (defaults in `nuxt.config.ts`, used by `useSupport()`):
 
 - `NUXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER` — WhatsApp number for the in-app help button (with country code, digits only)
+- `NUXT_PUBLIC_SUPPORT_WHATSAPP_LIVE` — set to `true` once the support number is connected to the Cloud API; until then every "message us on WhatsApp" link is hidden and "Send us your register" goes to sign-up
 - `NUXT_PUBLIC_SUPPORT_EMAIL` — support email shown on the help page (default support@memberbook.in, forwarded to Gmail by Cloudflare Email Routing; hidden when empty)
 - `NUXT_PUBLIC_SUPPORT_HOURS` — support hours text, e.g. "Mon to Sat, 10 AM to 7 PM IST"
 

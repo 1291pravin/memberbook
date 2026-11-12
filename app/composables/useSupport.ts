@@ -5,7 +5,9 @@
 export function useSupport() {
   const config = useRuntimeConfig().public;
 
-  const whatsappNumber = computed(() => String(config.supportWhatsappNumber || "").replace(/\D/g, ""));
+  // Empty while the number isn't live, so every WhatsApp contact link hides itself.
+  const live = config.supportWhatsappLive === true || config.supportWhatsappLive === "true";
+  const whatsappNumber = computed(() => live ? String(config.supportWhatsappNumber || "").replace(/\D/g, "") : "");
   const email = computed(() => String(config.supportEmail || "").trim());
   const hours = computed(() => String(config.supportHours || "").trim());
 
@@ -24,6 +26,11 @@ export function useSupport() {
     return message ? `${base}?text=${encodeURIComponent(message)}` : base;
   }
 
+  /** "Send us your register": WhatsApp when the number is live, otherwise sign-up (which ends at the upload step). */
+  function setupHref(message: string) {
+    return whatsappLink(message) || "/register";
+  }
+
   function helpMessage(orgName?: string | null) {
     return orgName
       ? `Hi MemberBook team, I need help with ${orgName}.\n\n`
@@ -35,5 +42,5 @@ export function useSupport() {
     return subject ? `mailto:${email.value}?subject=${encodeURIComponent(subject)}` : `mailto:${email.value}`;
   }
 
-  return { whatsappNumber, whatsappDisplay, email, hours, whatsappLink, helpMessage, emailLink };
+  return { whatsappNumber, whatsappDisplay, email, hours, whatsappLink, setupHref, helpMessage, emailLink };
 }

@@ -100,6 +100,7 @@
             </div>
             <p class="blurb">The friendly front desk for gyms, libraries, coaching centres, clinics and studios in India.</p>
             <a
+              v-if="WHATSAPP_NUMBER"
               :href="`https://wa.me/${WHATSAPP_NUMBER}`"
               target="_blank"
               rel="noopener"
@@ -137,7 +138,7 @@
           <div>
             <h5>Help</h5>
             <ul>
-              <li>
+              <li v-if="WHATSAPP_NUMBER">
                 <a :href="`https://wa.me/${WHATSAPP_NUMBER}`" target="_blank" rel="noopener">WhatsApp us</a>
               </li>
               <li><NuxtLink to="/contact">Get setup help</NuxtLink></li>
