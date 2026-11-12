@@ -49,7 +49,7 @@ const { data: session } = await useFetch<{ authenticated: boolean }>("/api/admin
 });
 
 if (session.value?.authenticated) {
-  await navigateTo("/admin/usage");
+  await navigateTo("/admin/today");
 }
 
 async function login() {
@@ -61,8 +61,8 @@ async function login() {
       body: { password: password.value },
     });
 
-    const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/admin/usage";
-    await navigateTo(redirect.startsWith("/admin/") ? redirect : "/admin/usage");
+    const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/admin/today";
+    await navigateTo(redirect.startsWith("/admin/") ? redirect : "/admin/today");
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string } };
     error.value = err.data?.statusMessage || "Admin login failed";

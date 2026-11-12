@@ -1,7 +1,7 @@
 <template>
   <div class="admin-shell min-h-screen lg:flex">
     <aside class="admin-sidebar flex flex-wrap items-center gap-1 border-b px-3 py-2 lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:shrink-0 lg:flex-col lg:flex-nowrap lg:items-stretch lg:border-b-0 lg:border-r lg:px-3.5 lg:py-5">
-      <NuxtLink to="/admin/usage" class="mr-3 flex items-center gap-2.5 px-2.5 py-1 lg:mr-0 lg:pb-5">
+      <NuxtLink to="/admin/today" class="mr-3 flex items-center gap-2.5 px-2.5 py-1 lg:mr-0 lg:pb-5">
         <span class="admin-logo flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold">M</span>
         <span class="flex flex-col leading-tight">
           <span class="text-sm font-semibold">MemberBook</span>
@@ -58,6 +58,8 @@ useHead({
 });
 
 const nav = [
+  { to: "/admin/today", label: "Today", icon: "M9 11l3 3 8-8M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11" },
+  { to: "/admin/businesses", label: "Businesses", icon: "M3 7h18M3 12h18M3 17h18" },
   { to: "/admin/usage", label: "Usage", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
   { to: "/admin/setup", label: "Set up", icon: "M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" },
   { to: "/admin/inbox", label: "Inbox", icon: "M4 4h16v12H8l-4 4z" },

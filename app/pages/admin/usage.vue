@@ -249,7 +249,7 @@
         </AppCard>
       </div>
 
-      <AppCard title="Help requests">
+      <AppCard id="help-requests" title="Help requests">
         <p class="mb-3 text-xs text-slate-600">Latest messages from the in-app help form and the website contact form.</p>
         <ul class="divide-y divide-slate-100">
           <li v-for="req in data.recentHelpRequests ?? []" :key="`help-${req.id}`" class="py-3">

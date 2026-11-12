@@ -102,7 +102,7 @@ export default defineNuxtConfig({
     experimental: { tasks: true },
     // 03:30 UTC = 09:00 IST. The same cron must be listed in wrangler.jsonc "triggers".
     scheduledTasks: {
-      "30 3 * * *": ["reminders:daily"],
+      "30 3 * * *": ["reminders:daily", "admin:digest"],
     },
   },
   hub: {
