@@ -44,7 +44,7 @@
         <div class="relative max-w-xl">
           <p class="text-sm font-semibold text-primary-100">One step left</p>
           <h2 class="mt-2 text-3xl font-extrabold leading-tight tracking-tight">Send us your {{ t.memberLower }} list. <span class="serif-accent">We'll do the rest.</span></h2>
-          <p class="mt-3 text-primary-100">Photos of your register, an Excel sheet or a pasted list, in any format. We add everyone with their due dates, then remind them on time.</p>
+          <p class="mt-3 text-primary-100">Photos of your register, an Excel sheet or a pasted list, in any format. We add everyone with their due dates, then show you who to remind, with a one-tap WhatsApp button.</p>
           <div class="mt-6 flex flex-wrap gap-3">
             <NuxtLink to="/dashboard/upload" class="rounded-full bg-white px-6 py-3.5 text-base font-bold text-primary-700 hover:bg-primary-50">Upload your list</NuxtLink>
             <a v-if="registerHelpLink" :href="registerHelpLink" target="_blank" rel="noopener" class="rounded-full border border-white/40 px-6 py-3.5 text-base font-bold text-white hover:bg-white/10">Send on WhatsApp</a>

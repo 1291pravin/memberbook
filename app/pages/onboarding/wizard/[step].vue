@@ -23,7 +23,7 @@
         <div v-if="currentStep === 'upload'">
           <div class="text-center mb-6">
             <h2 class="text-3xl font-extrabold tracking-tight text-slate-800">Send us your {{ t.memberLower }} list. <span class="serif-accent text-primary-600">That's it.</span></h2>
-            <p class="mt-2 text-slate-600">Photos of your register, an Excel sheet or a pasted list, in any format. We add your plans, {{ t.membersLower }} and due dates, then remind them before they're due.</p>
+            <p class="mt-2 text-slate-600">Photos of your register, an Excel sheet or a pasted list, in any format. We add your plans, {{ t.membersLower }} and due dates, then show you exactly who to remind and when.</p>
           </div>
 
           <DataUploadForm show-upi @uploaded="navigateTo('/dashboard')" />
