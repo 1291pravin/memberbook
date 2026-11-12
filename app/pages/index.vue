@@ -8,7 +8,7 @@
             <span class="eyebrow">For gyms, libraries and coaching centres</span>
             <h1 style="margin-top: 22px;">
               We load your register.
-              You get paid <span class="strike">late</span> on time.
+              You get paid <del class="strike">late</del> on time.
             </h1>
             <p class="hero-sub">
               Send us a photo of your register. We set up everything for you, free. Every morning you see who to collect from.
@@ -328,7 +328,7 @@ useHead({
   script: [
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "MemberBook",
@@ -341,7 +341,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "VideoObject",
         "name": "MemberBook: you run the place, we collect the fees",
@@ -354,7 +354,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
         "mainEntity": faqs.map(faq => ({
@@ -366,7 +366,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "MemberBook",

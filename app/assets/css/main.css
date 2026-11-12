@@ -206,7 +206,7 @@ h1, h2, h3, h4, h5, h6 {
 .hero { padding: clamp(40px, 6vw, 96px) 0 var(--pad-section); position: relative; }
 .hero h1 { font-size: var(--fs-h1); color: var(--ink); }
 .hero h1 .accent { color: var(--accent); font-style: italic; font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.01em; }
-.hero h1 .strike { position: relative; display: inline-block; color: var(--ink-2); white-space: nowrap; }
+.hero h1 .strike { position: relative; display: inline-block; color: var(--ink-2); white-space: nowrap; text-decoration: none; }
 .hero h1 .strike::after { content: ""; position: absolute; left: -2%; right: -2%; top: 54%; height: 0.1em; background: var(--accent); transform: rotate(-3deg); border-radius: 99px; }
 .hero-sub { font-size: var(--fs-lead); color: var(--ink-2); max-width: 36ch; line-height: 1.4; margin-top: 24px; }
 .hero-ctas { display: flex; align-items: center; gap: 14px; margin-top: 36px; flex-wrap: wrap; }

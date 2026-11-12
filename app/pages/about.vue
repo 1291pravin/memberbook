@@ -116,7 +116,7 @@ useHead({
     // Organization Schema
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "MemberBook",
@@ -132,11 +132,6 @@ useHead({
           "@type": "Country",
           "name": "India",
         },
-        "sameAs": [
-          "https://twitter.com/memberbook",
-          "https://facebook.com/memberbook",
-          "https://linkedin.com/company/memberbook",
-        ],
         "contactPoint": {
           "@type": "ContactPoint",
           "contactType": "Customer Support",

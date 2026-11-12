@@ -11,6 +11,8 @@ export interface BlogPost {
   author: string;
   content: string;
   keywords: string[];
+  /** Last meaningful update, used as dateModified. */
+  updatedISO?: string;
 }
 
 export const blogPosts: BlogPost[] = [
@@ -179,12 +181,13 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "gym-owner-income-india",
-    title: "How Much Does a Gym Owner Earn in India? Income Breakdown & Tips to Maximize Revenue",
+    title: "How Much Does a Gym Owner Earn in India? ₹25,000 to ₹5 Lakh a Month (2026)",
     excerpt:
-      "A realistic breakdown of gym owner income in India — from small neighbourhood gyms to premium fitness centers. Learn what affects gym profitability and how to maximize your monthly earnings.",
+      "Most small gym owners in India take home ₹25,000 to ₹60,000 a month, mid-size gyms ₹60,000 to ₹1.5 lakh, and large metro gyms ₹1.5 lakh or more. See the breakdown by gym size, costs and a worked example.",
     category: "Gym Business",
     date: "Mar 19, 2026",
     dateISO: "2026-03-19",
+    updatedISO: "2026-11-13",
     readTime: "8 min",
     emoji: "💰",
     image: "/blog/how-to-manage-gym-members.png",
@@ -200,6 +203,16 @@ export const blogPosts: BlogPost[] = [
     ],
     content: `
 <h2>How Much Does a Gym Owner Earn in India?</h2>
+<p><strong>Short answer:</strong> a small gym owner in India usually takes home <strong>₹25,000 to ₹60,000 a month</strong>, a mid-size gym owner <strong>₹60,000 to ₹1,50,000</strong>, and a large metro gym owner <strong>₹1,50,000 to ₹5,00,000 or more</strong>, after rent, salaries and electricity. The biggest swing factor is not the fee you charge but how many members quietly stop paying each month.</p>
+<table>
+  <thead><tr><th>Gym size</th><th>Gross revenue a month</th><th>Owner take-home a month</th></tr></thead>
+  <tbody>
+    <tr><td>Small (50–100 members, tier-2/3 city)</td><td>₹75,000 – ₹1,50,000</td><td>₹25,000 – ₹60,000</td></tr>
+    <tr><td>Mid-size (100–300 members)</td><td>₹2,00,000 – ₹5,00,000</td><td>₹60,000 – ₹1,50,000</td></tr>
+    <tr><td>Large or premium (metro)</td><td>₹5,00,000 – ₹15,00,000+</td><td>₹1,50,000 – ₹5,00,000+</td></tr>
+  </tbody>
+</table>
+<p>Want your own number? Use the free <a href="/tools/gym-membership-revenue-calculator">gym income calculator</a>: enter your members and fees and it shows monthly income, profit and how much you lose to unpaid fees.</p>
 <p>If you're thinking about opening a gym or already running one, the first question on your mind is probably: how much can I actually earn? The answer depends on your city, gym size, membership pricing, and — most importantly — how well you manage your members and payments.</p>
 <p>In this guide, we break down realistic gym owner income in India across different tiers, covering everything from small neighbourhood gyms to premium fitness centers.</p>
 
