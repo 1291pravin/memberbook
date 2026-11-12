@@ -514,6 +514,9 @@ export const orgWhatsappAccounts = sqliteTable("org_whatsapp_accounts", {
   businessApp: integer("business_app", { mode: "boolean" }).notNull().default(false),
   accessTokenEnc: text("access_token_enc"), // AES-GCM, null once disconnected
   pinEnc: text("pin_enc"), // two-step verification PIN we set when registering a new number
+  // true = MemberBook's own system user was given access to this account, so we
+  // send with our permanent token (the signup token expires after 60 days)
+  partnerAccess: integer("partner_access", { mode: "boolean" }).notNull().default(false),
   status: text("status").notNull().default("connected"), // connected, disconnected, error
   templateName: text("template_name").notNull().default("fee_reminder"),
   templateLanguage: text("template_language").notNull().default("en"),
