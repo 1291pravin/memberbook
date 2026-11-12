@@ -3,12 +3,12 @@
     <div>
       <p class="mb-1 text-sm font-medium text-slate-700">Your files</p>
       <label
-        class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center hover:border-primary-400 hover:bg-primary-50"
+        class="flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-primary-300 bg-primary-50 px-4 py-8 text-center hover:border-primary-500 hover:bg-primary-100"
       >
-        <svg class="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg class="h-10 w-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
-        <span class="mt-2 text-sm font-semibold text-slate-800">Choose files or take photos</span>
+        <span class="mt-2 text-base font-bold text-slate-800">Take photos or choose files</span>
         <span class="mt-1 text-xs text-slate-600">Excel, CSV, PDF, or photos of your register. Up to 10 files.</span>
         <input
           ref="fileInput"
@@ -33,7 +33,7 @@
         id="upload-text"
         v-model="text"
         rows="5"
-        class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+        class="block w-full rounded-2xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
         :placeholder="`Copy from Excel or WhatsApp, any format. For example:\nRahul Sharma 9876543210 Monthly paid till 5 Dec\nPriya 9123456780 Quarterly due 20 Nov`"
       />
     </div>
@@ -56,7 +56,7 @@
     </div>
 
     <AppButton type="submit" size="lg" class="w-full" :loading="sending">
-      Send to MemberBook
+      Send my list
     </AppButton>
     <p class="text-center text-xs text-slate-600">
       We'll add your plans, {{ t.membersLower }} and due dates for you, usually within a few hours.

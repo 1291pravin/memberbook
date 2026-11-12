@@ -41,6 +41,10 @@ export default defineNuxtConfig({
         { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
         { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
         { rel: "manifest", href: "/site.webmanifest" },
+        // Brand fonts: Plus Jakarta Sans (UI and headlines), Instrument Serif (italic accents)
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
+        { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" },
       ],
     },
   },
@@ -150,6 +154,9 @@ export default defineNuxtConfig({
       // Override with NUXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER, NUXT_PUBLIC_SUPPORT_EMAIL
       // and NUXT_PUBLIC_SUPPORT_HOURS. Set the email to an empty string to hide it.
       supportWhatsappNumber: "919137849812",
+      // WhatsApp contact links stay hidden until the support number is connected to the
+      // Cloud API (Meta business verification). Set NUXT_PUBLIC_SUPPORT_WHATSAPP_LIVE=true then.
+      supportWhatsappLive: false,
       supportEmail: "support@memberbook.in",
       supportHours: "Mon to Sat, 10 AM to 7 PM IST",
     },

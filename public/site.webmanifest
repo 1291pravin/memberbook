@@ -1,11 +1,11 @@
 {
   "name": "MemberBook - Member Management for Small Businesses",
   "short_name": "MemberBook",
-  "description": "Simple subscription and member management for gyms, libraries, and tuition centers in India",
+  "description": "Members, fees and WhatsApp reminders for gyms, libraries, coaching centres, clinics and studios in India",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#faf6ed",
-  "theme_color": "#202033",
+  "background_color": "#FBFAF7",
+  "theme_color": "#0F766E",
   "orientation": "portrait",
   "icons": [
     {

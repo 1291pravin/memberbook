@@ -3,24 +3,24 @@ import type { ChartOptions } from "chart.js";
 export function useCharts() {
   const { formatCurrency } = useFormatCurrency();
 
-  // Quiet Jamun Plum palette tuned for the dark operator dashboard.
+  // Circle brand palette for the light merchant app (lagoon teal first, coral second).
   const colors = {
-    blue: "oklch(72% 0.095 245)",
-    green: "oklch(72% 0.11 150)",
-    yellow: "oklch(78% 0.12 82)",
-    purple: "oklch(68% 0.095 315)",
-    red: "oklch(72% 0.115 24)",
-    amber: "oklch(75% 0.11 86)",
-    orange: "oklch(70% 0.11 56)",
-    pink: "oklch(70% 0.10 350)",
-    indigo: "oklch(68% 0.095 315)",
-    cyan: "oklch(74% 0.09 210)",
-    gray: "oklch(66% 0.022 315)",
-    blueAlpha: "oklch(72% 0.095 245 / 0.14)",
-    greenAlpha: "oklch(72% 0.11 150 / 0.14)",
-    purpleAlpha: "oklch(68% 0.095 315 / 0.16)",
-    amberAlpha: "oklch(75% 0.11 86 / 0.16)",
-    indigoAlpha: "oklch(68% 0.095 315 / 0.16)",
+    blue: "#0F766E",
+    green: "#2F9E6E",
+    yellow: "#E0A800",
+    purple: "#6B3E75",
+    red: "#D9534F",
+    amber: "#F4A261",
+    orange: "#FF7A59",
+    pink: "#E26D8F",
+    indigo: "#1F5FCC",
+    cyan: "#1B8C82",
+    gray: "#8A969C",
+    blueAlpha: "rgba(15, 118, 110, 0.14)",
+    greenAlpha: "rgba(47, 158, 110, 0.14)",
+    purpleAlpha: "rgba(107, 62, 117, 0.14)",
+    amberAlpha: "rgba(244, 162, 97, 0.16)",
+    indigoAlpha: "rgba(31, 95, 204, 0.14)",
   };
 
   // Base chart options
@@ -32,13 +32,13 @@ export function useCharts() {
         display: true,
         position: "bottom",
         labels: {
-          font: { family: "-apple-system, BlinkMacSystemFont, Segoe UI, system-ui", size: 12 },
-          color: "oklch(75% 0.024 315)",
+          font: { family: "Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, Segoe UI, system-ui", size: 12 },
+          color: "#4B5B63",
           padding: 12,
         },
       },
       tooltip: {
-        backgroundColor: "oklch(18% 0.018 315)",
+        backgroundColor: "#13232B",
         padding: 12,
         cornerRadius: 8,
         titleFont: { size: 14, weight: "bold" },

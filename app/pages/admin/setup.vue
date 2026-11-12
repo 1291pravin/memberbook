@@ -179,6 +179,8 @@ const typeOptions = [
   { value: "gym", label: "Gym" },
   { value: "library", label: "Library" },
   { value: "tuition", label: "Coaching / tuition" },
+  { value: "clinic", label: "Clinic / physio" },
+  { value: "studio", label: "Yoga / dance / classes" },
   { value: "other", label: "Other" },
 ];
 

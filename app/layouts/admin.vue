@@ -2,7 +2,7 @@
   <div class="admin-shell min-h-screen lg:flex">
     <aside class="admin-sidebar flex flex-wrap items-center gap-1 border-b px-3 py-2 lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:shrink-0 lg:flex-col lg:flex-nowrap lg:items-stretch lg:border-b-0 lg:border-r lg:px-3.5 lg:py-5">
       <NuxtLink to="/admin/today" class="mr-3 flex items-center gap-2.5 px-2.5 py-1 lg:mr-0 lg:pb-5">
-        <span class="admin-logo flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold">M</span>
+        <BrandMark :size="28" />
         <span class="flex flex-col leading-tight">
           <span class="text-sm font-semibold">MemberBook</span>
           <span class="admin-muted text-xs">Admin</span>

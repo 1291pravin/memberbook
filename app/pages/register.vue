@@ -1,19 +1,16 @@
 <template>
-  <div class="min-h-[80vh] flex items-center justify-center px-4">
-    <div class="w-full max-w-sm">
-      <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-slate-800 mb-1">Create your account</h1>
-        <p class="text-sm text-slate-600">Free to start. No credit card needed.</p>
-      </div>
-      <div class="flex flex-wrap gap-2 justify-center mb-6">
-        <span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full border border-primary-100">✓ Free setup help</span>
-        <span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full border border-primary-100">✓ Setup in 2 minutes</span>
-        <span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full border border-primary-100">✓ WhatsApp reminders</span>
-      </div>
+  <div class="flex min-h-[80vh] items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md">
+      <SignupSteps :current="1" />
+      <div class="rounded-[32px] border border-slate-200 bg-white p-6 sm:p-8">
+        <div class="mb-6 text-center">
+          <h1 class="text-3xl font-extrabold tracking-tight text-slate-800">Start free. <span class="serif-accent text-primary-600">We do the setup.</span></h1>
+          <p class="mt-2 text-slate-600">Create your account, tell us about your business and send your list. That's it.</p>
+        </div>
 
       <div
         v-if="error"
-        class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700"
+        class="mb-4 rounded-2xl bg-red-50 p-3 text-sm text-red-700"
       >
         {{ error }}
       </div>
@@ -39,8 +36,8 @@
           placeholder="At least 6 characters"
           required
         />
-        <AppButton type="submit" class="w-full" :loading="loading">
-          Create Account
+        <AppButton type="submit" size="lg" class="w-full" :loading="loading">
+          Continue
         </AppButton>
       </form>
 
@@ -49,13 +46,13 @@
           <div class="w-full border-t border-slate-200" />
         </div>
         <div class="relative flex justify-center text-sm">
-          <span class="bg-slate-50 px-2 text-slate-600">or</span>
+          <span class="bg-white px-2 text-slate-600">or</span>
         </div>
       </div>
 
       <a
         href="/auth/google"
-        class="flex items-center justify-center gap-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        class="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
         @click="trackFunnelStep('registration_submit', { method: 'google' })"
       >
         <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -87,6 +84,7 @@
           >Sign in</NuxtLink
         >
       </p>
+      </div>
     </div>
   </div>
 </template>

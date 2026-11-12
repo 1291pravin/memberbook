@@ -2,16 +2,21 @@ export function useTerminology() {
   const { currentOrg } = useOrg();
 
   return computed(() => {
-    const isTuition = currentOrg.value?.type === "tuition";
+    const type = currentOrg.value?.type;
+    const [one, many] = type === "tuition"
+      ? ["Student", "Students"]
+      : type === "clinic"
+        ? ["Patient", "Patients"]
+        : ["Member", "Members"];
 
     return {
-      member: isTuition ? "Student" : "Member",
-      members: isTuition ? "Students" : "Members",
-      memberLower: isTuition ? "student" : "member",
-      membersLower: isTuition ? "students" : "members",
-      addMember: isTuition ? "Add Student" : "Add Member",
-      noMembers: isTuition ? "No students yet" : "No members yet",
-      importMembers: isTuition ? "Import Students" : "Import Members",
+      member: one,
+      members: many,
+      memberLower: one.toLowerCase(),
+      membersLower: many.toLowerCase(),
+      addMember: `Add ${one}`,
+      noMembers: `No ${many.toLowerCase()} yet`,
+      importMembers: `Import ${many}`,
     };
   });
 }

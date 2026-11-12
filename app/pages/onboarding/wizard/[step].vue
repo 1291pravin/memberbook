@@ -1,8 +1,11 @@
 <template>
   <div class="min-h-screen flex items-center justify-center px-4 py-8 bg-slate-50">
     <div class="w-full max-w-2xl">
-      <!-- Progress Indicator -->
-      <div class="mb-8" v-if="progress && currentStep !== 'complete'">
+      <!-- The upload step is step 3 of sign-up and finishes it -->
+      <SignupSteps v-if="currentStep === 'upload'" :current="3" />
+
+      <!-- Progress Indicator (do-it-yourself steps) -->
+      <div class="mb-8" v-if="progress && currentStep !== 'complete' && currentStep !== 'upload'">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-medium text-slate-800">Step {{ currentStepNumber }} of {{ totalWizardSteps }}: {{ currentStepLabel }}</span>
         </div>
@@ -15,20 +18,22 @@
       </div>
 
       <!-- Step Content -->
-      <AppCard>
+      <AppCard class="!rounded-[32px] !p-6 sm:!p-8">
         <!-- Upload Step: the owner sends their data once and we load it -->
         <div v-if="currentStep === 'upload'">
           <div class="text-center mb-6">
-            <div class="text-4xl mb-3">📤</div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">Send us your {{ t.membersLower }} list</h2>
-            <p class="text-slate-600">Excel, register photos or a pasted list, in any format. We add your plans, {{ t.membersLower }} and due dates for you, free.</p>
+            <h2 class="text-3xl font-extrabold tracking-tight text-slate-800">Send us your {{ t.memberLower }} list. <span class="serif-accent text-primary-600">That's it.</span></h2>
+            <p class="mt-2 text-slate-600">Photos of your register, an Excel sheet or a pasted list, in any format. We add your plans, {{ t.membersLower }} and due dates, then show you exactly who to remind and when.</p>
           </div>
 
-          <DataUploadForm @uploaded="navigateTo('/dashboard/upload?sent=1')" />
+          <DataUploadForm show-upi @uploaded="navigateTo('/dashboard')" />
 
           <p class="mt-6 text-center text-sm text-slate-600">
-            <button type="button" class="font-medium text-primary-700 hover:underline" @click="goToNext">
-              I'd rather set it up myself
+            Don't have it handy?
+            <NuxtLink to="/dashboard" class="font-semibold text-primary-700 hover:underline">Send it later</NuxtLink>
+            ·
+            <button type="button" class="font-semibold text-primary-700 hover:underline" @click="goToNext">
+              I'll set it up myself
             </button>
           </p>
         </div>

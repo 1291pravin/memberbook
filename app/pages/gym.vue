@@ -11,7 +11,7 @@
           Send us photos of your gym register or your Excel sheet. We load every member, plan and due date into MemberBook for free, and set up WhatsApp renewal reminders so fees come in on time.
         </p>
         <div class="mt-8 flex flex-wrap gap-3 justify-center">
-          <a :href="setupLink" target="_blank" rel="noopener">
+          <a :href="setupLink" :target="setupLink.startsWith('http') ? '_blank' : undefined" rel="noopener">
             <AppButton size="lg">Send us your register</AppButton>
           </a>
           <NuxtLink to="/register">
@@ -116,7 +116,7 @@
         <p class="text-lg text-slate-300 mb-8">
           Send us your register on WhatsApp today. MemberBook and setup are both free.
         </p>
-        <a :href="setupLink" target="_blank" rel="noopener">
+        <a :href="setupLink" :target="setupLink.startsWith('http') ? '_blank' : undefined" rel="noopener">
           <AppButton size="lg" class="bg-white text-slate-800 hover:bg-slate-100">Send us your register</AppButton>
         </a>
       </div>
@@ -231,6 +231,6 @@ const setupSteps = [
   { title: "Fees come in on time", text: "Members get WhatsApp reminders with your UPI ID before their plan ends." },
 ];
 
-const { whatsappLink } = useSupport();
-const setupLink = computed(() => whatsappLink("Hi MemberBook team, I want you to set up my gym register.\n\nGym name:\nCity:\nNumber of members (approx):\n\nI'll send photos of the register / Excel sheet next."));
+const { setupHref } = useSupport();
+const setupLink = computed(() => setupHref("Hi MemberBook team, I want you to set up my gym register.\n\nGym name:\nCity:\nNumber of members (approx):\n\nI'll send photos of the register / Excel sheet next."));
 </script>

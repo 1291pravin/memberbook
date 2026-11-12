@@ -11,7 +11,7 @@
           Send us your student register or Excel sheet. We load every student, batch and fee date into MemberBook for free, and set up WhatsApp fee reminders to parents with your UPI ID.
         </p>
         <div class="mt-8 flex flex-wrap gap-3 justify-center">
-          <a :href="setupLink" target="_blank" rel="noopener">
+          <a :href="setupLink" :target="setupLink.startsWith('http') ? '_blank' : undefined" rel="noopener">
             <AppButton size="lg">Send us your register</AppButton>
           </a>
           <NuxtLink to="/register">
@@ -114,8 +114,8 @@
 definePageMeta({ layout: "default" });
 
 const config = useRuntimeConfig();
-const { whatsappLink } = useSupport();
-const setupLink = computed(() => whatsappLink("Hi MemberBook team, I want you to set up my coaching centre register.\n\nCoaching centre name:\nCity:\nNumber of students (approx):\n\nI'll send photos of the register / Excel sheet next."));
+const { setupHref } = useSupport();
+const setupLink = computed(() => setupHref("Hi MemberBook team, I want you to set up my coaching centre register.\n\nCoaching centre name:\nCity:\nNumber of students (approx):\n\nI'll send photos of the register / Excel sheet next."));
 const appUrl = config.public.appUrl || "https://memberbook.in";
 
 useSeoMeta({

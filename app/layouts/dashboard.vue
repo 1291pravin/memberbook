@@ -1,171 +1,106 @@
 <template>
   <div class="dashboard-shell min-h-screen bg-slate-50 lg:flex">
-    <!-- Desktop Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:bg-gradient-to-b lg:from-slate-800 lg:to-slate-900 lg:fixed lg:inset-y-0">
-      <div class="p-4 border-b border-slate-700/50">
-        <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-300 tracking-tight">MemberBook</NuxtLink>
-        <div v-if="currentOrg" class="relative mt-1">
+    <!-- Desktop sidebar -->
+    <aside class="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-slate-200 lg:bg-white">
+      <div class="px-5 pb-4 pt-6">
+        <NuxtLink to="/dashboard" class="flex items-center gap-2.5" aria-label="memberbook home">
+          <BrandMark :size="32" />
+          <span class="text-[21px] font-extrabold tracking-[-0.035em] text-slate-800">memberbook</span>
+        </NuxtLink>
+        <div v-if="currentOrg" class="relative mt-4">
           <button
-            class="flex items-center gap-1 text-xs text-slate-200 hover:text-white transition-colors"
+            class="flex w-full items-center justify-between gap-2 rounded-2xl bg-slate-50 px-3 py-2.5 text-left text-sm font-semibold text-slate-800 hover:bg-slate-100"
             @click.stop="orgDropdownOpen = !orgDropdownOpen"
           >
-            {{ currentOrg.name }}
-            <svg class="w-3 h-3" :class="orgDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <span class="truncate">{{ currentOrg.name }}</span>
+            <svg class="h-4 w-4 shrink-0 text-slate-600" :class="orgDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
           </button>
-          <div
-            v-if="orgDropdownOpen"
-            class="absolute left-0 top-full mt-1 w-56 bg-slate-700 rounded-lg shadow-lg border border-slate-600 py-1 z-50"
-          >
+          <div v-if="orgDropdownOpen" class="absolute left-0 top-full z-50 mt-1 w-full rounded-2xl border border-slate-200 bg-white py-1 shadow-lg">
             <button
               v-for="org in userOrgs"
               :key="org.orgId"
-              class="flex items-center justify-between w-full px-3 py-2 text-sm transition-colors"
-              :class="org.orgId === currentOrg.orgId ? 'bg-slate-600 text-white' : 'text-slate-200 hover:bg-slate-600'"
+              class="flex w-full items-center justify-between px-3 py-2 text-sm"
+              :class="org.orgId === currentOrg.orgId ? 'bg-primary-50 text-primary-800' : 'text-slate-700 hover:bg-slate-50'"
               @click="switchOrg(org.orgId)"
             >
               <span class="truncate">{{ org.name }}</span>
-              <span
-                class="ml-2 shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
-                :class="org.role === 'owner' ? 'bg-primary-500/20 text-primary-300' : 'bg-slate-500/30 text-slate-200'"
-              >{{ org.role === 'owner' ? 'Owner' : 'Staff' }}</span>
+              <span class="ml-2 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="org.role === 'owner' ? 'bg-primary-100 text-primary-800' : 'bg-slate-100 text-slate-700'">{{ org.role === 'owner' ? 'Owner' : 'Staff' }}</span>
             </button>
-            <div class="my-1 border-t border-slate-600" />
-            <button
-              class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-200 hover:bg-slate-600 transition-colors"
-              @click="openAddOutlet"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Add outlet
+            <div class="my-1 border-t border-slate-200" />
+            <button class="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50" @click="openAddOutlet">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              Add another branch
             </button>
           </div>
         </div>
       </div>
-      <nav class="flex-1 overflow-y-auto px-3 py-4">
-        <div v-for="group in navGroups" :key="group.label" class="mb-5 last:mb-0">
-          <p class="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-200">
-            {{ group.label }}
-          </p>
-          <div class="space-y-0.5">
-            <NuxtLink
-              v-for="item in group.items"
-              :key="item.to"
-              :to="item.to"
-              class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200"
-              :class="isActive(item.to) ? 'bg-primary-600/20 text-primary-200 shadow-sm shadow-primary-500/10' : 'text-slate-200 hover:bg-white/5 hover:text-white'"
-            >
-              <component :is="item.icon" class="h-5 w-5" />
-              {{ item.label }}
-            </NuxtLink>
-          </div>
-        </div>
-        <!-- Show more features toggle for new orgs -->
-        <button
-          v-if="memberCount < 5 && !showAllNav"
-          class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-200 transition-all duration-200 hover:bg-white/5 hover:text-white"
-          @click="showAllNav = true"
-        >
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-          </svg>
-          More features
+
+      <nav class="flex-1 space-y-1 overflow-y-auto px-3 pb-4" aria-label="Main">
+        <NuxtLink v-for="item in mainNav" :key="item.to" :to="item.to" class="app-nav-link" :class="{ 'is-active': isActive(item.to) }">
+          <component :is="item.icon" class="h-5 w-5" />
+          {{ item.label }}
+        </NuxtLink>
+
+        <button type="button" class="app-nav-link w-full" :aria-expanded="moreOpen" @click="moreOpen = !moreOpen">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10" /></svg>
+          <span class="flex-1 text-left">More</span>
+          <svg class="h-4 w-4" :class="moreOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
         </button>
-      </nav>
-      <div class="border-t border-slate-700/50 p-3">
-        <div v-if="currentOrg" class="mb-2 rounded-lg bg-white/5 px-3 py-2">
-          <p class="truncate text-xs font-medium text-slate-200">{{ currentOrg.name }}</p>
-          <p class="mt-0.5 text-[11px] capitalize text-slate-200">{{ currentOrg.role }} workspace</p>
+        <div v-if="moreOpen" class="space-y-1 pl-4">
+          <NuxtLink v-for="item in extraNav" :key="item.to" :to="item.to" class="app-nav-link !py-2 !text-sm" :class="{ 'is-active': isActive(item.to) }">
+            <component :is="item.icon" class="h-[18px] w-[18px]" />
+            {{ item.label }}
+          </NuxtLink>
         </div>
-        <button
-          class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-200 transition-all duration-200 hover:bg-white/5 hover:text-white cursor-pointer"
-          @click="logout"
-        >
-          Logout
+
+        <NuxtLink to="/dashboard/upload" class="mt-5 block rounded-3xl bg-accent-100 p-4 text-sm leading-snug text-slate-800 hover:bg-accent-200">
+          <span class="serif-accent block text-[22px] leading-tight text-slate-800">Send us your data</span>
+          <span class="mt-1 block text-slate-700">New {{ t.membersLower }} or a register photo? Send it and we'll add it.</span>
+        </NuxtLink>
+      </nav>
+
+      <div class="space-y-1 border-t border-slate-200 p-3">
+        <NuxtLink v-for="item in footerNav" :key="item.to" :to="item.to" class="app-nav-link !py-2 !text-sm" :class="{ 'is-active': isActive(item.to) }">
+          <component :is="item.icon" class="h-[18px] w-[18px]" />
+          {{ item.label }}
+        </NuxtLink>
+        <button class="app-nav-link w-full !py-2 !text-sm" @click="logout">
+          <svg class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
+          Log out
         </button>
       </div>
     </aside>
 
-    <!-- Main Content -->
-    <div class="flex-1 pb-20 lg:pb-0 lg:ml-64">
-      <!-- Mobile Header -->
-      <header class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-        <NuxtLink to="/dashboard" class="text-lg font-bold text-primary-600">MemberBook</NuxtLink>
-        <div class="flex items-center gap-2">
-          <div v-if="currentOrg" class="relative">
+    <!-- Main content -->
+    <div class="flex-1 pb-24 lg:ml-64 lg:pb-0">
+      <!-- Mobile header -->
+      <header class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+        <NuxtLink to="/dashboard" class="flex items-center gap-2" aria-label="memberbook home">
+          <BrandMark :size="28" />
+          <span class="text-lg font-extrabold tracking-[-0.035em] text-slate-800">memberbook</span>
+        </NuxtLink>
+        <div v-if="currentOrg" class="relative">
+          <button
+            class="flex max-w-[11rem] items-center gap-1 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700"
+            @click.stop="mobileOrgDropdownOpen = !mobileOrgDropdownOpen"
+          >
+            <span class="truncate">{{ currentOrg.name }}</span>
+            <svg class="h-3 w-3 shrink-0" :class="mobileOrgDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </button>
+          <div v-if="mobileOrgDropdownOpen" class="absolute right-0 top-full z-50 mt-1 w-56 rounded-2xl border border-slate-200 bg-white py-1 shadow-lg">
             <button
-              class="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-800 transition-colors"
-              @click.stop="mobileOrgDropdownOpen = !mobileOrgDropdownOpen"
+              v-for="org in userOrgs"
+              :key="org.orgId"
+              class="flex w-full items-center justify-between px-3 py-2 text-sm"
+              :class="org.orgId === currentOrg.orgId ? 'bg-primary-50 text-primary-800' : 'text-slate-700 hover:bg-slate-50'"
+              @click="switchOrg(org.orgId)"
             >
-              {{ currentOrg.name }}
-              <svg class="w-3 h-3" :class="mobileOrgDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-              </svg>
+              <span class="truncate">{{ org.name }}</span>
             </button>
-            <div
-              v-if="mobileOrgDropdownOpen"
-              class="absolute right-0 top-full mt-1 w-52 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50"
-            >
-              <button
-                v-for="org in userOrgs"
-                :key="org.orgId"
-                class="flex items-center justify-between w-full px-3 py-2 text-sm transition-colors"
-                :class="org.orgId === currentOrg.orgId ? 'bg-primary-50 text-primary-700' : 'text-slate-700 hover:bg-slate-50'"
-                @click="switchOrg(org.orgId)"
-              >
-                <span class="truncate">{{ org.name }}</span>
-                <span
-                  class="ml-2 shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
-                  :class="org.role === 'owner' ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-600'"
-                >{{ org.role === 'owner' ? 'Owner' : 'Staff' }}</span>
-              </button>
-              <div class="my-1 border-t border-slate-200" />
-              <button
-                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                @click="openAddOutlet"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Add outlet
-              </button>
-            </div>
-          </div>
-          <div class="relative">
-            <button
-              class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
-              @click="mobileMenuOpen = !mobileMenuOpen"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-              </svg>
-            </button>
-            <div
-              v-if="mobileMenuOpen"
-              class="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50"
-            >
-              <NuxtLink
-                to="/dashboard/settings"
-                class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                @click="mobileMenuOpen = false"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Settings
-              </NuxtLink>
-              <button
-                class="flex items-center gap-2 w-full px-4 py-2 text-sm text-danger-600 hover:bg-slate-50"
-                @click="logout"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                </svg>
-                Logout
-              </button>
-            </div>
+            <div class="my-1 border-t border-slate-200" />
+            <button class="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50" @click="openAddOutlet">Add another branch</button>
           </div>
         </div>
       </header>
@@ -175,101 +110,65 @@
       </div>
     </div>
 
-    <!-- Mobile Bottom Tab Bar -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex justify-around z-40" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom));">
+    <!-- Mobile bottom tab bar -->
+    <nav class="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-slate-200 bg-white px-2 pt-1 lg:hidden" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom));" aria-label="Main">
       <NuxtLink
-        v-for="item in mobileNavItems"
+        v-for="item in mainNav"
         :key="item.to"
         :to="item.to"
-        class="relative flex flex-col items-center gap-0.5 px-3 py-2 text-xs min-w-[44px] min-h-[44px] justify-center"
-        :class="isActive(item.to) ? 'text-primary-600' : 'text-slate-600'"
+        class="flex min-h-[52px] min-w-[56px] flex-col items-center justify-center gap-0.5 rounded-2xl px-2 text-[11px] font-semibold"
+        :class="isActive(item.to) ? 'text-primary-700' : 'text-slate-600'"
       >
-        <span
-          v-if="isActive(item.to)"
-          class="absolute -top-px left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary-500 rounded-full"
-        />
-        <component :is="item.icon" class="w-5 h-5" />
+        <span class="flex h-7 w-12 items-center justify-center rounded-full" :class="isActive(item.to) ? 'bg-primary-100' : ''">
+          <component :is="item.icon" class="h-5 w-5" />
+        </span>
         {{ item.label }}
       </NuxtLink>
-
-      <!-- More Button -->
       <button
-        class="relative flex flex-col items-center gap-0.5 px-3 py-2 text-xs min-w-[44px] min-h-[44px] justify-center"
-        :class="moreMenuOpen ? 'text-primary-600' : 'text-slate-600'"
+        class="flex min-h-[52px] min-w-[56px] flex-col items-center justify-center gap-0.5 rounded-2xl px-2 text-[11px] font-semibold"
+        :class="moreMenuOpen ? 'text-primary-700' : 'text-slate-600'"
         @click="moreMenuOpen = !moreMenuOpen"
       >
-        <span
-          v-if="moreMenuOpen"
-          class="absolute -top-px left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary-500 rounded-full"
-        />
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-        </svg>
+        <span class="flex h-7 w-12 items-center justify-center rounded-full" :class="moreMenuOpen ? 'bg-primary-100' : ''">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+        </span>
         More
       </button>
     </nav>
 
-    <!-- More Menu Bottom Sheet -->
-    <Transition
-      enter-active-class="transition-all duration-300 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition-all duration-200 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="moreMenuOpen"
-        class="lg:hidden fixed inset-0 bg-black/40 z-50"
-        @click="moreMenuOpen = false"
-      >
-        <Transition
-          enter-active-class="transition-transform duration-300 ease-out"
-          enter-from-class="translate-y-full"
-          enter-to-class="translate-y-0"
-          leave-active-class="transition-transform duration-200 ease-in"
-          leave-from-class="translate-y-0"
-          leave-to-class="translate-y-full"
-        >
-          <div
-            v-if="moreMenuOpen"
-            class="absolute bottom-0 inset-x-0 bg-white rounded-t-2xl shadow-2xl"
-            @click.stop
-          >
-            <!-- Drag Handle -->
-            <div class="flex justify-center pt-3 pb-2">
-              <div class="w-10 h-1 bg-slate-300 rounded-full" />
-            </div>
-
-            <!-- Header -->
-            <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-slate-800">Menu</h3>
-              <button
-                class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
-                @click="moreMenuOpen = false"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <!-- Menu Items Grid -->
-            <div class="grid grid-cols-3 gap-3 p-4 pb-6">
-              <NuxtLink
-                v-for="item in moreNavItems"
-                :key="item.to"
-                :to="item.to"
-                class="flex flex-col items-center gap-2 p-3 rounded-xl transition-colors"
-                :class="isActive(item.to) ? 'bg-primary-50 text-primary-600' : 'text-slate-600 hover:bg-slate-50'"
-                @click="moreMenuOpen = false"
-              >
-                <component :is="item.icon" class="w-7 h-7" />
-                <span class="text-xs font-medium text-center">{{ item.label }}</span>
-              </NuxtLink>
-            </div>
+    <!-- Mobile "More" sheet -->
+    <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" leave-active-class="transition-opacity duration-150" leave-to-class="opacity-0">
+      <div v-if="moreMenuOpen" class="fixed inset-0 z-50 bg-black/40 lg:hidden" @click="moreMenuOpen = false">
+        <div class="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white pb-6 shadow-2xl" @click.stop>
+          <div class="flex justify-center pb-2 pt-3"><div class="h-1 w-10 rounded-full bg-slate-300" /></div>
+          <div class="flex items-center justify-between px-5 pb-2">
+            <h3 class="text-lg font-extrabold text-slate-800">More</h3>
+            <button class="rounded-full p-2 text-slate-600 hover:bg-slate-100" aria-label="Close menu" @click="moreMenuOpen = false">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
           </div>
-        </Transition>
+          <NuxtLink to="/dashboard/upload" class="mx-4 mb-3 block rounded-3xl bg-accent-100 p-4 text-sm text-slate-800" @click="moreMenuOpen = false">
+            <span class="serif-accent block text-xl">Send us your data</span>
+            <span class="text-slate-700">We'll add new {{ t.membersLower }} for you.</span>
+          </NuxtLink>
+          <div class="grid grid-cols-3 gap-2 px-4">
+            <NuxtLink
+              v-for="item in [...extraNav, ...footerNav]"
+              :key="item.to"
+              :to="item.to"
+              class="flex flex-col items-center gap-2 rounded-2xl p-3 text-center"
+              :class="isActive(item.to) ? 'bg-primary-50 text-primary-800' : 'text-slate-700 hover:bg-slate-50'"
+              @click="moreMenuOpen = false"
+            >
+              <component :is="item.icon" class="h-6 w-6" />
+              <span class="text-xs font-semibold">{{ item.label }}</span>
+            </NuxtLink>
+            <button class="flex flex-col items-center gap-2 rounded-2xl p-3 text-center text-slate-700 hover:bg-slate-50" @click="logout">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
+              <span class="text-xs font-semibold">Log out</span>
+            </button>
+          </div>
+        </div>
       </div>
     </Transition>
 
@@ -292,7 +191,6 @@ const route = useRoute();
 const { clear, fetch: refreshSession } = useUserSession();
 const { currentOrg } = useOrg();
 const t = useTerminology();
-const mobileMenuOpen = ref(false);
 const moreMenuOpen = ref(false);
 const orgDropdownOpen = ref(false);
 const mobileOrgDropdownOpen = ref(false);
@@ -337,7 +235,6 @@ async function switchOrg(orgId: number) {
 
 function closeDropdowns(e: MouseEvent) {
   if (!(e.target as HTMLElement).closest(".relative")) {
-    mobileMenuOpen.value = false;
     orgDropdownOpen.value = false;
     mobileOrgDropdownOpen.value = false;
   }
@@ -348,97 +245,52 @@ onMounted(() => {
 });
 onUnmounted(() => document.removeEventListener("click", closeDropdowns));
 watch(() => route.path, () => {
-  mobileMenuOpen.value = false;
   moreMenuOpen.value = false;
   orgDropdownOpen.value = false;
   mobileOrgDropdownOpen.value = false;
 });
 
 function icon(d: string) {
-  return () => h("svg", { class: "w-5 h-5", fill: "none", stroke: "currentColor", "stroke-width": "1.5", viewBox: "0 0 24 24" }, [
+  return () => h("svg", { class: "w-5 h-5", fill: "none", stroke: "currentColor", "stroke-width": "1.8", viewBox: "0 0 24 24", "aria-hidden": "true" }, [
     h("path", { "stroke-linecap": "round", "stroke-linejoin": "round", d }),
   ]);
 }
 
-// Fetch member count for progressive sidebar disclosure
-const memberCount = ref(0);
-async function fetchMemberCount() {
-  try {
-    // Lightweight single-query endpoint; the full /dashboard endpoint runs six queries.
-    const data = await $fetch<{ activeMembers: number }>(`/api/orgs/${currentOrg.value?.orgId}/member-count`);
-    memberCount.value = data.activeMembers ?? 0;
-  }
-  catch {
-    // Default to showing all items if fetch fails
-    memberCount.value = 999;
-  }
-}
-onMounted(() => {
-  fetchMemberCount();
-});
+const isLibrary = computed(() => currentOrg.value?.type === "library");
 
-const isLibrary = computed(() => currentOrg.value?.type === 'library');
+// The four things an owner does every day.
+const mainNav = computed(() => [
+  { to: "/dashboard", label: "Home", icon: icon("M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z") },
+  { to: "/dashboard/members", label: t.value.members, icon: icon("M9 11a4 4 0 100-8 4 4 0 000 8zM2.5 21a6.5 6.5 0 0113 0M16 3.5a4 4 0 010 7.5M18 14a5.5 5.5 0 013.5 7") },
+  { to: "/dashboard/collections", label: "Fees due", icon: icon("M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0") },
+  { to: "/dashboard/payments", label: "Payments", icon: icon("M3 7h18v12H3zM3 11h18M7 15h3") },
+]);
 
-const allNavItems = computed(() => {
+// Everything else lives under "More" so the main menu stays short.
+const extraNav = computed(() => {
   const items = [
-    // Most frequently used first
-    { to: "/dashboard", label: "Dashboard", group: "Overview", icon: icon("M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"), primary: true },
-    { to: "/dashboard/members", label: t.value.members, group: "Daily operations", icon: icon("M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"), primary: true },
-    { to: "/dashboard/check-ins", label: "Check-Ins", group: "Daily operations", icon: icon("M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"), primary: true },
-    { to: "/dashboard/payments", label: "Payments", group: "Daily operations", icon: icon("M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"), primary: true },
-    { to: "/dashboard/collections", label: "Collections", group: "Daily operations", icon: icon("M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"), primary: true },
-    { to: "/dashboard/plans", label: "Plans", group: "Business", icon: icon("M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 012.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"), primary: false },
-    { to: "/dashboard/expenses", label: "Expenses", group: "Business", icon: icon("M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"), primary: false },
-    { to: "/dashboard/inquiries", label: "Inquiries", group: "Business", icon: icon("M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"), primary: false },
-    { to: "/dashboard/analytics", label: "Analytics", group: "Insights", icon: icon("M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"), primary: false },
-    { to: "/dashboard/upload", label: "Send us your data", group: "Administration", icon: icon("M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"), primary: false },
-    { to: "/dashboard/settings", label: "Settings", group: "Administration", icon: icon("M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z"), primary: true },
-    { to: "/dashboard/help", label: "Help", group: "Administration", icon: icon("M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"), primary: true },
+    { to: "/dashboard/plans", label: "Plans", icon: icon("M4 6h16M4 12h16M4 18h10") },
+    { to: "/dashboard/check-ins", label: "Check-ins", icon: icon("M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z") },
+    { to: "/dashboard/inquiries", label: "Enquiries", icon: icon("M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z") },
+    { to: "/dashboard/expenses", label: "Expenses", icon: icon("M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z") },
+    { to: "/dashboard/analytics", label: "Reports", icon: icon("M4 19V9M10 19V5M16 19v-7M22 19H2") },
   ];
-
-  // Only show Seats for library orgs
   if (isLibrary.value) {
-    items.splice(8, 0, { to: "/dashboard/seats", label: "Seats", group: "Business", icon: icon("M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z"), primary: false });
+    items.splice(1, 0, { to: "/dashboard/seats", label: "Seats", icon: icon("M5 21V10a2 2 0 012-2h10a2 2 0 012 2v11M3 21h18M8 8V5a4 4 0 018 0v3") });
   }
-
   return items;
 });
 
-// Progressive disclosure: show secondary items only when org has 5+ active members
-const showAllNav = ref(false);
-const navItems = computed(() => {
-  if (memberCount.value >= 5 || showAllNav.value) {
-    return allNavItems.value;
-  }
-  // Show only primary items + a "More features" expander
-  return allNavItems.value.filter(item => item.primary);
-});
+const footerNav = computed(() => [
+  { to: "/dashboard/settings", label: "Settings", icon: icon("M10.3 4.3a1.7 1.7 0 013.4 0l.2 1a1.7 1.7 0 002.5 1.1l.9-.5a1.7 1.7 0 012.4 2.4l-.5.9a1.7 1.7 0 001.1 2.5l1 .2a1.7 1.7 0 010 3.4l-1 .2a1.7 1.7 0 00-1.1 2.5l.5.9a1.7 1.7 0 01-2.4 2.4l-.9-.5a1.7 1.7 0 00-2.5 1.1l-.2 1a1.7 1.7 0 01-3.4 0l-.2-1a1.7 1.7 0 00-2.5-1.1l-.9.5a1.7 1.7 0 01-2.4-2.4l.5-.9a1.7 1.7 0 00-1.1-2.5l-1-.2a1.7 1.7 0 010-3.4l1-.2a1.7 1.7 0 001.1-2.5l-.5-.9a1.7 1.7 0 012.4-2.4l.9.5a1.7 1.7 0 002.5-1.1zM15 12a3 3 0 11-6 0 3 3 0 016 0z") },
+  { to: "/dashboard/help", label: "Help", icon: icon("M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z") },
+]);
 
-const navGroups = computed(() => {
-  const groupOrder = ["Overview", "Daily operations", "Business", "Insights", "Administration"];
-  return groupOrder
-    .map(label => ({ label, items: navItems.value.filter(item => item.group === label) }))
-    .filter(group => group.items.length > 0);
-});
-
-// Core items always visible in bottom nav: Dashboard, Members, Payments
-const mobileNavItems = computed(() => {
-  const all = allNavItems.value;
-  return [all[0]!, all[1]!, all[3]!];
-});
-
-// Items in the "More" menu - everything not in the bottom nav
-const moreNavItems = computed(() => {
-  const all = allNavItems.value;
-  const bottomPaths = new Set(mobileNavItems.value.map(i => i.to));
-  const showAll = memberCount.value >= 5 || showAllNav.value;
-  const moreItems = all.filter(item => !bottomPaths.has(item.to));
-  if (showAll) {
-    return moreItems;
-  }
-  // Only primary items when progressive disclosure is active
-  return moreItems.filter(item => item.primary);
-});
+// Keep "More" open on desktop when the current page lives inside it.
+const moreOpen = ref(false);
+watch(() => route.path, (path) => {
+  if (extraNav.value.some(i => path.startsWith(i.to))) moreOpen.value = true;
+}, { immediate: true });
 
 function isActive(to: string) {
   if (to === "/dashboard") return route.path === "/dashboard";

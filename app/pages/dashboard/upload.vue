@@ -58,7 +58,7 @@
 
     <AppCard :title="uploads?.length ? 'Send more' : undefined">
       <DataUploadForm :show-upi="isOwner" @uploaded="onUploaded" />
-      <p class="mt-4 text-center text-sm text-slate-600">
+      <p v-if="whatsappLink(waMessage)" class="mt-4 text-center text-sm text-slate-600">
         Prefer WhatsApp?
         <a :href="whatsappLink(waMessage)" target="_blank" rel="noopener" class="font-medium text-primary-700 hover:underline">Send it to us there</a>
       </p>

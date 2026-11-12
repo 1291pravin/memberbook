@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db, schema } from "@nuxthub/db";
 import { DEFAULT_EXPENSE_CATEGORIES } from "./expense-categories";
 
-export const ORG_TYPES = ["gym", "library", "tuition", "other"] as const;
+export const ORG_TYPES = ["gym", "library", "tuition", "clinic", "studio", "other"] as const;
 
 /**
  * The account that holds businesses we set up for owners who haven't signed in

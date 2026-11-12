@@ -15,8 +15,8 @@
               for you, set up WhatsApp renewal reminders with your UPI details, and every morning you see exactly who to collect from.
             </p>
             <div class="hero-ctas">
-              <a :href="setupLink" target="_blank" rel="noopener" class="btn btn-accent" @click="trackCtaClick('home_hero_send_register')">
-                <IcWhatsapp :size="15" color="currentColor" /> Send us your register
+              <a :href="setupLink" :target="setupLink.startsWith('http') ? '_blank' : undefined" rel="noopener" class="btn btn-accent" @click="trackCtaClick('home_hero_send_register')">
+                <IcWhatsapp v-if="setupLink.startsWith('http')" :size="15" color="currentColor" /> Send us your register
               </a>
               <NuxtLink to="/register" class="btn btn-ghost" @click="trackCtaClick('home_hero_self_serve')">
                 Or set it up yourself
@@ -219,7 +219,7 @@
               <li v-for="f in plan.features" :key="f">{{ f }}</li>
             </ul>
             <a
-              v-if="plan.cta.whatsapp"
+              v-if="plan.cta.whatsapp && whatsappLink(plan.cta.whatsapp)"
               :href="whatsappLink(plan.cta.whatsapp)"
               target="_blank"
               rel="noopener"
@@ -253,7 +253,8 @@
             <span class="eyebrow">Questions</span>
             <h2 style="margin-top: 16px;">The stuff owners ask <em>before sending their register.</em></h2>
           </div>
-          <p>Don't see your question? Message us on WhatsApp at {{ whatsappDisplay }}. A person replies, not a bot.</p>
+          <p v-if="whatsappDisplay">Don't see your question? Message us on WhatsApp at {{ whatsappDisplay }}. A person replies, not a bot.</p>
+          <p v-else-if="email">Don't see your question? Email us at <a :href="`mailto:${email}`">{{ email }}</a>. A person replies, not a bot.</p>
         </div>
         <div class="faq-list">
           <div v-for="f in faqs" :key="f.question" class="faq-item">
@@ -278,8 +279,8 @@
           </div>
           <div class="right">
             <div class="ctas">
-              <a :href="setupLink" target="_blank" rel="noopener" class="btn btn-accent" @click="trackCtaClick('home_cta_send_register')">
-                <IcWhatsapp :size="15" color="currentColor" /> Send us your register
+              <a :href="setupLink" :target="setupLink.startsWith('http') ? '_blank' : undefined" rel="noopener" class="btn btn-accent" @click="trackCtaClick('home_cta_send_register')">
+                <IcWhatsapp v-if="setupLink.startsWith('http')" :size="15" color="currentColor" /> Send us your register
               </a>
               <NuxtLink to="/register" class="btn btn-ghost" @click="trackCtaClick('home_cta_self_serve')">Set it up myself</NuxtLink>
             </div>
@@ -299,10 +300,10 @@ definePageMeta({ layout: "default" });
 const config = useRuntimeConfig();
 const appUrl = config.public.appUrl || "https://memberbook.in";
 const { trackCtaClick } = useAnalytics();
-const { whatsappLink, whatsappDisplay } = useSupport();
+const { whatsappLink, whatsappDisplay, setupHref, email } = useSupport();
 
 const setupMessage = "Hi MemberBook team, I want you to set up my register.\n\nBusiness name:\nType (gym / library / coaching):\nCity:\nNumber of members (approx):\n\nI'll send photos of the register / Excel sheet next.";
-const setupLink = computed(() => whatsappLink(setupMessage));
+const setupLink = computed(() => setupHref(setupMessage));
 const homeRef = ref<HTMLElement | null>(null);
 const scrollRevealReady = ref(false);
 let scrollRevealObserver: IntersectionObserver | undefined;
