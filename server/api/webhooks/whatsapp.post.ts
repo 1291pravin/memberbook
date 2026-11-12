@@ -7,6 +7,10 @@ interface StatusUpdate {
 }
 
 interface WebhookValue {
+  metadata?: { phone_number_id?: string; display_phone_number?: string };
+  // message_template_status_update
+  event?: string;
+  message_template_name?: string;
   contacts?: { wa_id?: string; profile?: { name?: string } }[];
   messages?: IncomingWhatsAppMessage[];
   statuses?: StatusUpdate[];
@@ -23,7 +27,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: "Invalid signature" });
   }
 
-  let payload: { entry?: { changes?: { value?: WebhookValue }[] }[] };
+  let payload: { entry?: { id?: string; changes?: { field?: string; value?: WebhookValue }[] }[] };
   try {
     payload = JSON.parse(raw);
   }
@@ -35,7 +39,22 @@ export default defineEventHandler(async (event) => {
     for (const change of entry.changes ?? []) {
       const value = change.value ?? {};
 
-      for (const m of value.messages ?? []) {
+      // Businesses that connected their own WhatsApp (embedded signup): their
+      // reminder template's review result, and MemberBook being removed.
+      if (change.field === "message_template_status_update" && entry.id && value.message_template_name && value.event) {
+        await updateOwnTemplateStatus(entry.id, value.message_template_name, value.event);
+        continue;
+      }
+      if (change.field === "account_update" && entry.id && value.event === "PARTNER_REMOVED") {
+        await markOwnAccountRemoved(entry.id);
+        continue;
+      }
+
+      // Messages to a business's own number are theirs, not for MemberBook's
+      // admin inbox. (Delivery ticks below still update their reminders.)
+      const toOwnBusinessNumber = await isOwnBusinessNumber(value.metadata?.phone_number_id);
+
+      for (const m of toOwnBusinessNumber ? [] : value.messages ?? []) {
         if (!m.id || !m.from) continue;
         const phone = String(m.from).replace(/\D/g, "");
         const contact = value.contacts?.find(c => c.wa_id === m.from) ?? value.contacts?.[0];

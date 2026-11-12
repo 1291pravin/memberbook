@@ -144,6 +144,9 @@ export default defineNuxtConfig({
       apiVersion: "v22.0",
       businessAccountId: "",
       appId: "",
+      // Key for encrypting businesses' own WhatsApp tokens at rest
+      // (NUXT_WHATSAPP_CLOUD_TOKEN_KEY). Falls back to the session password.
+      tokenKey: "",
     },
     session: {
       maxAge: 60 * 60 * 24 * 365, // 1 year — effectively "no timeout"
@@ -164,6 +167,13 @@ export default defineNuxtConfig({
       // WhatsApp contact links stay hidden until the support number is connected to the
       // Cloud API (Meta business verification). Set NUXT_PUBLIC_SUPPORT_WHATSAPP_LIVE=true then.
       supportWhatsappLive: false,
+      // "Connect with WhatsApp" (Meta embedded signup) for businesses' own numbers:
+      // NUXT_PUBLIC_WHATSAPP_SIGNUP_APP_ID and NUXT_PUBLIC_WHATSAPP_SIGNUP_CONFIG_ID
+      // (Facebook Login for Business configuration). See docs/whatsapp-own-number.md.
+      whatsappSignup: {
+        appId: "",
+        configId: "",
+      },
       supportEmail: "support@memberbook.in",
       supportHours: "Mon to Sat, 10 AM to 7 PM IST",
     },

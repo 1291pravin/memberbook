@@ -468,3 +468,34 @@ export const addOnBills = sqliteTable("add_on_bills", {
   orgPeriodUnique: uniqueIndex("add_on_bills_org_period_unique").on(table.orgId, table.period),
   statusIdx: index("add_on_bills_status_idx").on(table.status),
 }));
+
+// A business's own WhatsApp Business account, connected through Meta's
+// embedded signup ("Connect with WhatsApp"). When connected and its reminder
+// template is approved, automatic reminders go out from the business's own
+// number instead of MemberBook's. The access token is encrypted at rest
+// (server/utils/whatsapp-own.ts).
+export const orgWhatsappAccounts = sqliteTable("org_whatsapp_accounts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  wabaId: text("waba_id").notNull(),
+  phoneNumberId: text("phone_number_id").notNull(),
+  displayPhoneNumber: text("display_phone_number"),
+  verifiedName: text("verified_name"),
+  // true = the number stays on the WhatsApp Business app too (coexistence)
+  businessApp: integer("business_app", { mode: "boolean" }).notNull().default(false),
+  accessTokenEnc: text("access_token_enc"), // AES-GCM, null once disconnected
+  pinEnc: text("pin_enc"), // two-step verification PIN we set when registering a new number
+  status: text("status").notNull().default("connected"), // connected, disconnected, error
+  templateName: text("template_name").notNull().default("fee_reminder"),
+  templateLanguage: text("template_language").notNull().default("en"),
+  templateStatus: text("template_status"), // PENDING, APPROVED, REJECTED, ... (from Meta)
+  lastError: text("last_error"),
+  connectedBy: integer("connected_by").references(() => users.id),
+  connectedAt: text("connected_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  orgUnique: uniqueIndex("org_whatsapp_accounts_org_unique").on(table.orgId),
+  phoneIdx: index("org_whatsapp_accounts_phone_idx").on(table.phoneNumberId),
+  wabaIdx: index("org_whatsapp_accounts_waba_idx").on(table.wabaId),
+}));

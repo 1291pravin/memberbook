@@ -1,5 +1,6 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db, schema } from "@nuxthub/db";
+import type { WhatsAppSender } from "./whatsapp-cloud";
 
 /** Renewals that lapsed longer ago than this are treated as churned, not chased. */
 export const LAPSED_WINDOW_DAYS = 30;
@@ -419,7 +420,7 @@ export async function logReminder(values: typeof schema.reminderLogs.$inferInser
 }
 
 /** Send one reminder through the WhatsApp Cloud API and log it. */
-export async function sendCloudReminder(item: CollectionItem, org: OrgCollectionSettings, sentBy: number | null) {
+export async function sendCloudReminder(item: CollectionItem, org: OrgCollectionSettings, sentBy: number | null, sender?: WhatsAppSender) {
   const to = normalizeIndianPhone(item.memberPhone);
   if (!to) return { ok: false as const, error: "No valid phone number" };
   if (!item.payToken) return { ok: false as const, error: "No pay link" };
@@ -432,7 +433,7 @@ export async function sendCloudReminder(item: CollectionItem, org: OrgCollection
       ? `now (it was due on ${formatShortDate(addDaysToDate(item.dueDate, 1))})`
       : item.daysLate === 0 ? "tomorrow" : `on ${formatShortDate(addDaysToDate(item.dueDate, 1))}`;
 
-  const result = await sendFeeReminderTemplate(to, [p.name, org.name, what, when, formatRupees(item.amount)], item.payToken);
+  const result = await sendFeeReminderTemplate(to, [p.name, org.name, what, when, formatRupees(item.amount)], item.payToken, sender);
   await logReminder({
     orgId: org.id,
     memberId: item.memberId,

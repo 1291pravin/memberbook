@@ -97,10 +97,12 @@ export const ADD_ONS: AddOnDef[] = [
     points: [
       "Members see your number, not ours",
       "Keep using the WhatsApp Business app as usual",
+      "Connect in two minutes with your Facebook login",
     ],
     price: 49900,
     ready: false,
-    waitingOn: "Meta Tech Provider status and embedded signup",
+    waitingOn: "Meta Tech Provider app review (embedded signup is built; switch on per business to test)",
+    page: "/dashboard/add-ons/whatsapp",
   },
   {
     key: "front_desk",

@@ -27,7 +27,10 @@
 
     <!-- How reminders are sent -->
     <p v-if="data" class="text-xs text-slate-600">
-      <template v-if="data.sendsViaCloud">
+      <template v-if="data.sendsViaCloud && data.sendsFrom === 'own'">
+        Reminders go out automatically every morning from your WhatsApp number{{ data.sendsFromNumber ? ` (${data.sendsFromNumber})` : '' }}.
+      </template>
+      <template v-else-if="data.sendsViaCloud">
         Reminders go out automatically every morning from MemberBook's WhatsApp number, with your business name in each message.
       </template>
       <template v-else>
@@ -177,7 +180,10 @@
             <span>
               <span class="block text-sm font-medium text-slate-700">Send reminders automatically</span>
               <span class="block text-xs text-slate-600 mt-0.5">
-                <template v-if="data?.cloudAvailable">
+                <template v-if="data?.cloudAvailable && data?.sendsFrom === 'own'">
+                  Every morning, MemberBook sends due reminders from your own WhatsApp number. Up to 3 reminders per payment, 3 days apart.
+                </template>
+                <template v-else-if="data?.cloudAvailable">
                   Every morning, MemberBook sends due reminders from its WhatsApp number with your business name. Up to 3 reminders per payment, 3 days apart.
                 </template>
                 <template v-else>
@@ -230,6 +236,8 @@ interface CollectionsResponse {
   settings: { upiId: string | null; upiPayeeName: string | null; autoRemindersEnabled: boolean; reminderDaysBefore: number };
   cloudAvailable: boolean;
   sendsViaCloud: boolean;
+  sendsFrom: "own" | "memberbook" | null;
+  sendsFromNumber: string | null;
   summary: { overdueCount: number; overdueAmount: number; upcomingCount: number; upcomingAmount: number };
   items: CollectionItem[];
 }

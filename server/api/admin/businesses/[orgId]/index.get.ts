@@ -117,5 +117,6 @@ export default defineEventHandler(async (event) => {
     people: staff!.map(s => ({ name: String(s.name), email: String(s.email), role: String(s.role), lastSeenAt: s.last_seen_at ? String(s.last_seen_at) : null }))
       .filter(p => p.email !== SETUP_USER_EMAIL),
     stages: ADMIN_STAGES,
+    ownWhatsapp: serializeOwnAccount(await getOwnAccount(orgId)),
   };
 });

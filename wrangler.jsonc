@@ -48,5 +48,8 @@
     // Not secret: Meta WhatsApp Business Account and app ids (webhook link + profile photo upload).
     "NUXT_WHATSAPP_CLOUD_BUSINESS_ACCOUNT_ID": "1686210686459455",
     "NUXT_WHATSAPP_CLOUD_APP_ID": "2076715572848640",
+    // Not secret: "Connect with WhatsApp" (embedded signup) app id. The config id
+    // comes from Facebook Login for Business > Configurations in the Meta app.
+    "NUXT_PUBLIC_WHATSAPP_SIGNUP_APP_ID": "2076715572848640",
   },
 }

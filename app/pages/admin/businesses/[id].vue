@@ -161,6 +161,14 @@
                 <dt class="text-xs text-slate-600">Automatic reminders</dt>
                 <dd class="font-medium text-slate-800">{{ b.autoReminders ? "On" : "Off" }}</dd>
               </div>
+              <div v-if="data?.ownWhatsapp">
+                <dt class="text-xs text-slate-600">Own WhatsApp number</dt>
+                <dd class="font-medium text-slate-800">
+                  {{ data.ownWhatsapp.displayPhoneNumber || "?" }} · {{ data.ownWhatsapp.status }}
+                  <span class="text-slate-600">(template {{ data.ownWhatsapp.templateStatus || "none" }})</span>
+                </dd>
+                <dd v-if="data.ownWhatsapp.lastError" class="mt-0.5 break-words text-xs text-red-700">{{ data.ownWhatsapp.lastError }}</dd>
+              </div>
               <div>
                 <dt class="text-xs text-slate-600">Unpaid subscriptions</dt>
                 <dd class="font-medium text-slate-800">{{ formatNumber(b.unpaidSubscriptions) }}</dd>
@@ -210,6 +218,7 @@ interface Detail {
   reminders: Array<{ channel: string; status: string; count: number; lastAt: string }>;
   people: Array<{ name: string; email: string; role: string; lastSeenAt: string | null }>;
   stages: Array<{ value: string; label: string }>;
+  ownWhatsapp: { status: string; displayPhoneNumber: string | null; templateStatus: string | null; lastError: string | null } | null;
 }
 
 const route = useRoute();
