@@ -52,5 +52,7 @@
     // Not secret: "Connect with WhatsApp" (embedded signup) app id. The config id
     // comes from Facebook Login for Business > Configurations in the Meta app.
     "NUXT_PUBLIC_WHATSAPP_SIGNUP_APP_ID": "2076715572848640",
+    // Facebook Login for Business > Configurations > "MemberBook WhatsApp signup".
+    "NUXT_PUBLIC_WHATSAPP_SIGNUP_CONFIG_ID": "2724637357966286",
   },
 }

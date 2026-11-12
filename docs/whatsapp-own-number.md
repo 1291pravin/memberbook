@@ -21,6 +21,8 @@ The add-on is `ready: false`, so only businesses an admin switches it on for (on
    - swaps the code for a business token (`/oauth/access_token`, app id + app secret),
    - checks with `debug_token` that the token really covers that WABA,
    - checks the phone number belongs to the WABA,
+   - gives MemberBook's own system user MANAGE access to the WABA (`assigned_users`), so we
+     send with our permanent token; the signup token expires after 60 days and is only a fallback,
    - subscribes our app to the WABA's webhooks,
    - registers a new number for the Cloud API with a random PIN (not needed for coexistence),
    - creates the `fee_reminder` template on the business's WABA (same text and Pay button
@@ -38,13 +40,17 @@ The add-on is `ready: false`, so only businesses an admin switches it on for (on
 | Variable | What |
 | --- | --- |
 | `NUXT_PUBLIC_WHATSAPP_SIGNUP_APP_ID` | Meta app id (in `wrangler.jsonc`, 2076715572848640) |
-| `NUXT_PUBLIC_WHATSAPP_SIGNUP_CONFIG_ID` | Facebook Login for Business configuration id (see below) |
+| `NUXT_PUBLIC_WHATSAPP_SIGNUP_CONFIG_ID` | Facebook Login for Business configuration id, in `wrangler.jsonc` (2724637357966286, "MemberBook WhatsApp signup", created 2026-11-12) |
 | `NUXT_WHATSAPP_CLOUD_APP_SECRET` | Already set (webhook signatures); also used for the code exchange |
 | `NUXT_WHATSAPP_CLOUD_TOKEN_KEY` | Optional key for encrypting stored tokens. Defaults to the session password. If you set it later, businesses must connect again. |
 
 Until the config id is set, the page says "Almost ready" and the connect endpoint refuses.
 
-## Meta setup (one time, in the MB Front Desk app)
+## Meta setup (one time, in the MB Front Desk app). Steps 1 to 4 done 2026-11-12.
+
+Only the "WhatsApp Embedded Signup Configuration With 60 Expiration Token" template offers
+the Embedded Signup login variation, so the signup token expires after 60 days. That's why
+connect also assigns our own system user to the business's account.
 
 1. App dashboard → Add product → **Facebook Login for Business**.
 2. Facebook Login for Business → Settings: add `memberbook.in` to Allowed domains for the

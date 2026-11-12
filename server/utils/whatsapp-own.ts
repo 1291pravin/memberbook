@@ -147,6 +147,29 @@ async function ensureTemplate(token: string, wabaId: string, name: string, langu
   return { ok: true, status: created.data.status || "PENDING" };
 }
 
+/**
+ * Give MemberBook's own system user (the permanent token in
+ * NUXT_WHATSAPP_CLOUD_ACCESS_TOKEN) access to a business's WhatsApp account.
+ * The token from embedded signup expires after 60 days; ours doesn't.
+ */
+async function assignOurSystemUser(wabaId: string): Promise<{ ok: boolean; error?: string }> {
+  const ours = getWhatsAppCloudConfig().accessToken;
+  if (!ours) return { ok: false, error: "MemberBook's own token is not set" };
+  const me = await graphCall<{ id?: string }>("me?fields=id", ours);
+  if (!me.ok || !me.data.id) return { ok: false, error: me.error ?? "Could not read our system user" };
+  const tasks = encodeURIComponent(JSON.stringify(["MANAGE"]));
+  const r = await graphCall<{ success?: boolean }>(`${wabaId}/assigned_users?user=${me.data.id}&tasks=${tasks}`, ours, { method: "POST" });
+  return r.ok ? { ok: true } : { ok: false, error: r.error };
+}
+
+/** The token to use for a business's account: ours once assigned, else the signup token. */
+async function tokenFor(account: OwnAccount): Promise<string | null> {
+  if (account.status === "disconnected") return null;
+  const ours = getWhatsAppCloudConfig().accessToken;
+  if (account.partnerAccess && ours) return ours;
+  return decryptSecret(account.accessTokenEnc);
+}
+
 // ------------------------------------------------------------ public API
 
 export async function getOwnAccount(orgId: number): Promise<OwnAccount | null> {
@@ -165,7 +188,7 @@ export function serializeOwnAccount(a: OwnAccount | null) {
     templateStatus: a.templateStatus,
     lastError: a.lastError,
     connectedAt: a.connectedAt,
-    ready: a.status === "connected" && a.templateStatus === "APPROVED" && !!a.accessTokenEnc,
+    ready: a.status === "connected" && a.templateStatus === "APPROVED" && (!!a.accessTokenEnc || a.partnerAccess),
   };
 }
 
@@ -178,7 +201,7 @@ export async function getOwnSender(orgId: number): Promise<(WhatsAppSender & { d
   const account = await getOwnAccount(orgId);
   if (!account || account.status !== "connected" || account.templateStatus !== "APPROVED") return null;
   if (!(await isAddOnActive(orgId, "own_number"))) return null;
-  const accessToken = await decryptSecret(account.accessTokenEnc);
+  const accessToken = await tokenFor(account);
   if (!accessToken) return null;
   return {
     phoneNumberId: account.phoneNumberId,
@@ -238,6 +261,10 @@ export async function connectOwnAccount(opts: {
 
   const errors: string[] = [];
 
+  // Long-term access with our own permanent token.
+  const partner = await assignOurSystemUser(opts.wabaId);
+  if (!partner.ok) errors.push(`Partner access: ${partner.error}`);
+
   // Incoming messages and delivery ticks for this account come to our webhook.
   const sub = await graphCall<{ success?: boolean }>(`${opts.wabaId}/subscribed_apps`, token, { method: "POST" });
   if (!sub.ok) errors.push(`Webhooks: ${sub.error}`);
@@ -269,6 +296,7 @@ export async function connectOwnAccount(opts: {
     businessApp: opts.businessApp,
     accessTokenEnc: await encryptSecret(token),
     pinEnc,
+    partnerAccess: partner.ok,
     status: "connected",
     templateName,
     templateLanguage,
@@ -289,7 +317,7 @@ export async function connectOwnAccount(opts: {
 export async function refreshOwnAccount(orgId: number, appUrl: string): Promise<OwnAccount | null> {
   const account = await getOwnAccount(orgId);
   if (!account || account.status === "disconnected") return account;
-  const token = await decryptSecret(account.accessTokenEnc);
+  const token = await tokenFor(account);
   if (!token) return account;
 
   const errors: string[] = [];
@@ -321,6 +349,7 @@ export async function disconnectOwnAccount(orgId: number) {
   await db.update(schema.orgWhatsappAccounts).set({
     status: "disconnected",
     accessTokenEnc: null,
+    partnerAccess: false,
     updatedAt: new Date().toISOString(),
   }).where(eq(schema.orgWhatsappAccounts.orgId, orgId));
 }
@@ -335,7 +364,7 @@ export async function updateOwnTemplateStatus(wabaId: string, templateName: stri
 /** Webhook: the business removed MemberBook from its WhatsApp account in Meta. */
 export async function markOwnAccountRemoved(wabaId: string) {
   await db.update(schema.orgWhatsappAccounts)
-    .set({ status: "disconnected", accessTokenEnc: null, lastError: "Removed in Meta by the business", updatedAt: new Date().toISOString() })
+    .set({ status: "disconnected", accessTokenEnc: null, partnerAccess: false, lastError: "Removed in Meta by the business", updatedAt: new Date().toISOString() })
     .where(eq(schema.orgWhatsappAccounts.wabaId, wabaId));
 }
 
