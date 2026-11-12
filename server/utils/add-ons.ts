@@ -269,7 +269,7 @@ export async function alertServiceRequest(event: H3Event, req: { id: number; org
     event,
     `New add-on request: ${org?.name ?? `business ${req.orgId}`} (${req.type.replace("_", " ")})`,
     `${org?.name ?? "A business"} asked for ${req.type.replace("_", " ")} (request #${req.id}).\n\n`
-    + `The delivery routine picks it up within the hour. Queue: ${appUrl}/admin/services\n`,
+    + `The AI task starts on its own now (or within a few hours if that fails). Queue: ${appUrl}/admin/services\n`,
   );
 }
 

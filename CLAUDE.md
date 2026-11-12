@@ -123,7 +123,11 @@ Optional support channels (defaults in `nuxt.config.ts`, used by `useSupport()`)
 
 ## Add-ons (paid extras)
 
-`/dashboard/add-ons` lists add-on services (catalog in `shared/utils/add-ons.ts`, state in `org_add_ons`). Paid add-ons get a free month, then a monthly bill (`add_on_bills`, daily task `addons:billing`) paid by UPI to `NUXT_BILLING_UPI_ID` and verified by hand on `/admin/services`. Add-ons with `ready: false` are feature-flagged: admins can switch one on for a single business from `/admin/services`. Websites, website changes and review replies/summaries go into `service_requests`, worked by an hourly Claude routine (`docs/service-delivery.md`, `scripts/services.mjs`); website drafts need admin approval, then the owner publishes. Sites are served script-free at `/s/<slug>` (and `<slug>.memberbook.in` once wildcard DNS is set). Self check-in: public `/checkin/<token>`.
+`/dashboard/add-ons` lists add-on services (catalog in `shared/utils/add-ons.ts`, state in `org_add_ons`). Paid add-ons get a free month, then a monthly bill (`add_on_bills`, daily task `addons:billing`) paid by UPI to `NUXT_BILLING_UPI_ID` and verified by hand on `/admin/services`. Add-ons with `ready: false` are feature-flagged: admins can switch one on for a single business from `/admin/services`. Websites, website changes and review replies/summaries go into `service_requests`, worked by a Claude scheduled task (`docs/service-delivery.md`, `scripts/services.mjs`); website drafts need admin approval, then the owner publishes. Sites are served script-free at `/s/<slug>` (and `<slug>.memberbook.in` once wildcard DNS is set). Self check-in: public `/checkin/<token>`.
+
+## On-demand AI runs
+
+The two AI scheduled tasks on claude.ai (load owner uploads, deliver add-on services) have no schedule. The app starts them through their API triggers the moment work is queued (`server/utils/ai-runs.ts`, `wakeAiRunSoon`), and an hourly zero-token Worker cron (`ai:wake`, `41 * * * *`) re-fires a queue at most every 3 hours if work is still waiting and releases claims older than 2 hours. Needs the secrets `NUXT_AI_RUNS_UPLOADS_TOKEN` and `NUXT_AI_RUNS_SERVICES_TOKEN` (trigger IDs default in `nuxt.config.ts`); without them nothing fires.
 
 ## WhatsApp
 

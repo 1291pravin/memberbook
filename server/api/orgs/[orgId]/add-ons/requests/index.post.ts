@@ -21,5 +21,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const req = await queueServiceRequest({ orgId: access.orgId, type, input, requestedBy: access.userId });
+  wakeAiRunSoon(event, "services", `${req.type} request #${req.id}`);
   return serializeRequest(req);
 });

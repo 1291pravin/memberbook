@@ -105,9 +105,11 @@ export default defineNuxtConfig({
   nitro: {
     preset: "cloudflare-module",
     experimental: { tasks: true },
-    // 03:30 UTC = 09:00 IST. The same cron must be listed in wrangler.jsonc "triggers".
+    // 03:30 UTC = 09:00 IST. The same crons must be listed in wrangler.jsonc "triggers".
     scheduledTasks: {
       "30 3 * * *": ["reminders:daily", "addons:billing", "admin:digest"],
+      // Zero-token backup for the on-demand AI runs (server/utils/ai-runs.ts).
+      "41 * * * *": ["ai:wake"],
     },
   },
   hub: {
@@ -133,6 +135,14 @@ export default defineNuxtConfig({
     // set, owners with a bill see "we'll send payment details on WhatsApp".
     billingUpiId: "",
     billingPayeeName: "MemberBook",
+    // AI tasks on claude.ai started only when work is queued (server/utils/ai-runs.ts).
+    // Tokens are secrets: NUXT_AI_RUNS_UPLOADS_TOKEN, NUXT_AI_RUNS_SERVICES_TOKEN.
+    aiRuns: {
+      uploadsTriggerId: "trig_019e5E3YVzwtstvT6CoCF4hm",
+      uploadsToken: "",
+      servicesTriggerId: "trig_01LY2zM6ache6TxrXAKhbKqU",
+      servicesToken: "",
+    },
     whatsappCloud: {
       enabled: false,
       accessToken: "",

@@ -14,5 +14,6 @@ export default defineEventHandler(async (event) => {
 
   const upload = await queueUploadFromForm(event, { orgId: access.orgId, uploadedBy: access.userId, source: "owner" });
   await alertNewUpload(event, upload);
+  wakeAiRunSoon(event, "uploads", `upload #${upload.id} from business ${access.orgId}`);
   return { id: upload.id, status: upload.status };
 });

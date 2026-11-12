@@ -119,7 +119,7 @@ export async function alertNewUpload(event: H3Event, upload: { id: number; orgId
     event,
     `New data upload: ${org?.name ?? `business ${upload.orgId}`}`,
     `${org?.name ?? "A business"} sent their data (upload #${upload.id}, from ${upload.source}).\n\n`
-    + `The loading routine picks it up within the hour. Queue: ${appUrl}/admin/setup\n`,
+    + `The AI task starts on its own now (or within a few hours if that fails). Queue: ${appUrl}/admin/setup\n`,
   );
 }
 

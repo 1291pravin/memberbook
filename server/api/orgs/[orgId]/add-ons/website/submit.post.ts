@@ -48,5 +48,6 @@ export default defineEventHandler(async (event) => {
     requestedBy: access.userId,
   });
   await alertServiceRequest(event, req);
+  wakeAiRunSoon(event, "services", `${req.type} request #${req.id}`);
   return { id: req.id, queued: true };
 });

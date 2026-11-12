@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
   if (!org) throw createError({ statusCode: 404, statusMessage: "Business not found" });
 
   const upload = await queueUploadFromForm(event, { orgId, uploadedBy: null, source: "admin" });
+  wakeAiRunSoon(event, "uploads", `upload #${upload.id} added by admin for business ${orgId}`);
   await recordAdminAuditLog(event, "data_upload_added", { targetOrgId: orgId, metadata: { uploadId: upload.id } });
   return { id: upload.id, status: upload.status };
 });
