@@ -74,7 +74,7 @@ export async function fireAiRun(queue: AiQueue, reason: string, event?: H3Event)
   const cfg = queueConfig(queue, event);
   if (!cfg) return { fired: false, detail: "not configured" };
   try {
-    const res = await fetch(`https://api.anthropic.com/v1/claude_code/routines/${encodeURIComponent(cfg.triggerId)}/fire`, {
+    const post = (body: Record<string, string>) => fetch(`https://api.anthropic.com/v1/claude_code/routines/${encodeURIComponent(cfg.triggerId)}/fire`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${cfg.token}`,
@@ -82,8 +82,11 @@ export async function fireAiRun(queue: AiQueue, reason: string, event?: H3Event)
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text: `Started by MemberBook: ${reason}`.slice(0, 500) }),
+      body: JSON.stringify(body),
     });
+    let res = await post({ text: `Started by MemberBook: ${reason}`.slice(0, 500) });
+    // Some tasks refuse run-specific text; the reason is only a note, so retry without it.
+    if (res.status === 400 || res.status === 422) res = await post({});
     if (!res.ok) {
       const body = (await res.text().catch(() => "")).slice(0, 300);
       console.error(`[ai-runs] fire ${queue} failed: ${res.status} ${body}`);
