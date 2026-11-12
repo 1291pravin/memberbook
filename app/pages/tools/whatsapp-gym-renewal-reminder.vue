@@ -278,7 +278,7 @@ useHead({
   script: [
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebApplication",
         name: "WhatsApp Gym Membership Renewal Reminder Generator",
@@ -296,7 +296,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
@@ -323,7 +323,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
         mainEntity: [
@@ -377,10 +377,10 @@ useHead({
           },
           {
             "@type": "Question",
-            name: "Does MemberBook send automatic WhatsApp reminders?",
+            name: "Can MemberBook send the WhatsApp reminders for me?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Yes. MemberBook tracks every member's expiry date and highlights who is expiring this week on your dashboard. You can send pre-filled WhatsApp messages with one click — no copy-pasting required. It works for gyms, libraries, and tuition centres, and is free to try with no credit card needed.",
+              text: "Today MemberBook tracks every member's due date and lists who to collect from each morning. You send each reminder in one tap: WhatsApp opens with the message, the amount and a UPI pay link already filled in. Fully automatic sending from MemberBook's WhatsApp number is being switched on gradually. It works for gyms, libraries and coaching centres and is free forever.",
             },
           },
         ],
@@ -526,8 +526,8 @@ const faqs = [
     a: "Timely reminders, easy payment options, and personalised messages are the top three factors in improving renewal rates. Send reminders 7 days, 3 days, and on the expiry day. Offer a small incentive for early renewal. Make it easy to pay — share a UPI QR code or payment link directly in the WhatsApp message. MemberBook helps by tracking all expiries and alerting you before members lapse.",
   },
   {
-    q: "Does MemberBook send automatic WhatsApp reminders?",
-    a: "Yes. MemberBook tracks every member's expiry date and highlights who is expiring this week on your dashboard. You can send pre-filled WhatsApp messages with one click — no copy-pasting required. It works for gyms, libraries, and tuition centres, and is free to try with no credit card needed.",
+    q: "Can MemberBook send the WhatsApp reminders for me?",
+    a: "Today MemberBook tracks every member's due date and lists who to collect from each morning. You send each reminder in one tap: WhatsApp opens with the message, the amount and a UPI pay link already filled in. Fully automatic sending from MemberBook's WhatsApp number is being switched on gradually. It works for gyms, libraries and coaching centres and is free forever.",
   },
 ];
 </script>

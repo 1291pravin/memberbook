@@ -140,7 +140,7 @@ useSeoMeta({
   ogType: "website",
   twitterCard: "summary_large_image",
   twitterTitle: "Gym Management Software India, Free Setup | MemberBook",
-  twitterDescription: "Best gym management software for India. Track members, manage subscriptions, collect payments, send WhatsApp reminders. Free forever.",
+  twitterDescription: "Free gym management software for India. Track members, manage subscriptions, collect payments, send WhatsApp reminders. Free forever.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
@@ -152,7 +152,7 @@ useHead({
     // LocalBusiness Schema for Gym Software
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "MemberBook - Gym Management Software",
@@ -165,7 +165,7 @@ useHead({
           "price": "0",
           "priceCurrency": "INR",
         },
-        "description": "Best gym management software for India. Track gym members, manage subscriptions, collect payments via UPI, and send WhatsApp reminders. Free gym membership app.",
+        "description": "Free gym management software for India. Track gym members, manage subscriptions, collect payments via UPI, and send WhatsApp reminders. Free gym membership app.",
         "featureList": [
           "Gym member management",
           "Subscription and plan tracking",
@@ -180,7 +180,7 @@ useHead({
     // Breadcrumb
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [

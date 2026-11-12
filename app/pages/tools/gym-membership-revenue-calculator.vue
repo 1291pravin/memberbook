@@ -13,10 +13,10 @@
         </nav>
 
         <h1 class="text-4xl font-bold text-slate-800">
-          Free Gym Membership Revenue Calculator
+          Gym Income Calculator: How Much Does a Gym Earn per Month?
         </h1>
         <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-          Estimate your gym monthly income in under 60 seconds. Calculate annual revenue, default loss, and how much you can recover.
+          A gym with 150 members paying ₹1,200 a month brings in about ₹1,80,000 a month before costs. If 1 in 5 members stops paying, that drops by ₹36,000. Enter your own numbers below to see your monthly income, yearly revenue and how much unpaid fees cost you.
         </p>
       </div>
     </section>
@@ -421,17 +421,17 @@ const faqs = [
 // --- SEO & Schemas ---
 
 useSeoMeta({
-  title: "Gym Income Calculator India - Monthly Revenue & Profit | MemberBook",
+  title: "Gym Income Calculator India: Monthly Revenue & Profit (Free)",
   description:
-    "Free gym income calculator for India. Estimate monthly gym revenue, annual profit, member churn loss, and owner earnings from membership plans.",
-  ogTitle: "Gym Income Calculator India - Monthly Revenue & Profit | MemberBook",
+    "A 150-member gym at ₹1,200 a month earns about ₹1.8 lakh a month before costs. Enter your members and fees to see your gym's monthly income, yearly revenue and loss from unpaid fees. Free.",
+  ogTitle: "Gym Income Calculator India: Monthly Revenue & Profit (Free)",
   ogDescription:
     "Estimate monthly gym revenue, annual profit, member churn loss, and owner earnings from membership plans.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/tools/gym-membership-revenue-calculator`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Gym Income Calculator India - Monthly Revenue & Profit | MemberBook",
+  twitterTitle: "Gym Income Calculator India: Monthly Revenue & Profit (Free)",
   twitterDescription:
     "Free calculator for Indian gym owners: estimate monthly revenue, owner income, churn loss, and membership plan pricing.",
   twitterImage: `${appUrl}/og-image.png`,
@@ -444,7 +444,7 @@ useHead({
   script: [
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Gym Membership Revenue Calculator",
@@ -467,7 +467,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
@@ -494,7 +494,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
         "mainEntity": [

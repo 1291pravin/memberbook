@@ -18,7 +18,7 @@
         <nav class="nav-links">
           <NuxtLink to="/features">Features</NuxtLink>
           <NuxtLink to="/#pricing">Pricing</NuxtLink>
-          <NuxtLink to="/blog">Blog</NuxtLink>
+          <NuxtLink to="/guides">Guides</NuxtLink>
           <NuxtLink to="/tools">Tools</NuxtLink>
           <NuxtLink to="/contact">Contact</NuxtLink>
         </nav>
@@ -71,6 +71,7 @@
           <div class="wrap" style="padding-top: 14px; padding-bottom: 16px; display: flex; flex-direction: column; gap: 4px;">
             <NuxtLink class="mb-mobile-link" to="/features" @click="mobileMenuOpen = false">Features</NuxtLink>
             <NuxtLink class="mb-mobile-link" to="/#pricing" @click="mobileMenuOpen = false">Pricing</NuxtLink>
+            <NuxtLink class="mb-mobile-link" to="/guides" @click="mobileMenuOpen = false">Guides</NuxtLink>
             <NuxtLink class="mb-mobile-link" to="/blog" @click="mobileMenuOpen = false">Blog</NuxtLink>
             <NuxtLink class="mb-mobile-link" to="/tools" @click="mobileMenuOpen = false">Tools</NuxtLink>
             <NuxtLink class="mb-mobile-link" to="/contact" @click="mobileMenuOpen = false">Contact</NuxtLink>
@@ -116,7 +117,8 @@
               <li><NuxtLink to="/features">Features</NuxtLink></li>
               <li><NuxtLink to="/#pricing">Pricing</NuxtLink></li>
               <li><NuxtLink to="/tools">Free tools</NuxtLink></li>
-              <li><NuxtLink to="/blog">Blog</NuxtLink></li>
+              <li><NuxtLink to="/guides/fee-reminder-message-templates">Fee reminder templates</NuxtLink></li>
+              <li><NuxtLink to="/guides/best-free-membership-software-india">Choosing software</NuxtLink></li>
             </ul>
           </div>
           <div>
@@ -125,12 +127,15 @@
               <li><NuxtLink to="/gym">Gyms</NuxtLink></li>
               <li><NuxtLink to="/tuition">Tuition centers</NuxtLink></li>
               <li><NuxtLink to="/library">Libraries</NuxtLink></li>
+              <li><NuxtLink to="/guides/library-seat-management-software">Study room seats</NuxtLink></li>
+              <li><NuxtLink to="/guides/coaching-class-fee-management-software">Coaching fees</NuxtLink></li>
             </ul>
           </div>
           <div>
             <h5>Company</h5>
             <ul>
               <li><NuxtLink to="/about">About</NuxtLink></li>
+              <li><NuxtLink to="/guides">Guides</NuxtLink></li>
               <li><NuxtLink to="/blog">Blog</NuxtLink></li>
               <li><NuxtLink to="/contact">Contact</NuxtLink></li>
             </ul>

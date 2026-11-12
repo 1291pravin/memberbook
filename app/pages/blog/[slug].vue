@@ -132,14 +132,14 @@ useHead({
   script: [
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "headline": article.title,
         "description": article.excerpt,
         "keywords": article.keywords.join(", "),
         "datePublished": article.dateISO,
-        "dateModified": article.dateISO,
+        "dateModified": article.updatedISO || article.dateISO,
         "author": {
           "@type": "Organization",
           "name": article.author,
@@ -163,7 +163,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
@@ -237,6 +237,29 @@ useHead({
   color: var(--color-primary-600, #2563eb);
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.prose-content :deep(table) {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.prose-content :deep(th),
+.prose-content :deep(td) {
+  border: 1px solid #e2e8f0; /* slate-200 */
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  color: #334155; /* slate-700 */
+}
+
+.prose-content :deep(th) {
+  background: #f8fafc; /* slate-50 */
+  font-weight: 600;
+  color: #1e293b; /* slate-800 */
 }
 
 .prose-content :deep(a:hover) {

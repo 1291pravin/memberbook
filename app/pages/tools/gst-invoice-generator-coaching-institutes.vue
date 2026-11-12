@@ -336,7 +336,7 @@ useHead({
   script: [
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebApplication",
         name: "GST Invoice Generator for Coaching Institutes",
@@ -349,7 +349,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
         mainEntity: faqs.map((faq) => ({

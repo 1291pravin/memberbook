@@ -175,7 +175,7 @@ useHead({
   script: [
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebApplication",
         name: "Tuition Fee Collection Status Tracker",
@@ -188,7 +188,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
         mainEntity: faqs.map((faq) => ({

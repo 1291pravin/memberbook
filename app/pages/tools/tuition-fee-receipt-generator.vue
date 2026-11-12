@@ -12,10 +12,10 @@
           <span class="text-slate-700 font-medium">Tuition Fee Receipt Generator</span>
         </nav>
         <h1 class="text-4xl font-bold text-slate-800">
-          Free Tuition Fee Receipt Generator
+          Coaching Fee Receipt Format and Free Generator
         </h1>
         <p class="mt-4 text-lg text-slate-600">
-          Create professional fee receipts for your coaching center or tuition class. Download as PDF instantly — free, no sign-up required.
+          A coaching or tuition fee receipt should show your institute's name, a receipt number, the date, the student's name and batch, the month or period paid for, the amount in figures and words, the payment mode (cash, UPI or bank) and your signature. Fill in the form below and download a ready receipt as a PDF. Free, no sign-up.
         </p>
       </div>
     </section>
@@ -301,16 +301,16 @@ const appUrl = config.public.appUrl || "https://memberbook.in";
 // ── SEO ──────────────────────────────────────────────────────────────────────
 
 useSeoMeta({
-  title: "Free Tuition Fee Receipt Generator — Download PDF Instantly",
-  description: "Generate professional tuition fee receipts for your coaching center. Download as PDF instantly. Free, no sign-up. Supports all payment methods.",
-  ogTitle: "Free Tuition Fee Receipt Generator — Download PDF Instantly",
-  ogDescription: "Generate professional tuition fee receipts for your coaching center. Download as PDF instantly. Free, no sign-up. Supports all payment methods.",
+  title: "Coaching Fee Receipt Format & Free Generator (PDF)",
+  description: "Coaching and tuition fee receipt format: what to include, plus a free generator. Fill in student, batch, month and amount, then download the receipt as a PDF. No sign-up.",
+  ogTitle: "Coaching Fee Receipt Format & Free Generator (PDF)",
+  ogDescription: "Coaching and tuition fee receipt format: what to include, plus a free generator. Fill in student, batch, month and amount, then download the receipt as a PDF. No sign-up.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/tools/tuition-fee-receipt-generator`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Free Tuition Fee Receipt Generator — Download PDF Instantly",
-  twitterDescription: "Generate professional tuition fee receipts for your coaching center. Download as PDF instantly. Free, no sign-up. Supports all payment methods.",
+  twitterTitle: "Coaching Fee Receipt Format & Free Generator (PDF)",
+  twitterDescription: "Coaching and tuition fee receipt format: what to include, plus a free generator. Fill in student, batch, month and amount, then download the receipt as a PDF. No sign-up.",
   twitterImage: `${appUrl}/og-image.png`,
 });
 
@@ -321,7 +321,7 @@ useHead({
   script: [
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Free Tuition Fee Receipt Generator",
@@ -338,7 +338,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
@@ -365,7 +365,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
         "mainEntity": [

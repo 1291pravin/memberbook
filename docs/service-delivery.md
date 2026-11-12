@@ -48,6 +48,7 @@ It should look like a local agency charged ₹6,000 to ₹10,000 for it, made fo
 
   Keep the hidden `company` field exactly as shown. It catches spam bots.
 - **Install as an app:** in `<head>` add `<link rel="manifest" href="/s/<slug>/manifest.webmanifest">`, `<meta name="theme-color" content="<main colour>">`, and an `apple-touch-icon` pointing at the logo if there is one. Add a short line near the footer: "Add this site to your home screen to open it like an app."
+- **Footer credit:** end the footer with a small, quiet line: `Website by <a href="https://memberbook.in/?utm_source=customer_site&utm_medium=footer">MemberBook</a>`. Keep it to one line, in the footer text colour, never in the header or hero.
 - **SEO:** a `<title>` like "Iron Temple Gym in Kharghar, Navi Mumbai | Plans and timings", a meta description, Open Graph tags with the hero photo, and `LocalBusiness` (or `ExerciseGym`) JSON-LD in `<script type="application/ld+json">`. That is the only `<script>` tag the server accepts, and it must use exactly that `type` attribute.
 - **Design:** pick colours from the logo or the owner's `colours` note. One display font for headings and one clean text font. Generous spacing, strong contrast (text at least 4.5:1), no stock-photo clichés, no lorem ipsum, no emoji as icons. Keep the file under 300 KB.
 - **Language:** simple English. If the owner wrote in Hindi or Hinglish, you may add a short Hindi line in the hero, but keep the main text in English unless the owner asked otherwise.

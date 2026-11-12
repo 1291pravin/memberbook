@@ -1,0 +1,32 @@
+# MemberBook
+
+> MemberBook is free fee-collection and membership software for small businesses in India: gyms, study libraries and reading rooms, and coaching or tuition centres. The owner sends a photo or file of their member register, and MemberBook loads every member, plan and due date for them. Every morning the owner sees who to collect from, and sends WhatsApp reminders that carry a UPI pay link straight to the owner's own UPI ID.
+
+Key facts:
+
+- Price: the software and the setup are free forever, with no card and no contract. Optional paid add-ons each start with a free month: your own website (Rs 299 a month) and Google review help (Rs 199 a month). Member self check-in is free.
+- Who it is for: owners of gyms, fitness studios, self-study libraries, reading rooms (abhyasika), coaching classes and tuition centres in India.
+- Payments: members pay the owner directly by UPI. MemberBook never holds the money.
+- Members install nothing. They get a WhatsApp message and pay by UPI.
+- Works on any phone or computer in a browser. Data can be exported to Excel at any time.
+- Languages: English and Hindi support. Support hours are Mon to Sat, 10 AM to 7 PM IST, at support@memberbook.in.
+- Made in India, registered as a micro enterprise (Udyam).
+
+## Product pages
+
+- [Home](https://memberbook.in/): what MemberBook does and how setup works
+- [Gym management software](https://memberbook.in/gym): members, plans, renewals and fee reminders for gyms
+- [Library management software](https://memberbook.in/library): seats, students and monthly fees for study libraries
+- [Coaching and tuition fee software](https://memberbook.in/tuition): students, batches and fee reminders to parents
+- [Features](https://memberbook.in/features)
+- [About](https://memberbook.in/about)
+
+## Guides and comparisons
+
+- [Guides](https://memberbook.in/guides): practical answers for gym, library and coaching centre owners in India
+- [Blog](https://memberbook.in/blog)
+
+## Free tools and templates
+
+- [Free tools](https://memberbook.in/tools): revenue calculator, fee receipt generator, WhatsApp reminder generator and more
+- [Fee reminder message templates](https://memberbook.in/guides/fee-reminder-message-templates): ready-to-send WhatsApp messages in English, Hindi, Hinglish, Marathi, Tamil and Bengali

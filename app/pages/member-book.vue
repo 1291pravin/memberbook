@@ -4,10 +4,10 @@
       <div class="max-w-4xl mx-auto text-center">
         <p class="text-sm font-semibold uppercase tracking-wide text-primary-700">Member Book Software</p>
         <h1 class="mt-3 text-4xl font-bold text-slate-800 sm:text-5xl">
-          Member Book Software for Gyms, Libraries, and Tuition Centers
+          Member Book: a Free Digital Member Register
         </h1>
         <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-          Looking for "member book" software? MemberBook helps you track members, collect payments, and manage renewals in one place.
+          A member book (or member register) records every member's name, phone number, plan, joining date, due date and payments. MemberBook is a free digital member book for gyms, libraries and coaching centres in India: send us a photo of your paper register and we type it in for you, then you see every morning who has to pay.
         </p>
         <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
           <NuxtLink to="/register" @click="trackCtaClick('member_book_start_free')">
@@ -70,17 +70,17 @@ const pageUrl = `${appUrl}/member-book`;
 const { trackCtaClick } = useAnalytics();
 
 useSeoMeta({
-  title: "Member Book Software (Free) | MemberBook",
+  title: "Member Book: Free Digital Member Register for Gyms & Libraries",
   description:
-    "Looking for member book software? Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free forever with MemberBook.",
-  ogTitle: "Member Book Software (Free) | MemberBook",
+    "A member book records each member's name, phone, plan, due date and payments. MemberBook is a free digital member book for Indian gyms, libraries and coaching centres. We type in your register for you.",
+  ogTitle: "Member Book: Free Digital Member Register for Gyms & Libraries",
   ogDescription:
-    "Looking for member book software? Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free forever with MemberBook.",
+    "A member book records each member's name, phone, plan, due date and payments. MemberBook is a free digital member book for Indian gyms, libraries and coaching centres. We type in your register for you.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: pageUrl,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Member Book Software (Free) | MemberBook",
+  twitterTitle: "Member Book: Free Digital Member Register for Gyms & Libraries",
   twitterDescription:
     "Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free forever with MemberBook.",
   twitterImage: `${appUrl}/og-image.png`,
@@ -91,7 +91,7 @@ useHead({
   script: [
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebPage",
         "name": "Member Book Software in India",
@@ -101,7 +101,7 @@ useHead({
     },
     {
       type: "application/ld+json",
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FAQPage",
         "mainEntity": [
