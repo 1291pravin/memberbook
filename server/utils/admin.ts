@@ -129,3 +129,23 @@ export async function recordAdminAuditLog(
     console.warn("Failed to write admin audit log", error);
   }
 }
+
+export type AiWorkerQueue = "uploads" | "services";
+
+/**
+ * For the endpoints an AI task works its queue through. Lets in the admin (or
+ * the master token, for scripts and the admin pages) and that queue's own
+ * worker token, and nothing else. The worker token never opens any other
+ * admin route, so it can't sign in as an owner, send WhatsApp messages,
+ * approve websites or mark bills paid.
+ */
+export async function requireAdminOrAiWorker(event: H3Event, queue: AiWorkerQueue) {
+  const config = useRuntimeConfig(event);
+  const expected = String((queue === "uploads" ? config.aiWorkerUploadsToken : config.aiWorkerServicesToken) || "").trim();
+  const token = getAdminToken(event);
+  if (expected && token && constantTimeMatch(token, expected)) {
+    event.context.aiWorker = queue;
+    return;
+  }
+  await requireAdminAccess(event);
+}

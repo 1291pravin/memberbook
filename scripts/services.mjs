@@ -4,7 +4,7 @@
  * through the admin API. Used by the hourly delivery routine
  * (see docs/service-delivery.md).
  *
- * Env: MEMBERBOOK_ADMIN_TOKEN (required), MEMBERBOOK_URL (default https://memberbook.in)
+ * Env: MEMBERBOOK_SERVICES_TOKEN (or MEMBERBOOK_ADMIN_TOKEN), MEMBERBOOK_URL (default https://memberbook.in)
  *
  *   node scripts/services.mjs list [status]                 List requests (default: new)
  *   node scripts/services.mjs show <id>                     Everything needed for one request
@@ -18,9 +18,10 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const base = (process.env.MEMBERBOOK_URL || "https://memberbook.in").replace(/\/$/, "");
-const token = process.env.MEMBERBOOK_ADMIN_TOKEN;
+// The AI task uses its narrow worker token; the master admin token also works.
+const token = process.env.MEMBERBOOK_SERVICES_TOKEN || process.env.MEMBERBOOK_ADMIN_TOKEN;
 if (!token) {
-  console.error("Set MEMBERBOOK_ADMIN_TOKEN");
+  console.error("Set MEMBERBOOK_SERVICES_TOKEN (or MEMBERBOOK_ADMIN_TOKEN)");
   process.exit(1);
 }
 

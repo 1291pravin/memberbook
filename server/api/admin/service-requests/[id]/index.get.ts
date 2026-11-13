@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
  * current page (to edit for a change request).
  */
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event);
+  await requireAdminOrAiWorker(event, "services");
   const req = await getServiceRequestOr404(event);
 
   const [org] = await db.select({

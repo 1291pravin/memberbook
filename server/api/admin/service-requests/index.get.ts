@@ -5,7 +5,7 @@ import { desc, eq, inArray } from "drizzle-orm";
  * routine calls this with the admin API token.
  */
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event);
+  await requireAdminOrAiWorker(event, "services");
   const query = getQuery(event);
   const statuses = typeof query.status === "string" && query.status
     ? query.status.split(",").map(s => s.trim()).filter(Boolean)

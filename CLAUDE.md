@@ -127,7 +127,7 @@ Optional support channels (defaults in `nuxt.config.ts`, used by `useSupport()`)
 
 ## On-demand AI runs
 
-The two AI scheduled tasks on claude.ai (load owner uploads, deliver add-on services) have no schedule. The app starts them through their API triggers the moment work is queued (`server/utils/ai-runs.ts`, `wakeAiRunSoon`), and an hourly zero-token Worker cron (`ai:wake`, `41 * * * *`) re-fires a queue at most every 3 hours if work is still waiting and releases claims older than 2 hours. Needs the secrets `NUXT_AI_RUNS_UPLOADS_TOKEN` and `NUXT_AI_RUNS_SERVICES_TOKEN` (trigger IDs default in `nuxt.config.ts`); without them nothing fires.
+The two AI scheduled tasks on claude.ai (load owner uploads, deliver add-on services) have no schedule. The app starts them through their API triggers the moment work is queued (`server/utils/ai-runs.ts`, `wakeAiRunSoon`), and an hourly zero-token Worker cron (`ai:wake`, `41 * * * *`) re-fires a queue at most every 3 hours if work is still waiting and releases claims older than 2 hours. Needs the secrets `NUXT_AI_RUNS_UPLOADS_TOKEN` and `NUXT_AI_RUNS_SERVICES_TOKEN` (trigger IDs default in `nuxt.config.ts`); without them nothing fires. The tasks authenticate back to the app with narrow worker tokens (`NUXT_AI_WORKER_UPLOADS_TOKEN`, `NUXT_AI_WORKER_SERVICES_TOKEN`, checked by `requireAdminOrAiWorker`) that open only their own queue's endpoints, never the master admin token: uploaded files and owner text are untrusted and could try to steer the task.
 
 ## WhatsApp
 

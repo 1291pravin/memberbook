@@ -137,6 +137,12 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     adminApiToken: "",
+    // Narrow tokens for the AI tasks (NUXT_AI_WORKER_UPLOADS_TOKEN,
+    // NUXT_AI_WORKER_SERVICES_TOKEN). Each only opens its own queue's
+    // endpoints, so a task tricked by an uploaded file can't reach the rest
+    // of the admin API (sign in as owners, WhatsApp inbox, approvals, bills).
+    aiWorkerUploadsToken: "",
+    aiWorkerServicesToken: "",
     adminPasswords: "",
     // Meta WhatsApp Cloud API for automatic fee reminders. Off until
     // NUXT_WHATSAPP_CLOUD_ENABLED=true and the token and phone number id are set

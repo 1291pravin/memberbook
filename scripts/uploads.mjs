@@ -3,7 +3,7 @@
  * Work the data-upload queue through the admin API. Used by the hourly AI
  * loading routine (see docs/upload-loading.md).
  *
- * Env: MEMBERBOOK_ADMIN_TOKEN (required), MEMBERBOOK_URL (default https://memberbook.in)
+ * Env: MEMBERBOOK_UPLOADS_TOKEN (or MEMBERBOOK_ADMIN_TOKEN), MEMBERBOOK_URL (default https://memberbook.in)
  *
  *   node scripts/uploads.mjs list [status]        List uploads (default: pending)
  *   node scripts/uploads.mjs show <id>            Upload details: pasted text, files, existing plans, today
@@ -16,9 +16,10 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const base = (process.env.MEMBERBOOK_URL || "https://memberbook.in").replace(/\/$/, "");
-const token = process.env.MEMBERBOOK_ADMIN_TOKEN;
+// The AI task uses its narrow worker token; the master admin token also works.
+const token = process.env.MEMBERBOOK_UPLOADS_TOKEN || process.env.MEMBERBOOK_ADMIN_TOKEN;
 if (!token) {
-  console.error("Set MEMBERBOOK_ADMIN_TOKEN");
+  console.error("Set MEMBERBOOK_UPLOADS_TOKEN (or MEMBERBOOK_ADMIN_TOKEN)");
   process.exit(1);
 }
 

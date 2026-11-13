@@ -1,6 +1,6 @@
 # Delivering add-on services (AI routine)
 
-Owners switch on add-ons from **Add-ons** (`/dashboard/add-ons`). Some of them create work for us: a website to build, a change to a website, a reply to a Google review, or a monthly review summary. A scheduled Claude Code routine runs every hour and works through that queue with `scripts/services.mjs`, which needs `MEMBERBOOK_ADMIN_TOKEN` (the production `NUXT_ADMIN_API_TOKEN`) in the environment.
+Owners switch on add-ons from **Add-ons** (`/dashboard/add-ons`). Some of them create work for us: a website to build, a change to a website, a reply to a Google review, or a monthly review summary. A scheduled Claude Code routine runs every hour and works through that queue with `scripts/services.mjs`, which needs `MEMBERBOOK_SERVICES_TOKEN` (the production `NUXT_AI_WORKER_SERVICES_TOKEN`) in the environment. That token only opens the service-request endpoints; never give the task the master admin token.
 
 Websites are never shown to the owner straight away. The routine hands in a draft, the admin checks it on `/admin/services` and approves it or sends it back with a note, and only then can the owner preview and publish it. Review replies and summaries go to the owner directly.
 

@@ -2,7 +2,7 @@ import { and, eq, isNull, lt, or } from "drizzle-orm";
 
 /** Mark a request as being worked on. A claim older than two hours counts as abandoned. */
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event);
+  await requireAdminOrAiWorker(event, "services");
   const req = await getServiceRequestOr404(event);
   const now = new Date().toISOString();
   const stale = new Date(Date.now() - 2 * 3600000).toISOString();
