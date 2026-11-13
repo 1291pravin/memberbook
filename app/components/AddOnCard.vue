@@ -21,7 +21,11 @@
       <p class="text-sm text-slate-800">
         <template v-if="addOn.price > 0">
           <span class="text-xl font-bold">{{ formatCurrency(addOn.price) }}</span><span class="text-slate-600"> a month</span>
-          <span v-if="addOn.status === 'active' && addOn.trialEndsOn" class="block text-xs text-slate-600">
+          <span v-if="addOn.prepaid && addOn.status === 'active'" class="block text-xs" :class="paidText.ok ? 'text-slate-600' : 'text-amber-700'">
+            {{ paidText.text }}
+          </span>
+          <span v-else-if="addOn.prepaid && addOn.available" class="block text-xs text-slate-600">Paid upfront, no free month</span>
+          <span v-else-if="addOn.status === 'active' && addOn.trialEndsOn" class="block text-xs text-slate-600">
             {{ trialText }}
           </span>
           <span v-else-if="addOn.available" class="block text-xs text-slate-600">First month free</span>
@@ -37,7 +41,7 @@
         </template>
         <template v-else-if="addOn.available">
           <AppButton v-if="isOwner" size="sm" :loading="busy" @click="$emit('start')">
-            {{ addOn.price > 0 ? 'Start free month' : 'Switch on' }}
+            {{ addOn.prepaid && addOn.price > 0 ? 'Pay and switch on' : addOn.price > 0 ? 'Start free month' : 'Switch on' }}
           </AppButton>
           <p v-else class="text-xs text-slate-600">Ask the owner to switch this on.</p>
         </template>
@@ -64,12 +68,22 @@ const props = defineProps<{
     available: boolean;
     status: "off" | "active" | "notify";
     trialEndsOn: string | null;
+    prepaid?: boolean;
+    paidUntil?: string | null;
   };
   isOwner: boolean;
   busy?: boolean;
 }>();
 const emit = defineEmits<{ start: []; stop: []; notify: [] }>();
 const { formatCurrency } = useFormatCurrency();
+
+const paidText = computed(() => {
+  const until = props.addOn.paidUntil;
+  const today = new Date(Date.now() + 19800000).toISOString().slice(0, 10);
+  if (!until || until < today) return { ok: false, text: "Waiting for payment. Pay the bill above to start." };
+  const label = new Date(`${until}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return { ok: true, text: `Paid until ${label}` };
+});
 
 const trialText = computed(() => {
   const end = props.addOn.trialEndsOn;

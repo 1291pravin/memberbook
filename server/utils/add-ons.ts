@@ -1,5 +1,5 @@
 import type { H3Event } from "h3";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { db, schema } from "@nuxthub/db";
 
 export interface AddOnState {
@@ -11,6 +11,8 @@ export interface AddOnState {
   price: number;
   trialEndsOn: string | null;
   startedAt: string | null;
+  /** Prepaid add-ons: paid through this IST date (null = not paid yet). */
+  paidUntil: string | null;
 }
 
 export async function getOrgAddOnStates(orgId: number): Promise<AddOnState[]> {
@@ -26,6 +28,7 @@ export async function getOrgAddOnStates(orgId: number): Promise<AddOnState[]> {
       price: row?.status === "active" ? row.price : def.price,
       trialEndsOn: row?.status === "active" ? row.trialEndsOn : null,
       startedAt: row?.status === "active" ? row.startedAt : null,
+      paidUntil: row?.paidUntil ?? null,
     };
   });
 }
@@ -64,6 +67,20 @@ export async function startAddOn(orgId: number, key: AddOnKey) {
   }
   if (row?.status === "active") return;
 
+  // Prepaid: no free month. Bill now unless it's still paid up; it works once
+  // the admin verifies the payment.
+  if (def.prepaid && def.price > 0) {
+    await upsertAddOn(orgId, key, {
+      status: "active",
+      price: def.price,
+      trialEndsOn: null,
+      startedAt: new Date().toISOString(),
+      cancelledAt: null,
+    });
+    if (!isPrepaidActive(row?.paidUntil ?? null)) await createPrepaidBill(orgId, key, def.price, todayIST());
+    return;
+  }
+
   // A free month the first time; switching off and on again doesn't restart it.
   const hadTrial = Boolean(row?.trialEndsOn);
   const trialEndsOn = def.price > 0
@@ -77,6 +94,72 @@ export async function startAddOn(orgId: number, key: AddOnKey) {
     startedAt: new Date().toISOString(),
     cancelledAt: null,
   });
+}
+
+/** A prepaid add-on is usable through its paid_until date (IST). */
+export function isPrepaidActive(paidUntil: string | null | undefined) {
+  return Boolean(paidUntil && paidUntil >= todayIST());
+}
+
+/** Is this prepaid add-on switched on and paid up? */
+export async function isPrepaidAddOnPaid(orgId: number, key: AddOnKey) {
+  const [row] = await db.select({ status: schema.orgAddOns.status, paidUntil: schema.orgAddOns.paidUntil }).from(schema.orgAddOns)
+    .where(and(eq(schema.orgAddOns.orgId, orgId), eq(schema.orgAddOns.addOn, key))).limit(1);
+  return { active: row?.status === "active", paid: isPrepaidActive(row?.paidUntil), paidUntil: row?.paidUntil ?? null };
+}
+
+/**
+ * A bill for one prepaid period. `period` is the IST date the paid period
+ * starts (YYYY-MM-DD), so it never clashes with a monthly bill (YYYY-MM).
+ */
+async function createPrepaidBill(orgId: number, key: AddOnKey, amount: number, startsOn: string) {
+  const def = getAddOn(key)!;
+  // One open prepaid bill per add-on at a time.
+  const open = await db.select({ items: schema.addOnBills.items }).from(schema.addOnBills)
+    .where(and(eq(schema.addOnBills.orgId, orgId), inArray(schema.addOnBills.status, ["due", "claimed"])));
+  if (open.some((b: { items: string }) => parseJson<BillItem[]>(b.items, []).some(i => i.addOn === key && i.prepaid))) return false;
+  const now = new Date().toISOString();
+  const inserted = await db.insert(schema.addOnBills).values({
+    orgId,
+    period: startsOn,
+    amount,
+    items: JSON.stringify([{ addOn: key, name: def.name, amount, prepaid: true, startsOn }] satisfies BillItem[]),
+    createdAt: now,
+    updatedAt: now,
+  }).onConflictDoNothing().returning({ id: schema.addOnBills.id });
+  return inserted.length > 0;
+}
+
+/**
+ * Admin verified (or waived) a bill: extend every prepaid add-on on it by
+ * PREPAID_DAYS, from its current paid-until date or from today if it lapsed.
+ */
+export async function applyPrepaidBill(billId: number) {
+  const [bill] = await db.select().from(schema.addOnBills).where(eq(schema.addOnBills.id, billId)).limit(1);
+  if (!bill) return;
+  for (const item of parseJson<BillItem[]>(bill.items, [])) {
+    if (!item.prepaid) continue;
+    const [row] = await db.select({ paidUntil: schema.orgAddOns.paidUntil }).from(schema.orgAddOns)
+      .where(and(eq(schema.orgAddOns.orgId, bill.orgId), eq(schema.orgAddOns.addOn, item.addOn))).limit(1);
+    const today = todayIST();
+    const from = row?.paidUntil && row.paidUntil >= today ? addDaysToDate(row.paidUntil, 1) : today;
+    await upsertAddOn(bill.orgId, item.addOn, { paidUntil: addDaysToDate(from, PREPAID_DAYS - 1) });
+  }
+}
+
+/** Daily: renewal bills for prepaid add-ons that run out within PREPAID_RENEW_DAYS_BEFORE days. */
+export async function generatePrepaidRenewals() {
+  const soon = addDaysToDate(todayIST(), PREPAID_RENEW_DAYS_BEFORE);
+  const rows = await db.select().from(schema.orgAddOns)
+    .where(and(eq(schema.orgAddOns.status, "active"), isNotNull(schema.orgAddOns.paidUntil), lte(schema.orgAddOns.paidUntil, soon)));
+  let created = 0;
+  for (const r of rows) {
+    const def = getAddOn(r.addOn);
+    if (!def?.prepaid || r.price <= 0) continue;
+    const startsOn = r.paidUntil! >= todayIST() ? addDaysToDate(r.paidUntil!, 1) : todayIST();
+    if (await createPrepaidBill(r.orgId, def.key, r.price, startsOn)) created++;
+  }
+  return created;
 }
 
 export async function stopAddOn(orgId: number, key: AddOnKey) {
@@ -279,6 +362,9 @@ export interface BillItem {
   addOn: AddOnKey;
   name: string;
   amount: number;
+  /** Prepaid add-on period starting on `startsOn`; paying it switches the add-on on. */
+  prepaid?: boolean;
+  startsOn?: string;
 }
 
 /** MemberBook's own UPI ID for add-on bills. Empty = show "we'll message you". */
@@ -305,7 +391,7 @@ export async function generateAddOnBills() {
   const byOrg = new Map<number, BillItem[]>();
   for (const r of rows) {
     const def = getAddOn(r.addOn);
-    if (!def) continue;
+    if (!def || def.prepaid) continue; // prepaid add-ons bill themselves (generatePrepaidRenewals)
     const items = byOrg.get(r.orgId) ?? [];
     items.push({ addOn: def.key, name: def.name, amount: r.price });
     byOrg.set(r.orgId, items);

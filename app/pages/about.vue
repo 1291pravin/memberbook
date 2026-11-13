@@ -152,7 +152,7 @@ const reasons = [
   {
     emoji: "💰",
     title: "Free forever",
-    description: "The app and setup are free forever. You pay only for optional add-ons you choose, and each starts with a free month.",
+    description: "The app and setup are free forever. You pay only for optional add-ons you choose, and most start with a free month.",
   },
   {
     emoji: "📱",

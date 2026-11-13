@@ -27,7 +27,8 @@ export default defineEventHandler(async (event) => {
     sendsFromNumber: sending.displayPhoneNumber,
     needsAddOn: sending.needsAddOn,
     reminderUsage: sending.usage,
-    reminderBlocked: org.autoRemindersEnabled ? sending.blocked : null,
+    reminderBlocked: org.autoRemindersEnabled || sending.blocked === "unpaid" ? sending.blocked : null,
+    reminderPaidUntil: sending.paidUntil,
     summary: {
       overdueCount: overdue.length,
       overdueAmount: overdue.reduce((s, i) => s + i.amount, 0),

@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
         throw createError({
           statusCode: 400,
           statusMessage: sending.needsAddOn
-            ? "Switch on \"Automatic fee reminders\" in Add-ons first. The first month is free."
+            ? "Switch on \"Automatic fee reminders\" in Add-ons and pay for the month first."
             : "Automatic WhatsApp reminders are not available yet.",
         });
       }

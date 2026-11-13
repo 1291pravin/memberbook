@@ -433,6 +433,7 @@ export const orgAddOns = sqliteTable("org_add_ons", {
   adminEnabled: integer("admin_enabled", { mode: "boolean" }).notNull().default(false),
   price: integer("price").notNull().default(0), // paise a month, locked when started
   trialEndsOn: text("trial_ends_on"), // YYYY-MM-DD (IST), billing starts the day after
+  paidUntil: text("paid_until"), // prepaid add-ons: YYYY-MM-DD (IST) paid through, set when the admin verifies payment
   startedAt: text("started_at"),
   notifyRequestedAt: text("notify_requested_at"),
   cancelledAt: text("cancelled_at"),

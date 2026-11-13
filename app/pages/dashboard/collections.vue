@@ -31,10 +31,10 @@
       class="rounded-xl border border-warning-200 bg-warning-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3"
     >
       <div class="flex-1">
-        <p class="text-sm font-semibold text-slate-800">Automatic reminders are paused</p>
+        <p class="text-sm font-semibold text-slate-800">{{ data.reminderBlocked === 'unpaid' ? 'Pay to start automatic reminders' : 'Automatic reminders are paused' }}</p>
         <p class="text-sm text-slate-700 mt-0.5">
-          <template v-if="data.reminderBlocked === 'unpaid_bill'">
-            Your MemberBook add-ons bill is unpaid. Pay it and reminders start again the next morning.
+          <template v-if="data.reminderBlocked === 'unpaid'">
+            Automatic reminders are paid upfront. Pay ₹199 for the month on the Add-ons page. Reminders start the morning after we confirm your payment.
           </template>
           <template v-else>
             You have used all {{ data.reminderUsage?.limit }} WhatsApp reminders for this month. They start again on the 1st.
@@ -42,8 +42,8 @@
           Until then, tap <span class="font-medium">Remind</span> to send from your own phone.
         </p>
       </div>
-      <NuxtLink v-if="data.reminderBlocked === 'unpaid_bill'" to="/dashboard/add-ons">
-        <AppButton size="sm">Pay bill</AppButton>
+      <NuxtLink v-if="data.reminderBlocked === 'unpaid'" to="/dashboard/add-ons">
+        <AppButton size="sm">Pay now</AppButton>
       </NuxtLink>
     </div>
     <p v-if="data" class="text-xs text-slate-600">
@@ -211,7 +211,7 @@
                 </template>
                 <template v-else-if="data?.needsAddOn">
                   Switch on <NuxtLink to="/dashboard/add-ons" class="font-medium text-primary-700 underline">Automatic fee reminders</NuxtLink> in Add-ons first.
-                  The first month is free, then ₹199 a month for up to 500 reminders.
+                  It's ₹199 a month for up to 500 reminders, paid upfront.
                 </template>
                 <template v-else>
                   Coming soon: MemberBook will send reminders for you every morning, so you don't have to.
@@ -267,7 +267,8 @@ interface CollectionsResponse {
   sendsFromNumber: string | null;
   needsAddOn: boolean;
   reminderUsage: { used: number; limit: number } | null;
-  reminderBlocked: "limit" | "unpaid_bill" | null;
+  reminderBlocked: "limit" | "unpaid" | null;
+  reminderPaidUntil: string | null;
   summary: { overdueCount: number; overdueAmount: number; upcomingCount: number; upcomingAmount: number };
   items: CollectionItem[];
 }

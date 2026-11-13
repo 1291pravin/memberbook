@@ -3,8 +3,8 @@
     <div>
       <h1 class="text-2xl font-bold text-slate-800">Add-ons</h1>
       <p class="mt-1 max-w-2xl text-sm text-slate-600">
-        MemberBook stays free. Switch on extra help when you want it. Every paid add-on is free for the first
-        {{ data?.trialDays ?? 30 }} days, and you can switch it off any time.
+        MemberBook stays free. Switch on extra help when you want it. Paid add-ons are free for the first
+        {{ data?.trialDays ?? 30 }} days, except WhatsApp reminders, which are paid upfront because WhatsApp charges us for every message. You can switch any add-on off at any time.
       </p>
     </div>
 
@@ -13,13 +13,14 @@
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="min-w-0">
           <p class="text-base font-semibold text-slate-800">
-            {{ bill.status === 'claimed' ? 'Thanks, we are checking your payment' : `Add-ons bill for ${monthLabel(bill.period)}` }}
+            {{ bill.status === 'claimed' ? 'Thanks, we are checking your payment' : billTitle(bill) }}
           </p>
           <ul class="mt-1 text-sm text-slate-700">
             <li v-for="item in bill.items" :key="item.addOn">{{ item.name }}: {{ formatCurrency(item.amount) }}</li>
           </ul>
           <p class="mt-2 text-2xl font-bold text-slate-800">{{ formatCurrency(bill.amount) }}</p>
           <p v-if="bill.status === 'claimed'" class="mt-1 text-sm text-slate-600">UPI reference {{ bill.upiRef }}. We'll confirm within a day.</p>
+          <p v-else-if="bill.items.some(i => i.prepaid)" class="mt-1 text-sm text-slate-600">WhatsApp reminders start the morning after we confirm your payment.</p>
         </div>
 
         <div v-if="bill.status === 'due' && isOwner" class="w-full space-y-3 sm:w-64">
@@ -99,12 +100,14 @@ interface AddOnItem {
   available: boolean;
   status: "off" | "active" | "notify";
   trialEndsOn: string | null;
+  prepaid?: boolean;
+  paidUntil?: string | null;
 }
 interface Bill {
   id: number;
   period: string;
   amount: number;
-  items: { addOn: string; name: string; amount: number }[];
+  items: { addOn: string; name: string; amount: number; prepaid?: boolean; startsOn?: string }[];
   status: string;
   upiRef: string | null;
   upiLink: string | null;
@@ -139,7 +142,7 @@ async function act(key: string, action: "start" | "stop" | "notify") {
     await api(`/api/orgs/${orgId.value}/add-ons/switch`, { method: "POST", body: JSON.stringify({ addOn: key, action }) });
     await refresh();
     const item = data.value?.addOns.find(a => a.key === key);
-    if (action === "start" && item?.page) await navigateTo(item.page);
+    if (action === "start" && item?.page && !item.prepaid) await navigateTo(item.page);
   }
   catch (e: unknown) {
     error.value = (e as { data?: { statusMessage?: string } })?.data?.statusMessage || "Something went wrong. Please try again.";
@@ -168,6 +171,14 @@ async function claimBill(id: number) {
 
 function qrSvg(text: string) {
   return renderSVG(text, { border: 1 }).replace("<svg ", "<svg width=\"176\" height=\"176\" role=\"img\" aria-label=\"UPI QR code\" ");
+}
+
+function billTitle(bill: Bill) {
+  if (bill.period.length === 10) {
+    const from = new Date(`${bill.period}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    return `Pay to start: 30 days from ${from}`;
+  }
+  return `Add-ons bill for ${monthLabel(bill.period)}`;
 }
 
 function monthLabel(period: string) {

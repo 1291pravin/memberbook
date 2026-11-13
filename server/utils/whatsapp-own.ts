@@ -212,7 +212,7 @@ export async function getOwnSender(orgId: number): Promise<(WhatsAppSender & { d
   };
 }
 
-export type ReminderBlock = "limit" | "unpaid_bill";
+export type ReminderBlock = "limit" | "unpaid";
 
 export interface ReminderSending {
   /** Automatic reminders can be switched on for this business. */
@@ -224,29 +224,32 @@ export interface ReminderSending {
   needsAddOn: boolean;
   /** Shared-number usage this month (null when sending from their own number). */
   usage: { used: number; limit: number } | null;
-  /** Set when sending is paused for now: monthly limit reached or an add-on bill is overdue. */
+  /** Set when sending is paused: not paid upfront (or payment not verified yet), or monthly limit reached. */
   blocked: ReminderBlock | null;
+  /** Prepaid through this IST date (shared number only). */
+  paidUntil: string | null;
 }
 
 /**
  * How automatic reminders go out for this business, if at all: from its own
  * connected number (own_number add-on; Meta bills the business), else from
- * MemberBook's number, which needs the auto_reminders add-on and stays within
- * INCLUDED_REMINDERS a month while add-on bills are paid (Meta bills us).
+ * MemberBook's number, which needs the auto_reminders add-on paid upfront
+ * (verified by the admin) and stays within INCLUDED_REMINDERS a month (Meta
+ * bills us per message, so there is no free month).
  */
 export async function reminderSending(orgId: number): Promise<ReminderSending> {
   const own = await getOwnSender(orgId);
   if (own) {
-    return { available: true, via: "own", sender: own, displayPhoneNumber: own.displayPhoneNumber, needsAddOn: false, usage: null, blocked: null };
+    return { available: true, via: "own", sender: own, displayPhoneNumber: own.displayPhoneNumber, needsAddOn: false, usage: null, blocked: null, paidUntil: null };
   }
   if (!isWhatsAppCloudEnabled()) {
-    return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: false, usage: null, blocked: null };
+    return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: false, usage: null, blocked: null, paidUntil: null };
   }
-  if (!(await isAddOnActive(orgId, "auto_reminders"))) {
-    return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: true, usage: null, blocked: null };
+  const [plan, used] = await Promise.all([isPrepaidAddOnPaid(orgId, "auto_reminders"), sharedRemindersThisMonth(orgId)]);
+  if (!plan.active) {
+    return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: true, usage: null, blocked: null, paidUntil: plan.paidUntil };
   }
-  const [used, unpaid] = await Promise.all([sharedRemindersThisMonth(orgId), hasOverdueAddOnBill(orgId)]);
-  const blocked: ReminderBlock | null = unpaid ? "unpaid_bill" : used >= INCLUDED_REMINDERS ? "limit" : null;
+  const blocked: ReminderBlock | null = !plan.paid ? "unpaid" : used >= INCLUDED_REMINDERS ? "limit" : null;
   return {
     available: true,
     via: "memberbook",
@@ -255,6 +258,7 @@ export async function reminderSending(orgId: number): Promise<ReminderSending> {
     needsAddOn: false,
     usage: { used, limit: INCLUDED_REMINDERS },
     blocked,
+    paidUntil: plan.paidUntil,
   };
 }
 

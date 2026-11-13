@@ -1,4 +1,4 @@
-import { and, eq, gte, lt, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { db, schema } from "@nuxthub/db";
 
 /** UTC ISO time of midnight IST on the 1st of the current IST month. */
@@ -20,16 +20,4 @@ export async function sharedRemindersThisMonth(orgId: number): Promise<number> {
       gte(schema.reminderLogs.createdAt, monthStartIsoIST()),
     ));
   return Number(row?.n ?? 0);
-}
-
-/** An add-on bill left unpaid (not even claimed) past the grace period. */
-export async function hasOverdueAddOnBill(orgId: number): Promise<boolean> {
-  const cutoff = new Date(Date.now() - REMINDER_BILL_GRACE_DAYS * 86400000).toISOString();
-  const [row] = await db.select({ id: schema.addOnBills.id }).from(schema.addOnBills)
-    .where(and(
-      eq(schema.addOnBills.orgId, orgId),
-      eq(schema.addOnBills.status, "due"),
-      lt(schema.addOnBills.createdAt, cutoff),
-    )).limit(1);
-  return Boolean(row);
 }

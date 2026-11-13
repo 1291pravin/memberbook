@@ -26,6 +26,12 @@ export interface AddOnDef {
   /** What the owner gets, as short points. */
   points: string[];
   price: number;
+  /**
+   * Paid upfront, no free month: switching on creates a bill straight away and
+   * the add-on only works once the admin verifies the UPI payment, then for
+   * PREPAID_DAYS per payment. Used where we pay a cost per use (Meta per message).
+   */
+  prepaid?: boolean;
   ready: boolean;
   /** Why it isn't ready yet, for the admin. */
   waitingOn?: string;
@@ -37,17 +43,22 @@ export interface AddOnDef {
 
 export const FREE_TRIAL_DAYS = 30;
 
+/** Days of service one prepaid payment buys. */
+export const PREPAID_DAYS = 30;
+
+/** A renewal bill for a prepaid add-on appears this many days before it runs out. */
+export const PREPAID_RENEW_DAYS_BEFORE = 3;
+
 /**
  * WhatsApp reminders a business can send each month (IST calendar month) from
  * MemberBook's number with the auto_reminders add-on. Meta charges us about
  * ₹0.14 per utility message with GST, so 500 costs us about ₹70 of the ₹199.
  * Sending stops at the limit; reminders from the business's own number don't
- * count (Meta bills them directly).
+ * count (Meta bills them directly). The add-on is prepaid: no free month,
+ * because Meta bills us from the first message.
  */
 export const INCLUDED_REMINDERS = 500;
 
-/** An add-on bill still unpaid this many days after it was created stops shared-number reminders. */
-export const REMINDER_BILL_GRACE_DAYS = 10;
 
 export const ADD_ONS: AddOnDef[] = [
   {
@@ -98,8 +109,10 @@ export const ADD_ONS: AddOnDef[] = [
       "Sent from the MemberBook WhatsApp number with your business name",
       "Each reminder has a pay link to your UPI ID",
       `Up to ${INCLUDED_REMINDERS} reminders a month included`,
+      "Paid upfront each month. Starts once we confirm your payment",
     ],
     price: 19900,
+    prepaid: true,
     ready: true,
     page: "/dashboard/collections",
   },

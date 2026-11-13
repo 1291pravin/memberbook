@@ -17,5 +17,7 @@ export default defineEventHandler(async (event) => {
   const updated = await db.update(schema.addOnBills).set({ ...set, updatedAt: now })
     .where(eq(schema.addOnBills.id, id)).returning({ id: schema.addOnBills.id });
   if (!updated.length) throw createError({ statusCode: 404, statusMessage: "Bill not found" });
+  // Paying (or waiving) a prepaid bill switches on that add-on for its period.
+  if (body?.action === "verify" || body?.action === "waive") await applyPrepaidBill(id);
   return { ok: true };
 });

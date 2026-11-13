@@ -4,7 +4,7 @@
 
 Key facts:
 
-- Price: the software and the setup are free forever, with no card and no contract. Optional paid add-ons each start with a free month: your own website (Rs 299 a month) and Google review help (Rs 199 a month). Member self check-in is free.
+- Price: the software and the setup are free forever, with no card and no contract. Optional paid add-ons: your own website (Rs 299 a month) and Google review help (Rs 199 a month), each with a free first month, and automatic WhatsApp fee reminders (Rs 199 a month, up to 500 reminders, paid upfront). Member self check-in is free.
 - Who it is for: owners of gyms, fitness studios, self-study libraries, reading rooms (abhyasika), coaching classes and tuition centres in India.
 - Payments: members pay the owner directly by UPI. MemberBook never holds the money.
 - Members install nothing. They get a WhatsApp message and pay by UPI.

@@ -36,6 +36,8 @@ export default defineEventHandler(async (event) => {
         available: state.available,
         status: state.status,
         trialEndsOn: state.trialEndsOn,
+        prepaid: Boolean(def.prepaid),
+        paidUntil: state.paidUntil,
       };
     }),
     bills: bills.map((b: typeof schema.addOnBills.$inferSelect) => {
