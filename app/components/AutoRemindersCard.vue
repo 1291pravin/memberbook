@@ -22,8 +22,7 @@
         v-if="videoOpen"
         class="block aspect-square w-full rounded-2xl"
         autoplay
-        muted
-        loop
+        controls
         playsinline
         poster="/brand/auto-reminders-poster.webp"
         aria-label="How automatic fee reminders work: a WhatsApp reminder with a pay link goes out, the member pays by UPI, and the fee shows as collected"
@@ -44,8 +43,9 @@
         <video
           class="mx-auto block aspect-square w-full max-w-sm md:h-full md:max-w-none md:object-cover"
           autoplay
-          muted
-          loop
+          :muted="!compact"
+          :loop="!compact"
+          :controls="compact"
           playsinline
           preload="metadata"
           poster="/brand/auto-reminders-poster.webp"
