@@ -22,9 +22,12 @@ export default defineEventHandler(async (event) => {
     cloudAvailable: sending.available,
     // Reminders go out automatically only when both are on: from the business's
     // own WhatsApp number if it connected one, else from MemberBook's.
-    sendsViaCloud: sending.available && org.autoRemindersEnabled && !!org.upiId,
+    sendsViaCloud: sending.available && !sending.blocked && org.autoRemindersEnabled && !!org.upiId,
     sendsFrom: sending.via,
     sendsFromNumber: sending.displayPhoneNumber,
+    needsAddOn: sending.needsAddOn,
+    reminderUsage: sending.usage,
+    reminderBlocked: org.autoRemindersEnabled ? sending.blocked : null,
     summary: {
       overdueCount: overdue.length,
       overdueAmount: overdue.reduce((s, i) => s + i.amount, 0),

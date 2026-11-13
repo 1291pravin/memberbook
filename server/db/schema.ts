@@ -148,9 +148,13 @@ export const reminderLogs = sqliteTable("reminder_logs", {
   providerMessageId: text("provider_message_id"),
   error: text("error"),
   sentBy: integer("sent_by").references(() => users.id), // null = automatic
+  // whatsapp_api only: memberbook (shared number, Meta bills us, counts toward the
+  // monthly allowance) or own (the business's own number, Meta bills them)
+  via: text("via"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   orgSubscriptionIdx: index("reminder_logs_org_subscription_idx").on(table.orgId, table.subscriptionId),
+  orgCreatedIdx: index("reminder_logs_org_created_idx").on(table.orgId, table.createdAt),
   providerMessageIdx: index("reminder_logs_provider_message_idx").on(table.providerMessageId),
 }));
 

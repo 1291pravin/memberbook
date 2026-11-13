@@ -28,8 +28,14 @@ export default defineEventHandler(async (event) => {
   if (body.autoRemindersEnabled !== undefined) {
     const on = body.autoRemindersEnabled === true;
     if (on) {
-      if (!(await reminderSending(access.orgId)).available) {
-        throw createError({ statusCode: 400, statusMessage: "Automatic WhatsApp reminders are not available yet." });
+      const sending = await reminderSending(access.orgId);
+      if (!sending.available) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: sending.needsAddOn
+            ? "Switch on \"Automatic fee reminders\" in Add-ons first. The first month is free."
+            : "Automatic WhatsApp reminders are not available yet.",
+        });
       }
       const current = await getOrgCollectionSettings(access.orgId);
       const upiId = updates.upiId !== undefined ? updates.upiId : current?.upiId;

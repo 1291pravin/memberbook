@@ -26,6 +26,26 @@
     </div>
 
     <!-- How reminders are sent -->
+    <div
+      v-if="data?.reminderBlocked"
+      class="rounded-xl border border-warning-200 bg-warning-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+    >
+      <div class="flex-1">
+        <p class="text-sm font-semibold text-slate-800">Automatic reminders are paused</p>
+        <p class="text-sm text-slate-700 mt-0.5">
+          <template v-if="data.reminderBlocked === 'unpaid_bill'">
+            Your MemberBook add-ons bill is unpaid. Pay it and reminders start again the next morning.
+          </template>
+          <template v-else>
+            You have used all {{ data.reminderUsage?.limit }} WhatsApp reminders for this month. They start again on the 1st.
+          </template>
+          Until then, tap <span class="font-medium">Remind</span> to send from your own phone.
+        </p>
+      </div>
+      <NuxtLink v-if="data.reminderBlocked === 'unpaid_bill'" to="/dashboard/add-ons">
+        <AppButton size="sm">Pay bill</AppButton>
+      </NuxtLink>
+    </div>
     <p v-if="data" class="text-xs text-slate-600">
       <template v-if="data.sendsViaCloud && data.sendsFrom === 'own'">
         Reminders go out automatically every morning from your WhatsApp number{{ data.sendsFromNumber ? ` (${data.sendsFromNumber})` : '' }}.
@@ -33,8 +53,11 @@
       <template v-else-if="data.sendsViaCloud">
         Reminders go out automatically every morning from MemberBook's WhatsApp number, with your business name in each message.
       </template>
-      <template v-else>
+      <template v-else-if="!data.reminderBlocked">
         Tap <span class="font-medium text-slate-700">Remind</span> and WhatsApp opens with the message ready. Just press send.
+      </template>
+      <template v-if="data.reminderUsage && data.settings.autoRemindersEnabled">
+        {{ data.reminderUsage.used }} of {{ data.reminderUsage.limit }} reminders used this month.
       </template>
     </p>
 
@@ -186,6 +209,10 @@
                 <template v-else-if="data?.cloudAvailable">
                   Every morning, MemberBook sends due reminders from its WhatsApp number with your business name. Up to 3 reminders per payment, 3 days apart.
                 </template>
+                <template v-else-if="data?.needsAddOn">
+                  Switch on <NuxtLink to="/dashboard/add-ons" class="font-medium text-primary-700 underline">Automatic fee reminders</NuxtLink> in Add-ons first.
+                  The first month is free, then ₹199 a month for up to 500 reminders.
+                </template>
                 <template v-else>
                   Coming soon: MemberBook will send reminders for you every morning, so you don't have to.
                 </template>
@@ -238,6 +265,9 @@ interface CollectionsResponse {
   sendsViaCloud: boolean;
   sendsFrom: "own" | "memberbook" | null;
   sendsFromNumber: string | null;
+  needsAddOn: boolean;
+  reminderUsage: { used: number; limit: number } | null;
+  reminderBlocked: "limit" | "unpaid_bill" | null;
   summary: { overdueCount: number; overdueAmount: number; upcomingCount: number; upcomingAmount: number };
   items: CollectionItem[];
 }

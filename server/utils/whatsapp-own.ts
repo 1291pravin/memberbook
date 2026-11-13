@@ -212,12 +212,50 @@ export async function getOwnSender(orgId: number): Promise<(WhatsAppSender & { d
   };
 }
 
-/** Is there any way to send automatic reminders for this business? */
-export async function reminderSending(orgId: number) {
+export type ReminderBlock = "limit" | "unpaid_bill";
+
+export interface ReminderSending {
+  /** Automatic reminders can be switched on for this business. */
+  available: boolean;
+  via: "own" | "memberbook" | null;
+  sender: WhatsAppSender | undefined;
+  displayPhoneNumber: string | null;
+  /** MemberBook's number is live but the business hasn't switched on the auto_reminders add-on. */
+  needsAddOn: boolean;
+  /** Shared-number usage this month (null when sending from their own number). */
+  usage: { used: number; limit: number } | null;
+  /** Set when sending is paused for now: monthly limit reached or an add-on bill is overdue. */
+  blocked: ReminderBlock | null;
+}
+
+/**
+ * How automatic reminders go out for this business, if at all: from its own
+ * connected number (own_number add-on; Meta bills the business), else from
+ * MemberBook's number, which needs the auto_reminders add-on and stays within
+ * INCLUDED_REMINDERS a month while add-on bills are paid (Meta bills us).
+ */
+export async function reminderSending(orgId: number): Promise<ReminderSending> {
   const own = await getOwnSender(orgId);
-  if (own) return { available: true, via: "own" as const, sender: own as WhatsAppSender, displayPhoneNumber: own.displayPhoneNumber };
-  if (isWhatsAppCloudEnabled()) return { available: true, via: "memberbook" as const, sender: undefined, displayPhoneNumber: null };
-  return { available: false, via: null, sender: undefined, displayPhoneNumber: null };
+  if (own) {
+    return { available: true, via: "own", sender: own, displayPhoneNumber: own.displayPhoneNumber, needsAddOn: false, usage: null, blocked: null };
+  }
+  if (!isWhatsAppCloudEnabled()) {
+    return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: false, usage: null, blocked: null };
+  }
+  if (!(await isAddOnActive(orgId, "auto_reminders"))) {
+    return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: true, usage: null, blocked: null };
+  }
+  const [used, unpaid] = await Promise.all([sharedRemindersThisMonth(orgId), hasOverdueAddOnBill(orgId)]);
+  const blocked: ReminderBlock | null = unpaid ? "unpaid_bill" : used >= INCLUDED_REMINDERS ? "limit" : null;
+  return {
+    available: true,
+    via: "memberbook",
+    sender: undefined,
+    displayPhoneNumber: null,
+    needsAddOn: false,
+    usage: { used, limit: INCLUDED_REMINDERS },
+    blocked,
+  };
 }
 
 function randomPin() {

@@ -161,6 +161,13 @@
                 <dt class="text-xs text-slate-600">Automatic reminders</dt>
                 <dd class="font-medium text-slate-800">{{ b.autoReminders ? "On" : "Off" }}</dd>
               </div>
+              <div v-if="data?.sharedReminders">
+                <dt class="text-xs text-slate-600">WhatsApp reminders this month</dt>
+                <dd class="font-medium text-slate-800">
+                  {{ data.sharedReminders.used }} of {{ data.sharedReminders.limit }}
+                  <span class="text-slate-600">(about ₹{{ (data.sharedReminders.used * 0.14).toFixed(0) }} Meta cost)</span>
+                </dd>
+              </div>
               <div v-if="data?.ownWhatsapp">
                 <dt class="text-xs text-slate-600">Own WhatsApp number</dt>
                 <dd class="font-medium text-slate-800">
@@ -219,6 +226,7 @@ interface Detail {
   people: Array<{ name: string; email: string; role: string; lastSeenAt: string | null }>;
   stages: Array<{ value: string; label: string }>;
   ownWhatsapp: { status: string; displayPhoneNumber: string | null; templateStatus: string | null; lastError: string | null } | null;
+  sharedReminders?: { used: number; limit: number };
 }
 
 const route = useRoute();

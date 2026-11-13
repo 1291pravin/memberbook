@@ -12,6 +12,9 @@ import { db, schema } from "@nuxthub/db";
  * renewal (or as soon as a balance is due), then at most every
  * AUTO_REMINDER_GAP_DAYS days, up to MAX_AUTO_REMINDERS in total. Members who
  * tapped "I have paid" are skipped until the owner confirms.
+ *
+ * From MemberBook's number a business needs the auto_reminders add-on, gets
+ * INCLUDED_REMINDERS a month, and pauses while an add-on bill is overdue.
  */
 export default defineTask({
   meta: {
@@ -33,7 +36,9 @@ export default defineTask({
       const org = await getOrgCollectionSettings(id);
       if (!org?.upiId) continue;
       const sending = await reminderSending(id);
-      if (!sending.available) continue;
+      if (!sending.available || sending.blocked) continue;
+      // Shared number: stop at the monthly allowance (Meta bills us per message).
+      const cap = sending.usage ? Math.max(0, sending.usage.limit - sending.usage.used) : 200;
 
       const items = await getCollections(id, org.reminderDaysBefore);
       const toSend = items.filter(i =>
@@ -41,7 +46,7 @@ export default defineTask({
         && !i.claimedAt
         && i.remindersSent < MAX_AUTO_REMINDERS
         && (!i.lastAttemptAt || Date.now() - new Date(i.lastAttemptAt).getTime() >= gapMs),
-      ).slice(0, 200);
+      ).slice(0, Math.min(200, cap));
       if (toSend.length === 0) continue;
 
       await ensurePaymentLinks(id, toSend);

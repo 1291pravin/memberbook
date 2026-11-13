@@ -37,6 +37,18 @@ export interface AddOnDef {
 
 export const FREE_TRIAL_DAYS = 30;
 
+/**
+ * WhatsApp reminders a business can send each month (IST calendar month) from
+ * MemberBook's number with the auto_reminders add-on. Meta charges us about
+ * ₹0.14 per utility message with GST, so 500 costs us about ₹70 of the ₹199.
+ * Sending stops at the limit; reminders from the business's own number don't
+ * count (Meta bills them directly).
+ */
+export const INCLUDED_REMINDERS = 500;
+
+/** An add-on bill still unpaid this many days after it was created stops shared-number reminders. */
+export const REMINDER_BILL_GRACE_DAYS = 10;
+
 export const ADD_ONS: AddOnDef[] = [
   {
     key: "website",
@@ -85,10 +97,11 @@ export const ADD_ONS: AddOnDef[] = [
     points: [
       "Sent from the MemberBook WhatsApp number with your business name",
       "Each reminder has a pay link to your UPI ID",
+      `Up to ${INCLUDED_REMINDERS} reminders a month included`,
     ],
     price: 19900,
-    ready: false,
-    waitingOn: "Meta business verification, then NUXT_WHATSAPP_CLOUD_ENABLED",
+    ready: true,
+    page: "/dashboard/collections",
   },
   {
     key: "own_number",

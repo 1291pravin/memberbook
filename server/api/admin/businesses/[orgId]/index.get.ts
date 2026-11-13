@@ -118,5 +118,7 @@ export default defineEventHandler(async (event) => {
       .filter(p => p.email !== SETUP_USER_EMAIL),
     stages: ADMIN_STAGES,
     ownWhatsapp: serializeOwnAccount(await getOwnAccount(orgId)),
+    // Reminders from MemberBook's number this month: Meta bills us for each.
+    sharedReminders: { used: await sharedRemindersThisMonth(orgId), limit: INCLUDED_REMINDERS },
   };
 });

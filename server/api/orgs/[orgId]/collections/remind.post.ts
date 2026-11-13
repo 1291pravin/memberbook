@@ -21,7 +21,8 @@ export default defineEventHandler(async (event) => {
   await ensurePaymentLinks(access.orgId, [item]);
 
   const sending = await reminderSending(access.orgId);
-  const sendsViaCloud = sending.available && org.autoRemindersEnabled && !!org.upiId;
+  // Paused (monthly limit or unpaid bill): fall back to tap-to-send from the owner's phone.
+  const sendsViaCloud = sending.available && !sending.blocked && org.autoRemindersEnabled && !!org.upiId;
   if (sendsViaCloud && body.channel !== "link") {
     const result = await sendCloudReminder(item, org, session.user?.id ?? null, sending.sender);
     if (!result.ok) {

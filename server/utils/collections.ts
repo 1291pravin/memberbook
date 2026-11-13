@@ -421,6 +421,8 @@ export async function logReminder(values: typeof schema.reminderLogs.$inferInser
 
 /** Send one reminder through the WhatsApp Cloud API and log it. */
 export async function sendCloudReminder(item: CollectionItem, org: OrgCollectionSettings, sentBy: number | null, sender?: WhatsAppSender) {
+  // No sender = MemberBook's shared number, which counts toward the monthly allowance.
+  const via = sender ? "own" : "memberbook";
   const to = normalizeIndianPhone(item.memberPhone);
   if (!to) return { ok: false as const, error: "No valid phone number" };
   if (!item.payToken) return { ok: false as const, error: "No pay link" };
@@ -445,6 +447,7 @@ export async function sendCloudReminder(item: CollectionItem, org: OrgCollection
     providerMessageId: result.messageId ?? null,
     error: result.error ?? null,
     sentBy,
+    via,
   });
   return result.ok ? { ok: true as const } : { ok: false as const, error: result.error };
 }
