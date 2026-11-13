@@ -1,14 +1,14 @@
 <template>
   <div class="p-4 space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <NuxtLink to="/dashboard/seats" class="text-sm text-primary-600 hover:text-primary-500">&larr; Back to Seats</NuxtLink>
-        <h1 class="text-xl font-bold text-slate-800 mt-1">Manage Batches</h1>
-        <p class="text-sm text-slate-600 mt-1">Configure time-based batches for seat assignments</p>
+    <div class="flex items-end justify-between gap-3">
+      <div class="min-w-0">
+        <NuxtLink to="/dashboard/seats" class="text-sm text-primary-700 hover:text-primary-600">&larr; Seats</NuxtLink>
+        <h1 class="text-xl font-bold text-slate-800">Batches</h1>
+        <p class="text-sm text-slate-600 mt-0.5">Time slots like Morning or Evening</p>
       </div>
-      <AppButton size="sm" @click="openAddModal">
-        Add Batch
+      <AppButton size="sm" class="shrink-0 whitespace-nowrap" @click="openAddModal">
+        + Add batch
       </AppButton>
     </div>
 
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Batches Table -->
-    <AppCard title="All Batches">
+    <AppCard title="All batches" class="!p-4 sm:!p-5">
       <div v-if="loading" class="text-center py-8">
         <p class="text-sm text-slate-600">Loading batches...</p>
       </div>
@@ -29,7 +29,26 @@
           description="Create batches like Morning, Afternoon, Evening to manage seat assignments by time slot"
         />
       </div>
-      <div v-else class="overflow-x-auto">
+      <ul v-else class="divide-y divide-slate-100 sm:hidden">
+        <li v-for="batch in batches" :key="batch.id" class="flex items-center gap-2 py-2.5">
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-medium text-slate-800">{{ batch.name }}</p>
+            <p class="text-xs text-slate-600">
+              <span v-if="batch.startTime || batch.endTime">{{ batch.startTime || '?' }} &ndash; {{ batch.endTime || '?' }}</span>
+              <span v-else>Any time</span>
+              <span v-if="!batch.isActive"> &middot; inactive</span>
+            </p>
+          </div>
+          <AppAction icon="edit" @click="openEditModal(batch)">Edit</AppAction>
+          <AppMoreMenu
+            v-if="batch.isActive"
+            :label="`More actions for ${batch.name}`"
+            :items="[{ key: 'deactivate', label: 'Deactivate batch', danger: true }]"
+            @select="deactivateBatch(batch)"
+          />
+        </li>
+      </ul>
+      <div v-if="!loading && batches.length > 0" class="hidden overflow-x-auto sm:block">
         <table class="w-full text-sm">
           <thead class="border-b border-slate-200">
             <tr class="text-left">

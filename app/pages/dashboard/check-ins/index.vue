@@ -1,9 +1,9 @@
 <template>
   <div class="p-4 space-y-6">
-    <h1 class="text-xl font-bold text-slate-800">Check-Ins</h1>
+    <h1 class="text-xl font-bold text-slate-800">Check-ins</h1>
 
     <!-- Check In a Member -->
-    <AppCard title="Check In a Member">
+    <AppCard title="Check in a member">
       <div class="space-y-3">
         <AppSearchBar
           v-model="memberSearch"
@@ -14,20 +14,20 @@
           <div
             v-for="m in searchResults"
             :key="m.id"
-            class="flex items-center justify-between px-3 py-2"
+            class="flex items-center justify-between gap-2 px-3 py-2"
           >
-            <div>
-              <p class="text-sm font-medium text-slate-800">{{ m.name }}</p>
-              <p class="text-xs text-slate-600">{{ m.phone || 'No phone' }}</p>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-slate-800">{{ m.name }}</p>
+              <p class="text-xs text-slate-600">
+                {{ m.phone || 'No phone' }}
+                <AppBadge :color="subStatusColor(m.subscriptionStatus)" class="ml-1">
+                  {{ m.subscriptionStatus || 'no plan' }}
+                </AppBadge>
+              </p>
             </div>
-            <div class="flex items-center gap-2">
-              <AppBadge :color="subStatusColor(m.subscriptionStatus)">
-                {{ m.subscriptionStatus || 'no plan' }}
-              </AppBadge>
-              <AppButton size="sm" @click="openSeatSelector(m)">
-                Check In
-              </AppButton>
-            </div>
+            <AppAction icon="login" class="shrink-0" @click="openSeatSelector(m)">
+              Check in
+            </AppAction>
           </div>
         </div>
         <p v-else-if="memberSearch && !searchLoading" class="text-sm text-slate-600">No members found</p>
@@ -47,41 +47,37 @@
     </AppCard>
 
     <!-- Currently Checked In -->
-    <AppCard title="Currently Checked In">
+    <AppCard title="In right now">
       <!-- Auto-checkout banner for owners -->
-      <div v-if="isOwner && staleCount > 0" class="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center justify-between">
+      <div v-if="isOwner && staleCount > 0" class="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center justify-between gap-2">
         <p class="text-sm text-amber-700">{{ staleCount }} check-in(s) older than 24 hours</p>
-        <AppButton size="sm" variant="secondary" :loading="autoCheckingOut" @click="autoCheckout">
-          Auto Check-Out All
-        </AppButton>
+        <AppAction icon="logout" tone="slate" class="shrink-0" :loading="autoCheckingOut" @click="autoCheckout">
+          Check out all
+        </AppAction>
       </div>
 
-      <div v-if="activeCheckIns.length > 0" class="space-y-3">
+      <div v-if="activeCheckIns.length > 0">
         <div
           v-for="ci in activeCheckIns"
           :key="ci.id"
-          class="flex items-center justify-between py-3 border-b border-slate-100 last:border-0"
+          class="py-2.5 border-b border-slate-100 last:border-0"
         >
-          <div>
-            <div class="flex items-center gap-2">
-              <NuxtLink :to="`/dashboard/members/${ci.memberId}`" class="text-sm font-medium text-primary-600 hover:text-primary-500">
-                {{ ci.memberName }}
-              </NuxtLink>
-              <span v-if="ci.seatNumber" class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
-                🪑 {{ ci.seatNumber }}
-              </span>
-            </div>
-            <p class="text-xs text-slate-600">{{ ci.memberPhone || 'No phone' }}</p>
-            <p class="text-xs text-slate-600">Checked in {{ formatDateTime(ci.checkedInAt) }}</p>
-            <p class="text-xs font-medium text-slate-600">{{ liveDuration(ci.checkedInAt) }}</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <AppBadge :color="subStatusColor(ci.subscriptionStatus)">
+          <div class="flex items-center justify-between gap-2">
+            <NuxtLink :to="`/dashboard/members/${ci.memberId}`" class="min-w-0 truncate font-medium text-slate-800 hover:text-primary-700">
+              {{ ci.memberName }}
+            </NuxtLink>
+            <AppBadge :color="subStatusColor(ci.subscriptionStatus)" class="shrink-0">
               {{ ci.subscriptionStatus }}
             </AppBadge>
-            <AppButton size="sm" variant="secondary" :loading="checkingOutId === ci.id" @click="checkOut(ci.id)">
-              Check Out
-            </AppButton>
+          </div>
+          <p class="mt-0.5 text-xs text-slate-600">
+            <span v-if="ci.seatNumber">Seat {{ ci.seatNumber }} &middot; </span>In since {{ formatDateTime(ci.checkedInAt) }} &middot; <span class="font-semibold">{{ liveDuration(ci.checkedInAt) }}</span>
+          </p>
+          <div class="-ml-2.5 mt-1 flex items-center gap-1">
+            <AppAction icon="logout" :loading="checkingOutId === ci.id" @click="checkOut(ci.id)">
+              Check out
+            </AppAction>
+            <AppAction v-if="ci.memberPhone" icon="phone" :href="`tel:${ci.memberPhone}`">Call</AppAction>
           </div>
         </div>
       </div>

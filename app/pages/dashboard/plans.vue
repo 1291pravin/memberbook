@@ -1,8 +1,8 @@
 <template>
   <div class="p-4 space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Subscription Plans</h1>
-      <AppButton v-if="isOwner" @click="showForm = true">Add Plan</AppButton>
+    <div class="flex items-center justify-between gap-3">
+      <h1 class="text-xl font-bold text-slate-800">Plans</h1>
+      <AppButton v-if="isOwner" size="sm" class="whitespace-nowrap" @click="showForm = true">+ Add plan</AppButton>
     </div>
 
     <div v-if="plans.length === 0 && !loading">
@@ -13,8 +13,8 @@
       </AppEmptyState>
     </div>
 
-    <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <AppCard v-for="plan in plans" :key="plan.id">
+    <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <AppCard v-for="plan in plans" :key="plan.id" class="!p-4 sm:!p-5">
         <div class="flex items-start justify-between">
           <div>
             <h3 class="font-semibold text-slate-800">{{ plan.name }}</h3>
@@ -34,15 +34,13 @@
             <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
           </svg>
         </NuxtLink>
-        <div v-if="isOwner" class="mt-2 flex gap-2">
-          <AppButton size="sm" variant="ghost" @click="editPlan(plan)">Edit</AppButton>
-          <AppButton
-            size="sm"
-            variant="ghost"
-            @click="toggleActive(plan)"
-          >
-            {{ plan.active ? "Deactivate" : "Activate" }}
-          </AppButton>
+        <div v-if="isOwner" class="mt-3 flex items-center justify-between border-t border-slate-100 pt-2">
+          <AppAction icon="edit" class="-ml-2.5" @click="editPlan(plan)">Edit</AppAction>
+          <AppMoreMenu
+            :label="`More actions for ${plan.name}`"
+            :items="[{ key: 'toggle', label: plan.active ? 'Deactivate plan' : 'Activate plan' }]"
+            @select="toggleActive(plan)"
+          />
         </div>
       </AppCard>
     </div>

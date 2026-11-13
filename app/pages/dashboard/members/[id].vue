@@ -53,15 +53,16 @@
             </div>
           </div>
         </div>
-        <div class="flex items-center gap-1 shrink-0">
-          <AppButton v-if="member" size="sm" variant="secondary" @click="openEditMember">
-            Edit
-          </AppButton>
+        <div class="flex items-center gap-0.5 shrink-0">
+          <AppAction v-if="member" icon="edit" tone="slate" @click="openEditMember">Edit</AppAction>
           <AppMoreMenu
-            v-if="member && isOwner"
+            v-if="member"
             label="More actions for this member"
-            :items="[{ key: 'delete', label: 'Delete member', danger: true }]"
-            @select="showDeleteModal = true"
+            :items="[
+              { key: 'status', label: member.status === 'active' ? 'Mark inactive' : 'Mark active' },
+              ...(isOwner ? [{ key: 'delete', label: 'Delete member', danger: true }] : []),
+            ]"
+            @select="k => k === 'status' ? toggleStatus() : (showDeleteModal = true)"
           />
         </div>
       </div>
@@ -83,37 +84,11 @@
         <p v-if="member.batch"><span class="text-slate-600">Batch:</span> {{ member.batch }}</p>
         <p v-if="member.notes"><span class="text-slate-600">Notes:</span> {{ member.notes }}</p>
       </div>
-      <div class="mt-3 flex flex-wrap gap-2">
-        <AppButton size="sm" variant="ghost" @click="toggleStatus">
-          {{ member.status === "active" ? "Mark Inactive" : "Mark Active" }}
-        </AppButton>
-        <a
-          v-if="canWhatsApp"
-          :href="getWhatsAppLink(member.phone!, '')"
-          target="_blank"
-          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors"
-        >
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          WhatsApp
-        </a>
-      </div>
-      <div v-if="canWhatsApp && (needsRenewalReminder || needsPaymentReminder)" class="mt-2 flex flex-wrap gap-2">
-        <button
-          v-if="needsRenewalReminder"
-          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-green-700 border border-green-200 hover:bg-green-50 transition-colors"
-          @click="sendRenewalReminder"
-        >
-          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          Send Renewal Reminder
-        </button>
-        <button
-          v-if="needsPaymentReminder"
-          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-green-700 border border-green-200 hover:bg-green-50 transition-colors"
-          @click="sendPaymentReminder"
-        >
-          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          Send Payment Reminder
-        </button>
+      <div class="-ml-2.5 mt-3 flex flex-wrap items-center gap-1 border-t border-slate-100 pt-2">
+        <AppAction v-if="member.phone" icon="phone" :href="`tel:${member.phone}`">Call</AppAction>
+        <AppAction v-if="canWhatsApp" icon="whatsapp" tone="whatsapp" :href="getWhatsAppLink(member.phone!, '')" external>WhatsApp</AppAction>
+        <AppAction v-if="canWhatsApp && needsPaymentReminder" icon="send" tone="whatsapp" @click="sendPaymentReminder">Payment reminder</AppAction>
+        <AppAction v-else-if="canWhatsApp && needsRenewalReminder" icon="send" tone="whatsapp" @click="sendRenewalReminder">Renewal reminder</AppAction>
       </div>
     </AppCard>
 
@@ -133,19 +108,19 @@
             </p>
           </div>
           <div class="mt-1">
-            <AppButton size="sm" variant="ghost" :loading="removingSeat" @click="removeBatchSeatAssignment(assignment.batchId)">
+            <AppAction tone="slate" class="-ml-2.5" :loading="removingSeat" @click="removeBatchSeatAssignment(assignment.batchId)">
               Remove
-            </AppButton>
+            </AppAction>
           </div>
         </div>
       </div>
       <div v-else class="text-sm text-slate-600 py-2">
         No seat assigned
       </div>
-      <div class="mt-3">
-        <AppButton size="sm" variant="secondary" @click="openSeatAssignment">
-          Assign Seat
-        </AppButton>
+      <div class="-ml-2.5 mt-2">
+        <AppAction icon="seat" @click="openSeatAssignment">
+          {{ seatAssignments.length > 0 ? 'Assign another seat' : 'Assign seat' }}
+        </AppAction>
       </div>
     </AppCard>
 
@@ -174,24 +149,18 @@
               Paid {{ formatCurrency(sub.totalPaid) }} of {{ formatCurrency(sub.amount) }}
             </span>
           </div>
-          <div class="mt-2 flex items-center justify-between gap-2">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <button
+          <div class="mt-2 flex items-center justify-between gap-2 border-t border-slate-100 pt-1.5">
+            <div class="-ml-2.5 flex flex-wrap items-center gap-1">
+              <AppAction
                 v-if="sub.paymentStatus === 'partial' || sub.paymentStatus === 'unpaid'"
-                type="button"
-                class="whitespace-nowrap rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-100"
+                icon="rupee"
                 @click="openInlinePayment(sub)"
               >
-                {{ sub.paymentStatus === 'partial' ? `Pay remaining ${formatCurrency(sub.amount - sub.totalPaid)}` : 'Record payment' }}
-              </button>
-              <button
-                v-if="sub.id === latestSubscriptionId"
-                type="button"
-                class="whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
-                @click="renewSubscription(sub)"
-              >
+                {{ sub.paymentStatus === 'partial' ? `Pay ${formatCurrency(sub.amount - sub.totalPaid)} left` : 'Record payment' }}
+              </AppAction>
+              <AppAction v-if="sub.id === latestSubscriptionId" icon="refresh" @click="renewSubscription(sub)">
                 Renew
-              </button>
+              </AppAction>
             </div>
             <AppMoreMenu
               v-if="sub.id === latestSubscriptionId || isOwner"
@@ -207,22 +176,24 @@
         </div>
         <div v-if="subscriptions.length === 0" class="text-sm text-slate-600 py-2">No subscriptions</div>
       </div>
-      <div v-if="subscriptions.length === 0" class="mt-3">
-        <AppButton size="sm" @click="openAssignPlan">Assign Plan</AppButton>
+      <div v-if="subscriptions.length === 0" class="-ml-2.5 mt-2">
+        <AppAction icon="plus" @click="openAssignPlan">Assign plan</AppAction>
       </div>
     </AppCard>
 
     <!-- Payments -->
     <AppCard title="Payments">
       <div class="space-y-3">
-        <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between gap-2 py-2 border-b border-slate-100 last:border-0">
-          <div class="min-w-0">
-            <p class="text-sm font-medium text-slate-800">{{ formatCurrency(payment.amount) }}</p>
-            <p class="text-xs text-slate-600">{{ formatDate(payment.date) }} &middot; <span class="capitalize">{{ payment.method.replace('_', ' ') }}</span></p>
-            <p v-if="payment.notes" class="text-xs text-slate-600 truncate">{{ payment.notes }}</p>
+        <div v-for="payment in payments" :key="payment.id" class="py-2 border-b border-slate-100 last:border-0">
+          <div class="flex items-baseline justify-between gap-3">
+            <p class="text-xs text-slate-600">
+              <span class="whitespace-nowrap">{{ formatDate(payment.date) }}</span> &middot; <span class="capitalize">{{ payment.method.replace('_', ' ') }}</span>
+            </p>
+            <p class="shrink-0 text-sm font-semibold text-slate-800">{{ formatCurrency(payment.amount) }}</p>
           </div>
-          <div class="flex items-center gap-1">
-            <ReceiptActions :payment-id="payment.id" />
+          <p v-if="payment.notes" class="text-xs text-slate-600 break-words">{{ payment.notes }}</p>
+          <div class="mt-1 flex items-center justify-between">
+            <ReceiptActions :payment-id="payment.id" class="-ml-2.5" />
             <AppMoreMenu
               v-if="isOwner"
               label="More actions for this payment"
@@ -257,14 +228,15 @@
         <div v-if="recentCheckIns.length === 0" class="text-sm text-slate-600 py-2">No check-ins</div>
       </div>
       <div class="mt-3 flex items-center justify-between">
-        <AppButton
+        <AppAction
           v-if="!isCurrentlyCheckedIn"
-          size="sm"
+          icon="login"
+          class="-ml-2.5"
           :loading="checkingIn"
           @click="quickCheckIn"
         >
-          Check In
-        </AppButton>
+          Check in
+        </AppAction>
         <span v-else class="text-xs text-green-600 font-medium">Currently checked in</span>
         <NuxtLink
           v-if="checkInTotal > 5"

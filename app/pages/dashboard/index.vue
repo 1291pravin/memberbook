@@ -101,14 +101,14 @@
                 <p class="truncate text-sm text-slate-600">{{ formatCurrency(item.amount) }} · {{ item.planName }}</p>
                 <p class="text-xs font-semibold" :class="item.overdue ? 'text-accent-700' : 'text-slate-600'">{{ dueText(item) }}</p>
               </NuxtLink>
-              <a
+              <AppAction
                 v-if="item.memberPhone"
+                icon="whatsapp"
+                tone="whatsapp"
+                class="shrink-0"
                 :href="getWhatsAppLink(item.memberPhone, item.message)"
-                target="_blank"
-                rel="noopener"
-                class="shrink-0 rounded-full px-4 py-2.5 text-sm font-bold"
-                :class="item.overdue ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-primary-100 text-primary-800 hover:bg-primary-200'"
-              >Remind</a>
+                external
+              >Remind</AppAction>
             </li>
           </ul>
         </section>

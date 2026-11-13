@@ -18,31 +18,27 @@
     <!-- Staff Management -->
     <AppCard title="Staff Members">
       <!-- Invite via WhatsApp (owner only) -->
-      <div v-if="isOwner" class="mb-6 pb-6 border-b border-slate-100">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="text-sm font-medium text-slate-700">Invite Staff via WhatsApp</h4>
-        </div>
-        <AppButton size="sm" @click="showInviteModal = true">
-          Manage Invitations
-        </AppButton>
+      <div v-if="isOwner" class="mb-3 pb-3 border-b border-slate-100">
+        <p class="text-sm text-slate-600">Invite staff with a WhatsApp link.</p>
+        <AppAction icon="whatsapp" tone="whatsapp" class="-ml-2.5 mt-1" @click="showInviteModal = true">
+          Invite staff
+        </AppAction>
       </div>
 
       <div class="space-y-3">
-        <div v-for="s in staff" :key="s.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-          <div>
-            <p class="text-sm font-medium text-slate-800">{{ s.name }}</p>
-            <p class="text-xs text-slate-600">{{ s.email }}</p>
+        <div v-for="s in staff" :key="s.id" class="flex items-center justify-between gap-2 py-2 border-b border-slate-100 last:border-0">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium text-slate-800">{{ s.name }}</p>
+            <p class="truncate text-xs text-slate-600">{{ s.email }}</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex shrink-0 items-center gap-1">
             <AppBadge :color="s.role === 'owner' ? 'blue' : 'gray'">{{ s.role }}</AppBadge>
-            <AppButton
+            <AppMoreMenu
               v-if="s.role !== 'owner' && isOwner"
-              size="sm"
-              variant="danger"
-              @click="removeStaff(s.id)"
-            >
-              Remove
-            </AppButton>
+              :label="`More actions for ${s.name}`"
+              :items="[{ key: 'remove', label: 'Remove from staff', danger: true }]"
+              @select="removeStaff(s.id)"
+            />
           </div>
         </div>
         <div v-if="staff.length === 0" class="text-sm text-slate-600">No staff added yet.</div>
@@ -76,36 +72,26 @@
       <p class="text-sm text-slate-600 mb-3">
         Manage expense categories for tracking business expenses.
       </p>
-      <div class="space-y-3 mb-4">
+      <div class="space-y-1 mb-2">
         <div v-for="cat in categories" :key="cat.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
           <div class="flex items-center gap-2">
             <AppBadge :color="cat.color">{{ cat.name }}</AppBadge>
             <span v-if="cat.isSystem" class="text-xs text-slate-600">(default)</span>
           </div>
-          <div class="flex items-center gap-2">
-            <AppButton
-              v-if="!cat.isSystem"
-              size="sm"
-              variant="secondary"
-              @click="editCategory(cat)"
-            >
-              Edit
-            </AppButton>
-            <AppButton
-              v-if="!cat.isSystem"
-              size="sm"
-              variant="danger"
-              @click="toggleCategoryStatus(cat)"
-            >
-              {{ cat.isActive ? 'Deactivate' : 'Activate' }}
-            </AppButton>
+          <div v-if="!cat.isSystem" class="flex items-center gap-0.5">
+            <AppAction icon="edit" @click="editCategory(cat)">Edit</AppAction>
+            <AppMoreMenu
+              :label="`More actions for ${cat.name}`"
+              :items="[{ key: 'toggle', label: cat.isActive ? 'Deactivate' : 'Activate', danger: cat.isActive }]"
+              @select="toggleCategoryStatus(cat)"
+            />
           </div>
         </div>
         <div v-if="categories.length === 0" class="text-sm text-slate-600">No categories yet.</div>
       </div>
-      <AppButton size="sm" @click="showAddCategoryModal = true">
-        Add Category
-      </AppButton>
+      <AppAction icon="plus" class="-ml-2.5" @click="showAddCategoryModal = true">
+        Add category
+      </AppAction>
     </AppCard>
 
     <!-- Sample Data (owner only) -->
@@ -116,23 +102,24 @@
           : 'Load realistic sample data to see how MemberBook looks with members, subscriptions, and payments.' }}
       </p>
       <div class="flex items-center gap-3">
-        <AppButton
+        <AppAction
           v-if="hasDemoData"
-          size="sm"
-          variant="danger"
+          tone="danger"
+          class="-ml-2.5"
           :loading="clearingDemo"
           @click="clearDemoData"
         >
-          Clear Sample Data
-        </AppButton>
-        <AppButton
+          Clear sample data
+        </AppAction>
+        <AppAction
           v-else
-          size="sm"
+          icon="download"
+          class="-ml-2.5"
           :loading="loadingDemo"
           @click="loadDemoData"
         >
-          Load Sample Data
-        </AppButton>
+          Load sample data
+        </AppAction>
         <p v-if="demoMessage" class="text-sm" :class="demoMessageError ? 'text-red-600' : 'text-green-600'">{{ demoMessage }}</p>
       </div>
     </AppCard>
@@ -200,20 +187,10 @@
                   </p>
                 </div>
               </div>
-              <div class="flex gap-2">
-                <AppButton size="sm" variant="secondary" @click="copyInviteLink(invite)">
-                  Copy Link
-                </AppButton>
-                <AppButton
-                  size="sm"
-                  :style="{ backgroundColor: '#25D366', color: 'white' }"
-                  @click="sendViaWhatsApp(invite)"
-                >
-                  WhatsApp
-                </AppButton>
-                <AppButton size="sm" variant="danger" @click="revokeInvite(invite.id)">
-                  Revoke
-                </AppButton>
+              <div class="-ml-2.5 flex flex-wrap items-center gap-1">
+                <AppAction icon="whatsapp" tone="whatsapp" @click="sendViaWhatsApp(invite)">WhatsApp</AppAction>
+                <AppAction icon="receipt" @click="copyInviteLink(invite)">Copy link</AppAction>
+                <AppAction tone="danger" @click="revokeInvite(invite.id)">Revoke</AppAction>
               </div>
             </div>
           </div>
