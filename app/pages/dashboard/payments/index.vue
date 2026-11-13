@@ -44,12 +44,12 @@
           <div class="mt-2 flex items-center justify-between gap-1 border-t border-slate-100 pt-2 sm:mt-0 sm:justify-end sm:border-0 sm:pt-0">
             <p class="hidden shrink-0 pr-2 font-semibold text-slate-800 sm:block">{{ formatCurrency(p.amount) }}</p>
             <ReceiptActions :payment-id="p.id" class="-ml-2.5 sm:ml-0" />
-            <PaymentMoreMenu
+            <AppMoreMenu
               v-if="isOwner"
-              :label="`${p.memberName}'s payment`"
+              :label="`More actions for ${p.memberName}'s payment`"
+              :items="paymentMenu"
               :loading="deletingPaymentId === p.id"
-              @edit="openEditPayment(p)"
-              @delete="deletePayment(p)"
+              @select="k => k === 'edit' ? openEditPayment(p) : deletePayment(p)"
             />
           </div>
         </div>
@@ -206,6 +206,7 @@ const paymentForm = reactive({
   notes: "",
 });
 const editForm = reactive({ amount: "", date: today, method: "cash", notes: "" });
+const paymentMenu = [{ key: "edit", label: "Edit payment" }, { key: "delete", label: "Delete", danger: true }];
 function methodLabel(method: string) {
   return paymentMethodOptions.find(o => o.value === method)?.label ?? method;
 }

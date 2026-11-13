@@ -5,8 +5,9 @@
         <h1 class="text-xl font-bold text-slate-800">Collections</h1>
         <p class="text-sm text-slate-600 mt-0.5">Who owes you money. Remind them on WhatsApp with a UPI pay link, or mark them paid.</p>
       </div>
-      <AppButton v-if="isOwner" size="sm" variant="secondary" @click="openSettings">
-        Payment settings
+      <AppButton v-if="isOwner" size="sm" variant="secondary" class="shrink-0 whitespace-nowrap !px-3" @click="openSettings">
+        <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.3 4.3c.4-1.7 2.9-1.7 3.4 0a1.7 1.7 0 002.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 001 2.5c1.8.4 1.8 2.9 0 3.4a1.7 1.7 0 00-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 00-2.6 1c-.4 1.8-2.9 1.8-3.4 0a1.7 1.7 0 00-2.5-1c-1.6.9-3.3-.9-2.4-2.4a1.7 1.7 0 00-1.1-2.6c-1.7-.4-1.7-2.9 0-3.4a1.7 1.7 0 001.1-2.5c-.9-1.6.8-3.3 2.4-2.4a1.7 1.7 0 002.5-1.1z" /><circle cx="12" cy="12" r="3" /></svg>
+        <span class="sm:hidden">Settings</span><span class="hidden sm:inline">Payment settings</span>
       </AppButton>
     </div>
 

@@ -94,18 +94,19 @@
             Everyone is paid up. We'll show people here a few days before they're due.
           </div>
           <ul v-else class="space-y-1">
-            <li v-for="(item, i) in nudgeList" :key="item.key" class="flex flex-wrap items-center gap-3 rounded-2xl p-3" :class="i % 2 === 0 ? 'bg-slate-50' : ''">
+            <li v-for="(item, i) in nudgeList" :key="item.key" class="flex items-center gap-3 rounded-2xl p-3" :class="i % 2 === 0 ? 'bg-slate-50' : ''">
               <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-extrabold" :class="item.overdue ? 'bg-accent-200 text-accent-700' : 'bg-accent-100 text-slate-700'">{{ initials(item.memberName) }}</span>
               <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="min-w-0 flex-1">
                 <p class="truncate font-bold text-slate-800">{{ item.memberName }}</p>
-                <p class="text-sm text-slate-600">{{ item.planName }} · {{ formatCurrency(item.amount) }} · {{ dueText(item) }}</p>
+                <p class="truncate text-sm text-slate-600">{{ formatCurrency(item.amount) }} · {{ item.planName }}</p>
+                <p class="text-xs font-semibold" :class="item.overdue ? 'text-accent-700' : 'text-slate-600'">{{ dueText(item) }}</p>
               </NuxtLink>
               <a
                 v-if="item.memberPhone"
                 :href="getWhatsAppLink(item.memberPhone, item.message)"
                 target="_blank"
                 rel="noopener"
-                class="rounded-full px-4 py-2.5 text-sm font-bold"
+                class="shrink-0 rounded-full px-4 py-2.5 text-sm font-bold"
                 :class="item.overdue ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-primary-100 text-primary-800 hover:bg-primary-200'"
               >Remind</a>
             </li>

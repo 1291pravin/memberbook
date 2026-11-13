@@ -11,8 +11,8 @@
       class="block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-slate-50 sm:text-sm"
       @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
     >
-      <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
-      <option v-for="opt in options" :key="opt.value" :value="opt.value">
+      <option v-if="placeholder" value="" disabled :selected="modelValue === '' || modelValue == null">{{ placeholder }}</option>
+      <option v-for="opt in options" :key="opt.value" :value="opt.value" :selected="String(opt.value) === String(modelValue ?? '')">
         {{ opt.label }}
       </option>
     </select>

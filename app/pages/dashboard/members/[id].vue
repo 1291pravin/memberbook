@@ -27,37 +27,42 @@
             >
           </div>
           <div class="min-w-0">
-            <h1 class="text-xl font-bold text-slate-800 truncate">{{ member?.name }}</h1>
-            <button
-              v-if="hasPhoto"
-              type="button"
-              class="text-xs text-slate-500 hover:text-red-600"
-              :disabled="uploadingPhoto"
-              @click="removePhoto"
-            >
-              Remove photo
-            </button>
-            <button
-              v-else
-              type="button"
-              class="text-xs text-primary-600 hover:text-primary-500"
-              :disabled="uploadingPhoto"
-              @click="triggerPhotoPicker"
-            >
-              Add photo
-            </button>
+            <h1 class="text-xl font-bold leading-tight text-slate-800 break-words line-clamp-2">{{ member?.name }}</h1>
+            <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <AppBadge v-if="member" :color="member.status === 'active' ? 'green' : 'gray'">
+                {{ member.status }}
+              </AppBadge>
+              <button
+                v-if="hasPhoto"
+                type="button"
+                class="text-xs text-slate-600 hover:text-red-600"
+                :disabled="uploadingPhoto"
+                @click="removePhoto"
+              >
+                Remove photo
+              </button>
+              <button
+                v-else
+                type="button"
+                class="text-xs font-medium text-primary-700 hover:text-primary-600"
+                :disabled="uploadingPhoto"
+                @click="triggerPhotoPicker"
+              >
+                Add photo
+              </button>
+            </div>
           </div>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <AppBadge v-if="member" :color="member.status === 'active' ? 'green' : 'gray'">
-            {{ member.status }}
-          </AppBadge>
+        <div class="flex items-center gap-1 shrink-0">
           <AppButton v-if="member" size="sm" variant="secondary" @click="openEditMember">
             Edit
           </AppButton>
-          <AppButton v-if="member && isOwner" size="sm" variant="danger" @click="showDeleteModal = true">
-            Delete
-          </AppButton>
+          <AppMoreMenu
+            v-if="member && isOwner"
+            label="More actions for this member"
+            :items="[{ key: 'delete', label: 'Delete member', danger: true }]"
+            @select="showDeleteModal = true"
+          />
         </div>
       </div>
     </div>
@@ -147,68 +152,57 @@
     <!-- Subscriptions -->
     <AppCard title="Subscriptions">
       <div class="space-y-3">
-        <div v-for="sub in subscriptions" :key="sub.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-          <div>
-            <p class="font-medium text-slate-800 text-sm">{{ sub.planName }}</p>
-            <p class="text-sm text-slate-600">{{ formatDuration(sub.durationType, sub.durationValue) }}</p>
-            <p class="text-xs text-slate-600">{{ formatDate(sub.startDate) }} &mdash; {{ formatDate(sub.endDate) }}</p>
-          </div>
-          <div class="text-right space-y-1">
-            <p class="text-sm font-semibold">{{ formatCurrency(sub.amount) }}</p>
-            <div class="flex items-center gap-1 justify-end">
-              <AppBadge :color="sub.status === 'active' ? 'green' : 'gray'" class="text-xs">
-                {{ sub.status }}
-              </AppBadge>
-              <AppBadge :color="paymentStatusColor(sub.paymentStatus)" class="text-xs">
-                {{ paymentStatusLabel(sub.paymentStatus) }}
-              </AppBadge>
+        <div v-for="sub in subscriptions" :key="sub.id" class="py-2 border-b border-slate-100 last:border-0">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-medium text-slate-800 text-sm">{{ sub.planName }}</p>
+              <p class="text-xs text-slate-600">
+                {{ formatDuration(sub.durationType, sub.durationValue) }} &middot;
+                <span class="whitespace-nowrap">{{ formatDate(sub.startDate) }}</span> &ndash; <span class="whitespace-nowrap">{{ formatDate(sub.endDate) }}</span>
+              </p>
             </div>
-            <p v-if="sub.totalPaid > 0 && sub.paymentStatus !== 'paid'" class="text-xs text-slate-600">
-              Paid: {{ formatCurrency(sub.totalPaid) }} / {{ formatCurrency(sub.amount) }}
-            </p>
-            <div class="flex items-center gap-1 justify-end mt-1">
-              <AppButton
-                v-if="sub.paymentStatus === 'partial'"
-                size="sm"
-                variant="ghost"
+            <p class="shrink-0 text-sm font-semibold text-slate-800">{{ formatCurrency(sub.amount) }}</p>
+          </div>
+          <div class="mt-1.5 flex flex-wrap items-center gap-1">
+            <AppBadge :color="sub.status === 'active' ? 'green' : 'gray'" class="text-xs">
+              {{ sub.status }}
+            </AppBadge>
+            <AppBadge :color="paymentStatusColor(sub.paymentStatus)" class="text-xs">
+              {{ paymentStatusLabel(sub.paymentStatus) }}
+            </AppBadge>
+            <span v-if="sub.totalPaid > 0 && sub.paymentStatus !== 'paid'" class="text-xs text-slate-600">
+              Paid {{ formatCurrency(sub.totalPaid) }} of {{ formatCurrency(sub.amount) }}
+            </span>
+          </div>
+          <div class="mt-2 flex items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button
+                v-if="sub.paymentStatus === 'partial' || sub.paymentStatus === 'unpaid'"
+                type="button"
+                class="whitespace-nowrap rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-100"
                 @click="openInlinePayment(sub)"
               >
-                Pay Remaining ({{ formatCurrency(sub.amount - sub.totalPaid) }})
-              </AppButton>
-              <AppButton
-                v-if="sub.paymentStatus === 'unpaid'"
-                size="sm"
-                variant="ghost"
-                @click="openInlinePayment(sub)"
-              >
-                Record Payment
-              </AppButton>
-              <AppButton
+                {{ sub.paymentStatus === 'partial' ? `Pay remaining ${formatCurrency(sub.amount - sub.totalPaid)}` : 'Record payment' }}
+              </button>
+              <button
                 v-if="sub.id === latestSubscriptionId"
-                size="sm"
-                variant="ghost"
-                @click="openChangePlan(sub)"
-              >
-                Change Plan
-              </AppButton>
-              <AppButton
-                v-if="sub.id === latestSubscriptionId"
-                size="sm"
-                variant="ghost"
+                type="button"
+                class="whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
                 @click="renewSubscription(sub)"
               >
                 Renew
-              </AppButton>
-              <AppButton
-                v-if="isOwner"
-                size="sm"
-                variant="danger"
-                :loading="deletingSubscriptionId === sub.id"
-                @click="deleteSubscription(sub)"
-              >
-                Delete
-              </AppButton>
+              </button>
             </div>
+            <AppMoreMenu
+              v-if="sub.id === latestSubscriptionId || isOwner"
+              label="More actions for this subscription"
+              :loading="deletingSubscriptionId === sub.id"
+              :items="[
+                ...(sub.id === latestSubscriptionId ? [{ key: 'change', label: 'Change plan' }] : []),
+                ...(isOwner ? [{ key: 'delete', label: 'Delete subscription', danger: true }] : []),
+              ]"
+              @select="k => k === 'change' ? openChangePlan(sub) : deleteSubscription(sub)"
+            />
           </div>
         </div>
         <div v-if="subscriptions.length === 0" class="text-sm text-slate-600 py-2">No subscriptions</div>
@@ -224,17 +218,17 @@
         <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between gap-2 py-2 border-b border-slate-100 last:border-0">
           <div class="min-w-0">
             <p class="text-sm font-medium text-slate-800">{{ formatCurrency(payment.amount) }}</p>
-            <p class="text-xs text-slate-600">{{ formatDate(payment.date) }} &middot; {{ payment.method }}</p>
+            <p class="text-xs text-slate-600">{{ formatDate(payment.date) }} &middot; <span class="capitalize">{{ payment.method.replace('_', ' ') }}</span></p>
             <p v-if="payment.notes" class="text-xs text-slate-600 truncate">{{ payment.notes }}</p>
           </div>
           <div class="flex items-center gap-1">
             <ReceiptActions :payment-id="payment.id" />
-            <PaymentMoreMenu
+            <AppMoreMenu
               v-if="isOwner"
-              label="this payment"
+              label="More actions for this payment"
+              :items="[{ key: 'edit', label: 'Edit payment' }, { key: 'delete', label: 'Delete', danger: true }]"
               :loading="deletingPaymentId === payment.id"
-              @edit="openEditPayment(payment)"
-              @delete="deletePayment(payment)"
+              @select="k => k === 'edit' ? openEditPayment(payment) : deletePayment(payment)"
             />
           </div>
         </div>
@@ -274,7 +268,7 @@
         <span v-else class="text-xs text-green-600 font-medium">Currently checked in</span>
         <NuxtLink
           v-if="checkInTotal > 5"
-          to="`/dashboard/check-ins/history?search=${encodeURIComponent(member?.name || '')}`"
+          :to="`/dashboard/check-ins/history?search=${encodeURIComponent(member?.name || '')}`"
           class="text-xs text-primary-600 hover:text-primary-500"
         >
           View All ({{ checkInTotal }})

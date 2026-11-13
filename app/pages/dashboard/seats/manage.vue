@@ -1,23 +1,24 @@
 <template>
   <div class="p-4 space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="space-y-3 sm:flex sm:items-center sm:justify-between sm:space-y-0">
       <div>
-        <h1 class="text-xl font-bold text-slate-800">Manage Seats</h1>
-        <p class="text-sm text-slate-600 mt-1">Create, edit, and organize library seats</p>
+        <NuxtLink to="/dashboard/seats" class="text-sm text-primary-700 hover:text-primary-600">&larr; Seats</NuxtLink>
+        <h1 class="text-xl font-bold text-slate-800">Manage seats</h1>
+        <p class="text-sm text-slate-600 mt-0.5">Create, edit, and organise seats</p>
       </div>
       <div class="flex gap-2">
-        <AppButton size="sm" variant="secondary" @click="showBulkModal = true">
-          Bulk Add Seats
+        <AppButton size="sm" variant="secondary" class="whitespace-nowrap" @click="showBulkModal = true">
+          Add many
         </AppButton>
-        <AppButton size="sm" @click="openAddModal">
-          Add Seat
+        <AppButton size="sm" class="whitespace-nowrap" @click="openAddModal">
+          + Add seat
         </AppButton>
       </div>
     </div>
 
     <!-- Seats Table -->
-    <AppCard title="All Seats">
+    <AppCard title="All seats" class="!p-4 sm:!p-5">
       <div v-if="loading" class="text-center py-8">
         <p class="text-sm text-slate-600">Loading seats...</p>
       </div>
@@ -27,7 +28,27 @@
           description="Click 'Add Seat' or 'Bulk Add Seats' to create seats"
         />
       </div>
-      <div v-else class="overflow-x-auto">
+      <!-- Phone: one row per seat -->
+      <ul v-else class="divide-y divide-slate-100 sm:hidden">
+        <li v-for="seat in seats" :key="seat.id" class="flex items-center gap-3 py-2.5">
+          <div class="min-w-0 flex-1">
+            <p class="font-medium text-slate-800">
+              {{ seat.seatNumber }}
+              <span v-if="seat.seatLabel" class="font-normal text-slate-600">&middot; {{ seat.seatLabel }}</span>
+            </p>
+            <p class="text-xs text-slate-600 capitalize">
+              {{ seat.timePreference || 'Any time' }} &middot; {{ seat.genderPreference || 'any' }} &middot; order {{ seat.displayOrder }}
+            </p>
+          </div>
+          <AppBadge :color="seat.isOccupied ? 'green' : 'gray'">{{ seat.isOccupied ? 'Occupied' : 'Vacant' }}</AppBadge>
+          <AppMoreMenu
+            :label="`More actions for seat ${seat.seatNumber}`"
+            :items="[{ key: 'edit', label: 'Edit seat' }, { key: 'delete', label: 'Delete seat', danger: true }]"
+            @select="k => k === 'edit' ? openEditModal(seat) : confirmDelete(seat)"
+          />
+        </li>
+      </ul>
+      <div v-if="!loading && seats.length > 0" class="hidden overflow-x-auto sm:block">
         <table class="w-full text-sm">
           <thead class="border-b border-slate-200">
             <tr class="text-left">
@@ -49,7 +70,7 @@
               <td class="py-3 text-slate-600">{{ seat.displayOrder }}</td>
               <td class="py-3">
                 <AppBadge v-if="seat.isOccupied" color="green">Occupied</AppBadge>
-                <AppBadge v-else color="slate">Vacant</AppBadge>
+                <AppBadge v-else color="gray">Vacant</AppBadge>
               </td>
               <td class="py-3">
                 <div class="flex gap-2">

@@ -1,39 +1,51 @@
 <template>
   <div class="p-4 space-y-4">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-3">
       <h1 class="text-xl font-bold text-slate-800">Expenses</h1>
-      <div class="flex gap-2">
-        <AppButton variant="secondary" @click="exportExpenses">Export</AppButton>
+      <div class="flex items-center gap-2">
+        <button type="button" class="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200" aria-label="Export expenses" @click="exportExpenses">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" /></svg>
+          <span class="hidden sm:inline">Export</span>
+        </button>
         <NuxtLink to="/dashboard/expenses/new">
-          <AppButton>Add Expense</AppButton>
+          <AppButton size="sm" class="whitespace-nowrap">+ Add expense</AppButton>
         </NuxtLink>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-      <AppSelect
-        v-model="filters.categoryId"
-        label="Category"
-        :options="categoryOptions"
-        placeholder="All Categories"
-      />
-
-      <AppInput v-model="filters.startDate" type="date" label="Start Date" />
-      <AppInput v-model="filters.endDate" type="date" label="End Date" />
-      <AppSearchBar v-model="filters.search" placeholder="Search vendor or description" />
-    </div>
-
-    <!-- Quick date presets -->
-    <div class="flex gap-2 flex-wrap">
-      <button
-        v-for="preset in datePresets"
-        :key="preset.label"
-        class="px-3 py-1 text-xs rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors"
-        @click="applyDatePreset(preset)"
-      >
-        {{ preset.label }}
-      </button>
+    <div class="space-y-2">
+      <div class="flex items-center gap-2">
+        <AppSearchBar v-model="filters.search" placeholder="Search vendor or description" class="min-w-0 flex-1" />
+        <button
+          type="button"
+          class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-sm font-medium md:hidden"
+          :class="showFilters || activeFilterCount > 0 ? 'border-primary-300 bg-primary-50 text-primary-700' : 'border-slate-300 text-slate-700'"
+          :aria-expanded="showFilters"
+          @click="showFilters = !showFilters"
+        >
+          Filters<span v-if="activeFilterCount > 0" class="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1 text-xs font-semibold text-white">{{ activeFilterCount }}</span>
+        </button>
+      </div>
+      <div class="grid-cols-1 gap-3 md:grid md:grid-cols-3" :class="showFilters ? 'grid' : 'hidden'">
+        <AppSelect
+          v-model="filters.categoryId"
+          label="Category"
+          :options="[{ value: '', label: 'All categories' }, ...categoryOptions]"
+        />
+        <AppInput v-model="filters.startDate" type="date" label="From" />
+        <AppInput v-model="filters.endDate" type="date" label="To" />
+      </div>
+      <div class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <button
+          v-for="preset in datePresets"
+          :key="preset.label"
+          class="shrink-0 whitespace-nowrap rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          @click="applyDatePreset(preset)"
+        >
+          {{ preset.label }}
+        </button>
+      </div>
     </div>
 
     <div v-if="expenses.length === 0">
@@ -44,10 +56,10 @@
     </div>
 
     <div v-else class="space-y-2">
-      <NuxtLink v-for="exp in expenses" :key="exp.id" :to="`/dashboard/expenses/${exp.id}`">
-        <AppCard class="hover:shadow-md transition-shadow cursor-pointer">
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
+      <NuxtLink v-for="exp in expenses" :key="exp.id" :to="`/dashboard/expenses/${exp.id}`" class="block">
+        <AppCard class="!p-4 hover:shadow-md transition-shadow cursor-pointer">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 mb-1">
                 <AppBadge :color="exp.categoryColor">{{ exp.categoryName }}</AppBadge>
                 <span class="text-xs text-slate-600">{{ formatDate(exp.date) }}</span>
@@ -55,12 +67,12 @@
               <p class="font-medium text-slate-800 text-sm">{{ exp.description }}</p>
               <div class="flex items-center gap-2 mt-1">
                 <p v-if="exp.vendorName" class="text-xs text-slate-600">{{ exp.vendorName }}</p>
-                <span v-if="exp.vendorName" class="text-xs text-slate-400">&middot;</span>
+                <span v-if="exp.vendorName" class="text-xs text-slate-600">&middot;</span>
                 <p class="text-xs text-slate-600 capitalize">{{ exp.paymentMethod.replace('_', ' ') }}</p>
               </div>
               <p v-if="exp.notes" class="text-xs text-slate-600 mt-1">{{ exp.notes }}</p>
             </div>
-            <p class="font-semibold text-slate-800">{{ formatCurrency(exp.amount) }}</p>
+            <p class="shrink-0 font-semibold text-slate-800">{{ formatCurrency(exp.amount) }}</p>
           </div>
         </AppCard>
       </NuxtLink>
@@ -125,6 +137,9 @@ const categories = computed(() => categoriesData.value?.categories.filter((c) =>
 const categoryOptions = computed(() =>
   categories.value.map((c) => ({ value: String(c.id), label: c.name }))
 );
+
+const showFilters = ref(false);
+const activeFilterCount = computed(() => [filters.value.categoryId, filters.value.startDate, filters.value.endDate].filter(Boolean).length);
 
 // Filters
 const filters = ref({

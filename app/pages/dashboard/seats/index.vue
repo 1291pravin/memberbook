@@ -1,15 +1,15 @@
 <template>
   <div class="p-4 space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">{{ seatsTitle }}</h1>
-      <div class="flex gap-2">
-        <AppButton v-if="batches.length > 0" size="sm" variant="secondary" @click="navigateTo('/dashboard/seats/batches')">
-          Manage Batches
-        </AppButton>
-        <AppButton size="sm" variant="secondary" @click="navigateTo('/dashboard/seats/manage')">
-          Manage Seats
-        </AppButton>
+    <div class="flex items-center justify-between gap-3">
+      <h1 class="min-w-0 truncate text-xl font-bold text-slate-800">{{ seatsTitle }}</h1>
+      <div class="flex shrink-0 gap-2">
+        <NuxtLink v-if="batches.length > 0" to="/dashboard/seats/batches" class="whitespace-nowrap rounded-full bg-slate-100 px-3.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200">
+          Batches
+        </NuxtLink>
+        <NuxtLink to="/dashboard/seats/manage" class="whitespace-nowrap rounded-full bg-slate-100 px-3.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200">
+          Edit seats
+        </NuxtLink>
       </div>
     </div>
 
@@ -18,7 +18,7 @@
       <button
         v-for="batch in activeBatches"
         :key="batch.id"
-        class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
+        class="shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
         :class="selectedBatchId === batch.id
           ? 'bg-primary-600 text-white'
           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
@@ -31,60 +31,17 @@
       </button>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      <AppStatCard
-        label="Total Seats"
-        :value="stats.total"
-        icon="&#x1FA91;"
-      />
-      <AppStatCard
-        label="Occupied"
-        :value="stats.occupied"
-        icon="&#x2713;"
-        color="green"
-      />
-      <AppStatCard
-        label="Vacant"
-        :value="stats.vacant"
-        icon="&#x25CB;"
-        color="slate"
-      />
-      <AppStatCard
-        v-if="selectedBatchId"
-        label="Assigned"
-        :value="stats.assigned || 0"
-        icon="&#x1F4CC;"
-        color="blue"
-      />
-      <AppStatCard
-        v-if="selectedBatchId"
-        label="Unassigned"
-        :value="stats.unassigned || 0"
-        icon="&#x2014;"
-        color="gray"
-      />
-      <AppStatCard
-        v-if="!selectedBatchId"
-        label="Male"
-        :value="stats.maleOccupied"
-        icon="&#x2642;"
-        color="yellow"
-      />
-      <AppStatCard
-        v-if="!selectedBatchId"
-        label="Female"
-        :value="stats.femaleOccupied"
-        icon="&#x2640;"
-        color="pink"
-      />
-      <AppStatCard
-        v-if="stats.needsAttention > 0"
-        label="Needs Attention"
-        :value="stats.needsAttention"
-        icon="&#x26A0;"
-        color="red"
-      />
+    <!-- Statistics -->
+    <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6 sm:gap-3">
+      <div
+        v-for="tile in statTiles"
+        :key="tile.label"
+        class="rounded-2xl border bg-white px-3 py-2.5"
+        :class="tile.alert ? 'border-danger-200 bg-danger-50' : 'border-slate-200'"
+      >
+        <p class="text-xl font-bold leading-tight" :class="tile.alert ? 'text-danger-700' : 'text-slate-800'">{{ tile.value }}</p>
+        <p class="text-xs text-slate-600">{{ tile.label }}</p>
+      </div>
     </div>
 
     <!-- Filters (only show when no batch selected) -->
@@ -144,7 +101,7 @@
     />
 
     <!-- Seat Grid -->
-    <AppCard title="Seat Grid">
+    <AppCard title="Seats" class="!p-3 sm:!p-5">
       <div v-if="loading" class="text-center py-8">
         <p class="text-sm text-slate-600">Loading seats...</p>
       </div>
@@ -157,7 +114,7 @@
       <div v-else-if="filteredSeats.length === 0" class="text-center py-8">
         <p class="text-sm text-slate-600">No seats match "{{ searchQuery }}"</p>
       </div>
-      <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4">
         <SeatCard
           v-for="seat in filteredSeats"
           :key="seat.id"
@@ -423,6 +380,22 @@ const stats = ref({
   maleOccupied: 0,
   femaleOccupied: 0,
   needsAttention: 0,
+});
+
+const statTiles = computed(() => {
+  const st = stats.value;
+  const tiles: { label: string; value: number; alert?: boolean }[] = [
+    { label: "Total", value: st.total },
+    { label: "Checked in", value: st.occupied },
+    { label: "Vacant", value: st.vacant },
+  ];
+  if (selectedBatchId.value) {
+    tiles.push({ label: "Assigned", value: st.assigned || 0 }, { label: "Unassigned", value: st.unassigned || 0 });
+  } else {
+    tiles.push({ label: "Male", value: st.maleOccupied }, { label: "Female", value: st.femaleOccupied });
+  }
+  if (st.needsAttention > 0) tiles.push({ label: "Need attention", value: st.needsAttention, alert: true });
+  return tiles;
 });
 
 // Filter seats by search query (member name)

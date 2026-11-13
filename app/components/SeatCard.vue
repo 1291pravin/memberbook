@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      'rounded-xl border p-4 shadow-sm cursor-pointer transition-all hover:shadow-md relative',
+      'rounded-2xl border p-3 sm:p-4 cursor-pointer transition-all hover:shadow-md relative min-w-0',
       hasAlert ? 'border-2 border-red-400' : 'border-slate-200',
       genderBorder,
       'bg-white',
@@ -12,30 +12,25 @@
     <span v-if="hasAlert" class="absolute top-2 right-2 text-sm" title="Needs attention">&#x26A0;&#xFE0F;</span>
 
     <!-- Seat Number (Large) -->
-    <div class="text-2xl font-bold mb-2 text-slate-800">
+    <div class="text-xl font-bold mb-1 text-slate-800">
       {{ seat.seatNumber }}
     </div>
 
     <!-- Seat Label (if present) -->
-    <div v-if="seat.seatLabel" class="text-xs text-slate-600 mb-2">
+    <div v-if="seat.seatLabel && seat.seatLabel !== `Seat ${seat.seatNumber.replace(/^S/i, '')}`" class="text-xs text-slate-600 mb-2 truncate">
       {{ seat.seatLabel }}
     </div>
 
-    <!-- Preferences Icons -->
-    <div class="flex gap-2 mb-3">
-      <span v-if="seat.timePreference === 'day'" class="text-lg" title="Day">&#x2600;&#xFE0F;</span>
-      <span v-else-if="seat.timePreference === 'evening'" class="text-lg" title="Evening">&#x1F319;</span>
-      <span v-else-if="seat.timePreference === 'flexible'" class="text-lg" title="Flexible">&#x1F504;</span>
-      <span v-else-if="seat.timePreference === 'all-day'" class="text-lg" title="All Day">&#x1F550;</span>
-
-      <span v-if="seat.genderPreference === 'male'" class="text-sm" title="Male preferred">&#x2642;&#xFE0F;</span>
-      <span v-else-if="seat.genderPreference === 'female'" class="text-sm" title="Female preferred">&#x2640;&#xFE0F;</span>
+    <!-- Preferences -->
+    <div v-if="timeLabel || genderLabel" class="flex flex-wrap gap-1 mb-2">
+      <span v-if="timeLabel" class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">{{ timeLabel }}</span>
+      <span v-if="genderLabel" class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">{{ genderLabel }}</span>
     </div>
 
     <!-- Occupancy Status -->
     <div v-if="seat.isOccupied && seat.currentOccupant" class="border-t border-slate-200 pt-2">
       <span class="inline-block px-1.5 py-0.5 text-[10px] font-semibold uppercase rounded bg-green-600 text-white mb-1">Checked In</span>
-      <div class="font-medium text-sm mb-1 text-slate-800">
+      <div class="font-medium text-sm mb-1 text-slate-800 truncate">
         {{ seat.currentOccupant.memberName }}
       </div>
       <div v-if="alertLabel" class="text-xs font-medium mb-1" :class="alertLabel === 'No subscription' ? 'text-red-600' : 'text-amber-600'">
@@ -46,8 +41,8 @@
       </div>
     </div>
     <div v-else-if="assignedMember" class="border-t border-slate-200 pt-2">
-      <span class="inline-block px-1.5 py-0.5 text-[10px] font-semibold uppercase rounded bg-slate-200 text-slate-600 mb-1">Assigned</span>
-      <div class="font-medium text-sm mb-1 text-slate-800">
+      <span class="inline-block px-1.5 py-0.5 text-[10px] font-semibold uppercase rounded bg-slate-200 text-slate-700 mb-1">Assigned</span>
+      <div class="font-medium text-sm mb-1 text-slate-800 truncate">
         {{ assignedMember.memberName }}
       </div>
       <div v-if="alertLabel" class="text-xs font-medium mb-1" :class="alertLabel === 'No subscription' ? 'text-red-600' : 'text-amber-600'">
@@ -63,6 +58,8 @@
 </template>
 
 <script setup lang="ts">
+const TIME_LABELS: Record<string, string> = { "day": "Day", "evening": "Evening", "flexible": "Flexible", "all-day": "All day" };
+const GENDER_LABELS: Record<string, string> = { male: "Male only", female: "Female only" };
 interface Seat {
   id: number;
   seatNumber: string;
@@ -112,6 +109,9 @@ const alertLabel = computed(() => {
   if (props.memberAlert.paymentStatus === 'partial') return 'Partial payment';
   return null;
 });
+
+const timeLabel = computed(() => (props.seat.timePreference ? TIME_LABELS[props.seat.timePreference] : undefined));
+const genderLabel = computed(() => (props.seat.genderPreference ? GENDER_LABELS[props.seat.genderPreference] : undefined));
 
 const genderBorder = computed(() => {
   const gender = props.seat.isOccupied
