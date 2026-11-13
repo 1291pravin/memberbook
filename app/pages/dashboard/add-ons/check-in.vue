@@ -26,8 +26,8 @@
 
       <div class="flex flex-wrap gap-2 print:hidden">
         <AppButton @click="printPoster">Print poster</AppButton>
-        <AppButton variant="secondary" @click="copy">{{ copied ? 'Copied' : 'Copy link' }}</AppButton>
-        <AppButton v-if="isOwner" variant="ghost" @click="reset">Make a new link</AppButton>
+        <AppAction :icon="copied ? 'check' : 'receipt'" @click="copy">{{ copied ? 'Copied' : 'Copy link' }}</AppAction>
+        <AppAction v-if="isOwner" icon="refresh" tone="slate" @click="reset">New link</AppAction>
       </div>
 
       <AppCard class="print:hidden" :title="`Checked themselves in today: ${data.selfCheckInsToday}`">

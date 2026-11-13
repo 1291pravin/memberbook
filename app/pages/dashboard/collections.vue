@@ -102,7 +102,7 @@
     />
 
     <div v-else class="space-y-2">
-      <AppCard v-for="item in visibleItems" :key="item.key">
+      <AppCard v-for="item in visibleItems" :key="item.key" class="!p-4 sm:!p-5">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <NuxtLink :to="`/dashboard/members/${item.memberId}`" class="font-medium text-slate-800 text-sm hover:text-primary-600">
@@ -120,34 +120,32 @@
           <p class="text-base font-semibold text-slate-800 whitespace-nowrap">{{ formatCurrency(item.amount) }}</p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 mt-3">
+        <div class="-ml-2.5 mt-2 flex flex-wrap items-center gap-1 border-t border-slate-100 pt-2">
           <template v-if="item.memberPhone">
-            <AppButton
+            <AppAction
               v-if="data?.sendsViaCloud"
-              size="sm"
-              variant="secondary"
+              :icon="sentKeys.has(item.key) ? 'check' : 'send'"
+              tone="whatsapp"
               :loading="sendingKey === item.key"
               @click="sendViaCloud(item)"
             >
               {{ sentKeys.has(item.key) ? "Sent" : "Send reminder" }}
-            </AppButton>
-            <a
+            </AppAction>
+            <AppAction
               v-else
+              icon="whatsapp"
+              tone="whatsapp"
               :href="getWhatsAppLink(item.memberPhone, item.message)"
-              target="_blank"
-              rel="noopener"
-              class="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+              external
               @click="logTapToSend(item)"
             >
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-              </svg>
               Remind
-            </a>
+            </AppAction>
+            <AppAction icon="phone" :href="`tel:${item.memberPhone}`">Call</AppAction>
           </template>
-          <span v-else class="text-xs text-slate-600">No phone number</span>
+          <span v-else class="px-2.5 text-xs text-slate-600">No phone number</span>
 
-          <AppButton size="sm" variant="ghost" @click="openMarkPaid(item)">Mark paid</AppButton>
+          <AppAction icon="check" @click="openMarkPaid(item)">Mark paid</AppAction>
         </div>
       </AppCard>
     </div>
