@@ -18,6 +18,7 @@ export default defineEventHandler(async (event) => {
       upiPayeeName: org.upiPayeeName,
       autoRemindersEnabled: org.autoRemindersEnabled,
       reminderDaysBefore: org.reminderDaysBefore,
+      thankYouReceipts: org.thankYouReceipts,
     },
     cloudAvailable: sending.available,
     // Reminders go out automatically only when both are on: from the business's

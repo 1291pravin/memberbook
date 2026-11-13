@@ -46,6 +46,7 @@ export default defineEventHandler(async (event) => {
 
     await recalculateSubscriptionPaymentStatus(sub.id, access.orgId);
     await closePaymentLink(access.orgId, sub.id, "due");
+    queueThankYouReceipt(event, access.orgId, inserted[0].id);
     return { ok: true, paymentId: inserted[0].id };
   }
 
@@ -97,7 +98,7 @@ export default defineEventHandler(async (event) => {
     paymentStatus: "paid",
   }).returning();
 
-  await db.insert(schema.payments).values({
+  const [renewalPayment] = await db.insert(schema.payments).values({
     orgId: access.orgId,
     memberId: sub.memberId,
     subscriptionId: renewed!.id,
@@ -105,8 +106,9 @@ export default defineEventHandler(async (event) => {
     method,
     date,
     notes: "Renewal marked paid from Collections",
-  });
+  }).returning({ id: schema.payments.id });
   await closePaymentLink(access.orgId, sub.id, "renewal");
+  queueThankYouReceipt(event, access.orgId, renewalPayment?.id);
 
   return { ok: true, subscriptionId: renewed!.id };
 });

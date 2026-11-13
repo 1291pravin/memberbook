@@ -46,6 +46,10 @@ export default defineEventHandler(async (event) => {
     updates.autoRemindersEnabled = on;
   }
 
+  if (body.thankYouReceipts !== undefined) {
+    updates.thankYouReceipts = body.thankYouReceipts === true;
+  }
+
   if (Object.keys(updates).length === 0) {
     throw createError({ statusCode: 400, statusMessage: "Nothing to update" });
   }

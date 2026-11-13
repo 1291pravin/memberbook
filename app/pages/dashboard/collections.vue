@@ -221,6 +221,25 @@
           </label>
         </div>
 
+        <div class="rounded-lg border border-slate-200 p-3">
+          <label class="flex items-start gap-3" :class="data?.cloudAvailable && data?.sendsFrom === 'memberbook' ? 'cursor-pointer' : 'opacity-60'">
+            <input
+              v-model="settingsForm.thankYouReceipts"
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary-600"
+              :disabled="!(data?.cloudAvailable && data?.sendsFrom === 'memberbook')"
+            >
+            <span>
+              <span class="block text-sm font-medium text-slate-700">Send a thank-you with the receipt</span>
+              <span class="block text-xs text-slate-600 mt-0.5">
+                When you record a payment, we send the {{ t.memberLower }} a WhatsApp thank-you with their PDF receipt.
+                Each one counts toward your {{ data?.reminderUsage?.limit ?? 500 }} messages a month.
+                <template v-if="!(data?.cloudAvailable && data?.sendsFrom === 'memberbook')">Needs automatic reminders switched on and paid.</template>
+              </span>
+            </span>
+          </label>
+        </div>
+
         <p v-if="settingsError" class="text-sm text-danger-700" role="alert">{{ settingsError }}</p>
         <div class="flex justify-end gap-2">
           <AppButton variant="ghost" @click="showSettings = false">Cancel</AppButton>
@@ -260,7 +279,7 @@ interface CollectionItem {
 }
 
 interface CollectionsResponse {
-  settings: { upiId: string | null; upiPayeeName: string | null; autoRemindersEnabled: boolean; reminderDaysBefore: number };
+  settings: { upiId: string | null; upiPayeeName: string | null; autoRemindersEnabled: boolean; reminderDaysBefore: number; thankYouReceipts: boolean };
   cloudAvailable: boolean;
   sendsViaCloud: boolean;
   sendsFrom: "own" | "memberbook" | null;
@@ -404,7 +423,7 @@ async function confirmMarkPaid() {
 
 // Settings
 const showSettings = ref(false);
-const settingsForm = reactive({ upiId: "", upiPayeeName: "", reminderDaysBefore: "3", autoRemindersEnabled: false });
+const settingsForm = reactive({ upiId: "", upiPayeeName: "", reminderDaysBefore: "3", autoRemindersEnabled: false, thankYouReceipts: false });
 const settingsError = ref("");
 const savingSettings = ref(false);
 
@@ -414,6 +433,7 @@ function openSettings() {
   settingsForm.upiPayeeName = s?.upiPayeeName ?? "";
   settingsForm.reminderDaysBefore = String(s?.reminderDaysBefore ?? 3);
   settingsForm.autoRemindersEnabled = s?.autoRemindersEnabled ?? false;
+  settingsForm.thankYouReceipts = s?.thankYouReceipts ?? false;
   settingsError.value = "";
   showSettings.value = true;
 }
@@ -429,6 +449,7 @@ async function saveSettings() {
         upiPayeeName: settingsForm.upiPayeeName,
         reminderDaysBefore: Number(settingsForm.reminderDaysBefore),
         ...(data.value?.cloudAvailable ? { autoRemindersEnabled: settingsForm.autoRemindersEnabled } : {}),
+        ...(data.value?.cloudAvailable && data.value?.sendsFrom === "memberbook" ? { thankYouReceipts: settingsForm.thankYouReceipts } : {}),
       },
     });
     showSettings.value = false;

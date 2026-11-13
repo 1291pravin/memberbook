@@ -99,7 +99,7 @@ export default defineEventHandler(async (event) => {
 
     // Record payment if provided
     if (paymentAmount) {
-      await db.insert(schema.payments).values({
+      const [p] = await db.insert(schema.payments).values({
         orgId: access.orgId,
         memberId: member.id,
         amount: paymentAmount,
@@ -107,7 +107,8 @@ export default defineEventHandler(async (event) => {
         method: payment.method || "cash",
         notes: typeof payment.notes === "string" ? payment.notes.trim() || null : null,
         subscriptionId: subscription.id,
-      });
+      }).returning({ id: schema.payments.id });
+      queueThankYouReceipt(event, access.orgId, p?.id);
     }
 
   }

@@ -236,7 +236,7 @@ export interface PhoneNumberStatus {
 }
 
 /** Find the WhatsApp Business Account that owns our phone number, from the token's granted scopes. */
-async function findBusinessAccountId(): Promise<string | null> {
+export async function findBusinessAccountId(): Promise<string | null> {
   const c = getWhatsAppCloudConfig();
   if (c.businessAccountId) return String(c.businessAccountId);
   const debug = await graph<{ data?: { granular_scopes?: { scope: string; target_ids?: string[] }[] } }>(
@@ -340,7 +340,7 @@ export interface BusinessProfileInput {
   photo?: { bytes: ArrayBuffer | Uint8Array; type: string };
 }
 
-/** Upload a photo with Meta's Resumable Upload API and return its handle. */
+/** Upload a file (photo, sample PDF) with Meta's Resumable Upload API and return its handle. */
 async function uploadProfilePhoto(photo: { bytes: ArrayBuffer | Uint8Array; type: string }): Promise<{ ok: boolean; handle?: string; error?: string }> {
   const c = getWhatsAppCloudConfig();
   if (!c.appId) return { ok: false, error: "NUXT_WHATSAPP_CLOUD_APP_ID is not set" };
@@ -444,4 +444,77 @@ export async function ensureAppWebhook(callbackUrl: string): Promise<{ ok: boole
   catch (err) {
     return { ok: false, error: String(err).slice(0, 500) };
   }
+}
+
+// ------------------------------------------------------------ receipt template
+
+/**
+ * Send the thank-you template with the PDF receipt in its header. Body
+ * variables: {{1}} member first name, {{2}} amount, {{3}} business name,
+ * {{4}} what it was for. Meta downloads the PDF from `pdfUrl`.
+ */
+export async function sendReceiptTemplate(to: string, body: [string, string, string, string], pdfUrl: string, filename: string): Promise<TemplateSendResult> {
+  const c = getWhatsAppCloudConfig();
+  const clean = (s: string) => s.replace(/[\n\t]+/g, " ").replace(/ {4,}/g, "   ").trim().slice(0, 200);
+  const r = await graph<{ messages?: { id: string }[] }>(`${c.phoneNumberId}/messages`, {
+    method: "POST",
+    body: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "template",
+      template: {
+        name: RECEIPT_TEMPLATE_NAME,
+        language: { code: c.templateLanguage || "en" },
+        components: [
+          { type: "header", parameters: [{ type: "document", document: { link: pdfUrl, filename } }] },
+          { type: "body", parameters: body.map(text => ({ type: "text", text: clean(text) })) },
+        ],
+      },
+    },
+  }).catch(err => ({ ok: false, data: { error: { message: String(err) } } as GraphError, status: 0 }));
+  const id = (r.data as { messages?: { id: string }[] }).messages?.[0]?.id;
+  if (!r.ok || !id) return { ok: false, error: graphError(r).slice(0, 500) };
+  return { ok: true, messageId: id };
+}
+
+/** Status of the receipt template on MemberBook's WhatsApp account (null = not created). */
+export async function getReceiptTemplateStatus(): Promise<{ ok: boolean; status?: string | null; error?: string }> {
+  const wabaId = await findBusinessAccountId().catch(() => null);
+  if (!wabaId) return { ok: false, error: "Could not find the WhatsApp Business Account" };
+  const r = await graph<{ data?: { name: string; status: string; language: string }[] }>(`${wabaId}/message_templates?name=${RECEIPT_TEMPLATE_NAME}&fields=name,status,language`);
+  if (!r.ok) return { ok: false, error: graphError(r) };
+  return { ok: true, status: r.data.data?.find(t => t.name === RECEIPT_TEMPLATE_NAME)?.status ?? null };
+}
+
+/** Create the receipt template (utility, PDF header) if it doesn't exist. `samplePdf` is the example Meta reviews. */
+export async function ensureReceiptTemplate(samplePdf: Uint8Array): Promise<{ ok: boolean; status?: string | null; created?: boolean; error?: string }> {
+  const c = getWhatsAppCloudConfig();
+  const current = await getReceiptTemplateStatus();
+  if (!current.ok) return current;
+  if (current.status) return { ok: true, status: current.status, created: false };
+
+  const wabaId = await findBusinessAccountId().catch(() => null);
+  const upload = await uploadProfilePhoto({ bytes: samplePdf, type: "application/pdf" });
+  if (!upload.ok || !upload.handle) return { ok: false, error: `Sample PDF upload failed: ${upload.error}` };
+
+  const r = await graph<{ id?: string; status?: string }>(`${wabaId}/message_templates`, {
+    method: "POST",
+    body: {
+      name: RECEIPT_TEMPLATE_NAME,
+      language: c.templateLanguage || "en",
+      category: "UTILITY",
+      components: [
+        { type: "HEADER", format: "DOCUMENT", example: { header_handle: [upload.handle] } },
+        {
+          type: "BODY",
+          text: "Hi {{1}}, thank you for your payment of {{2}} to {{3}} for {{4}}. Your receipt is attached. Please keep it for your records.",
+          example: { body_text: [["Rahul", "₹1,000", "Fit Zone Gym", "Monthly membership"]] },
+        },
+        { type: "FOOTER", text: "Sent by MemberBook" },
+      ],
+    },
+  });
+  if (!r.ok) return { ok: false, error: graphError(r) };
+  return { ok: true, status: r.data.status ?? "PENDING", created: true };
 }

@@ -30,6 +30,7 @@
           </div>
           <div class="flex items-center gap-1">
             <p class="font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
+            <ReceiptActions :payment-id="p.id" />
             <AppButton v-if="isOwner" size="sm" variant="ghost" @click="openEditPayment(p)">Edit</AppButton>
             <AppButton v-if="isOwner" size="sm" variant="danger" :loading="deletingPaymentId === p.id" @click="deletePayment(p)">Delete</AppButton>
           </div>

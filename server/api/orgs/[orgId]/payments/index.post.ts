@@ -65,5 +65,6 @@ export default defineEventHandler(async (event) => {
   }
 
   await recalculateSubscriptionPaymentStatus(payment!.subscriptionId, access.orgId);
+  queueThankYouReceipt(event, access.orgId, payment!.id);
   return { payment };
 });

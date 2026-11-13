@@ -37,6 +37,8 @@ export const organizations = sqliteTable("organizations", {
   upiPayeeName: text("upi_payee_name"), // name shown in the UPI app, defaults to the org name
   autoRemindersEnabled: integer("auto_reminders_enabled", { mode: "boolean" }).notNull().default(false),
   reminderDaysBefore: integer("reminder_days_before").notNull().default(3),
+  // Send a WhatsApp thank-you with the PDF receipt when a payment is recorded (counts toward the reminder allowance)
+  thankYouReceipts: integer("thank_you_receipts", { mode: "boolean" }).notNull().default(false),
   checkInToken: text("check_in_token"), // public self check-in link /checkin/<token>, null = not set up
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
@@ -109,9 +111,12 @@ export const payments = sqliteTable("payments", {
   method: text("method").notNull().default("cash"), // cash, upi, card, bank_transfer
   date: text("date").notNull(),
   notes: text("notes"),
+  receiptNo: integer("receipt_no"), // per-business receipt number, given the first time a receipt is made
+  receiptToken: text("receipt_token"), // public PDF link /receipt/<token>
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   orgDateIdx: index("payments_org_date_idx").on(table.orgId, table.date),
+  receiptTokenUnique: uniqueIndex("payments_receipt_token_unique").on(table.receiptToken),
   subscriptionIdx: index("payments_subscription_idx").on(table.subscriptionId),
   memberIdx: index("payments_member_idx").on(table.memberId),
 }));
@@ -141,7 +146,7 @@ export const reminderLogs = sqliteTable("reminder_logs", {
   orgId: integer("org_id").notNull().references(() => organizations.id),
   memberId: integer("member_id").notNull().references(() => members.id),
   subscriptionId: integer("subscription_id").notNull().references(() => memberSubscriptions.id),
-  kind: text("kind").notNull(), // due, renewal
+  kind: text("kind").notNull(), // due, renewal, receipt (thank-you with the PDF receipt)
   channel: text("channel").notNull(), // whatsapp_link (tap-to-send), whatsapp_api (Cloud API)
   status: text("status").notNull(), // opened, sent, delivered, read, failed
   amount: integer("amount").notNull(), // in paise

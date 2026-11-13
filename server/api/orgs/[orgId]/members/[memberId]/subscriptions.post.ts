@@ -91,7 +91,7 @@ export default defineEventHandler(async (event) => {
     }).where(and(eq(schema.memberSubscriptions.id, existing.id), eq(schema.memberSubscriptions.orgId, access.orgId))).returning();
 
     if (inlinePaymentAmount) {
-      await db.insert(schema.payments).values({
+      const [p] = await db.insert(schema.payments).values({
         orgId: access.orgId,
         memberId,
         amount: inlinePaymentAmount,
@@ -99,7 +99,8 @@ export default defineEventHandler(async (event) => {
         method: payment.method || "cash",
         notes: typeof payment.notes === "string" ? payment.notes.trim() || null : null,
         subscriptionId: updated.id,
-      });
+      }).returning({ id: schema.payments.id });
+      queueThankYouReceipt(event, access.orgId, p?.id);
     }
     await recalculateSubscriptionPaymentStatus(updated.id, access.orgId);
     return { subscription: updated };
@@ -127,7 +128,7 @@ export default defineEventHandler(async (event) => {
   }).returning();
 
   if (inlinePaymentAmount) {
-    await db.insert(schema.payments).values({
+    const [p] = await db.insert(schema.payments).values({
       orgId: access.orgId,
       memberId,
       amount: inlinePaymentAmount,
@@ -135,7 +136,8 @@ export default defineEventHandler(async (event) => {
       method: payment.method || "cash",
       notes: typeof payment.notes === "string" ? payment.notes.trim() || null : null,
       subscriptionId: subscription.id,
-    });
+    }).returning({ id: schema.payments.id });
+    queueThankYouReceipt(event, access.orgId, p?.id);
   }
 
   return { subscription };
