@@ -40,6 +40,8 @@
     },
   },
   "vars": {
+    // MemberBook's own UPI ID for add-on bills (not secret: payers see it).
+    "NUXT_BILLING_UPI_ID": "1291pravin@okhdfcbank",
     "NUXT_PUBLIC_APP_URL": "https://memberbook.in",
     "NUXT_SITE_URL": "https://memberbook.in",
     "NUXT_SITE_NAME": "MemberBook",
