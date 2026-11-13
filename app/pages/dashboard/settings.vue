@@ -15,6 +15,27 @@
       </form>
     </AppCard>
 
+    <!-- Getting paid (owner only): UPI ID and reminders live on the Fees due page -->
+    <AppCard v-if="isOwner" title="Getting paid">
+      <dl class="space-y-2 text-sm">
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-slate-600">UPI ID</dt>
+          <dd class="min-w-0 truncate font-medium" :class="payments?.settings.upiId ? 'text-slate-800' : 'text-warning-700'">
+            {{ payments?.settings.upiId || "Not added yet" }}
+          </dd>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <dt class="text-slate-600">Automatic WhatsApp reminders</dt>
+          <dd class="font-medium text-slate-800">{{ payments?.settings.autoRemindersEnabled ? "On" : "Off" }}</dd>
+        </div>
+      </dl>
+      <div class="-ml-2.5 mt-2 border-t border-slate-100 pt-2">
+        <AppAction icon="settings" to="/dashboard/collections?settings=1">
+          {{ payments?.settings.upiId ? "Change UPI and reminders" : "Add your UPI ID" }}
+        </AppAction>
+      </div>
+    </AppCard>
+
     <!-- Staff Management -->
     <AppCard title="Staff Members">
       <!-- Invite via WhatsApp (owner only) -->
@@ -296,6 +317,11 @@ const copySuccess = ref("");
 const copyError = ref("");
 
 const isOwner = computed(() => currentOrg.value?.role === "owner");
+
+const { data: payments } = useFetch<{ settings: { upiId: string | null; autoRemindersEnabled: boolean } }>(
+  `/api/orgs/${orgId.value}/collections`,
+  { lazy: true, server: false, pick: ["settings"] },
+);
 
 // Demo data
 const demoStatusReq = useFetch<{ hasDemoData: boolean }>(

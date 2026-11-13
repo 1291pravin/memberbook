@@ -437,6 +437,12 @@ function openSettings() {
   showSettings.value = true;
 }
 
+// Settings page links here with ?settings=1 to open payment settings directly.
+const route = useRoute();
+onMounted(() => {
+  if (route.query.settings && isOwner.value) openSettings();
+});
+
 async function saveSettings() {
   settingsError.value = "";
   savingSettings.value = true;
