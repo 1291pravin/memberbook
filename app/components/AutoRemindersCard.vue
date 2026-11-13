@@ -1,7 +1,42 @@
 <template>
+  <!-- Off, quiet (Home): one line, the video only opens when tapped -->
+  <section
+    v-if="state === 'off' && quiet"
+    class="flex items-start gap-3 rounded-[28px] border border-slate-200 bg-white px-4 py-3 sm:px-5"
+  >
+    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-50 text-[#128C4B]">
+      <AppActionIcon name="whatsapp" class="!h-5 !w-5" />
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="font-semibold text-slate-800">Automatic fee reminders</p>
+      <p class="text-sm text-slate-600">
+        Every morning on WhatsApp, with a UPI pay link.<template v-if="needsPlan">{{ " " }}{{ formatCurrency(price) }} a month.</template>
+      </p>
+      <div class="-ml-2.5 mt-1 flex flex-wrap items-center gap-1">
+        <AppAction v-if="isOwner" icon="check" tone="primary" @click="$emit('turn-on')">Turn on</AppAction>
+        <AppAction icon="play" tone="slate" @click="videoOpen = true">How it works</AppAction>
+      </div>
+    </div>
+    <AppModal :open="videoOpen" title="Automatic fee reminders" size="sm" @close="videoOpen = false">
+      <video
+        v-if="videoOpen"
+        class="block aspect-square w-full rounded-2xl"
+        autoplay
+        muted
+        loop
+        playsinline
+        poster="/brand/auto-reminders-poster.webp"
+        aria-label="How automatic fee reminders work: a WhatsApp reminder with a pay link goes out, the member pays by UPI, and the fee shows as collected"
+      >
+        <source src="/brand/auto-reminders.mp4" type="video/mp4">
+      </video>
+      <AppButton v-if="isOwner" class="mt-4 w-full" @click="videoOpen = false; $emit('turn-on')">Turn on automatic reminders</AppButton>
+    </AppModal>
+  </section>
+
   <!-- Off: sell it, with the short explainer video -->
   <section
-    v-if="state === 'off'"
+    v-else-if="state === 'off'"
     class="overflow-hidden rounded-[28px] border border-primary-200 bg-primary-50"
   >
     <div class="grid gap-0" :class="videoShown ? 'md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)]' : ''">
@@ -73,7 +108,7 @@
   <NuxtLink
     v-else-if="state === 'on' && showOn"
     to="/dashboard/collections"
-    class="flex items-center gap-3 rounded-[28px] border border-primary-200 bg-primary-50 px-5 py-4"
+    class="flex items-center gap-3 rounded-[28px] border border-slate-200 bg-white px-5 py-4"
   >
     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-[#128C4B]">
       <AppActionIcon name="whatsapp" class="!h-5 !w-5" />
@@ -109,6 +144,8 @@ const props = defineProps<{
   showOn?: boolean;
   /** Fees due: keep it short, the video plays only when asked. */
   compact?: boolean;
+  /** Home: a single quiet line instead of the full card. */
+  quiet?: boolean;
 }>();
 defineEmits<{ "turn-on": []; pay: [] }>();
 

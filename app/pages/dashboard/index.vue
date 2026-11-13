@@ -59,7 +59,7 @@
         <NuxtLink to="/dashboard/members/new" class="font-semibold text-primary-700 hover:underline">add {{ t.membersLower }} one by one</NuxtLink>.
       </p>
 
-      <AutoRemindersCard :data="collectionsData" :is-owner="isOwner" @turn-on="turnOnReminders" @pay="payForReminders" />
+      <AutoRemindersCard :data="collectionsData" :is-owner="isOwner" quiet @turn-on="turnOnReminders" @pay="payForReminders" />
     </template>
 
     <!-- Running: the numbers that matter -->
@@ -86,7 +86,7 @@
         </NuxtLink>
       </div>
 
-      <AutoRemindersCard :data="collectionsData" :is-owner="isOwner" show-on @turn-on="turnOnReminders" @pay="payForReminders" />
+      <AutoRemindersCard :data="collectionsData" :is-owner="isOwner" quiet show-on @turn-on="turnOnReminders" @pay="payForReminders" />
 
       <div class="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
         <section class="rounded-[28px] border border-slate-200 bg-white p-4 sm:p-5">
