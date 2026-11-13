@@ -221,16 +221,21 @@
     <!-- Payments -->
     <AppCard title="Payments">
       <div class="space-y-3">
-        <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-          <div>
+        <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between gap-2 py-2 border-b border-slate-100 last:border-0">
+          <div class="min-w-0">
             <p class="text-sm font-medium text-slate-800">{{ formatCurrency(payment.amount) }}</p>
             <p class="text-xs text-slate-600">{{ formatDate(payment.date) }} &middot; {{ payment.method }}</p>
+            <p v-if="payment.notes" class="text-xs text-slate-600 truncate">{{ payment.notes }}</p>
           </div>
           <div class="flex items-center gap-1">
-            <p v-if="payment.notes" class="text-xs text-slate-600 max-w-[160px] truncate">{{ payment.notes }}</p>
             <ReceiptActions :payment-id="payment.id" />
-            <AppButton v-if="isOwner" size="sm" variant="ghost" @click="openEditPayment(payment)">Edit</AppButton>
-            <AppButton v-if="isOwner" size="sm" variant="danger" :loading="deletingPaymentId === payment.id" @click="deletePayment(payment)">Delete</AppButton>
+            <PaymentMoreMenu
+              v-if="isOwner"
+              label="this payment"
+              :loading="deletingPaymentId === payment.id"
+              @edit="openEditPayment(payment)"
+              @delete="deletePayment(payment)"
+            />
           </div>
         </div>
         <div v-if="payments.length === 0" class="text-sm text-slate-600 py-2">No payments recorded</div>

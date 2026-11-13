@@ -74,7 +74,7 @@
     </aside>
 
     <!-- Main content -->
-    <div class="flex-1 pb-24 lg:ml-64 lg:pb-0">
+    <div class="min-w-0 flex-1 pb-40 lg:ml-64 lg:pb-0">
       <!-- Mobile header -->
       <header class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
         <NuxtLink to="/dashboard" class="flex items-center gap-2" aria-label="memberbook home">

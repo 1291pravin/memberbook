@@ -1,13 +1,19 @@
 <template>
   <div class="p-4 space-y-4">
-    <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-slate-800">Payments</h1>
-      <div class="flex gap-2">
-        <AppButton @click="showRecordModal = true">Record Payment</AppButton>
-        <AppButton variant="secondary" @click="exportPayments">Export</AppButton>
-        <NuxtLink to="/dashboard/payments/pending">
-          <AppButton variant="secondary">Pending</AppButton>
-        </NuxtLink>
+    <div class="space-y-3 sm:flex sm:items-center sm:justify-between sm:space-y-0">
+      <div class="flex items-center justify-between gap-3">
+        <h1 class="text-xl font-bold text-slate-800">Payments</h1>
+        <AppButton size="sm" class="whitespace-nowrap sm:hidden" @click="showRecordModal = true">+ Record payment</AppButton>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <NuxtLink to="/dashboard/payments/pending" class="inline-flex items-center whitespace-nowrap rounded-full bg-slate-100 px-3.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200">Pending</NuxtLink>
+        <button type="button" class="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-3.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200" @click="exportPayments">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" /></svg>
+          Export
+        </button>
+        <span class="hidden sm:inline-flex">
+          <AppButton class="whitespace-nowrap" @click="showRecordModal = true">Record Payment</AppButton>
+        </span>
       </div>
     </div>
 
@@ -21,18 +27,30 @@
     </div>
 
     <div v-else class="space-y-2">
-      <AppCard v-for="p in payments" :key="p.id">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="font-medium text-slate-800 text-sm">{{ p.memberName }}</p>
-            <p class="text-xs text-slate-600">{{ formatDate(p.date) }} &middot; {{ p.method }}</p>
-            <p v-if="p.notes" class="text-xs text-slate-600 mt-1">{{ p.notes }}</p>
+      <AppCard v-for="p in payments" :key="p.id" class="!p-4 sm:!p-5">
+        <div class="sm:flex sm:items-center sm:justify-between sm:gap-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-baseline justify-between gap-3">
+              <p class="min-w-0 truncate font-medium text-slate-800" :title="p.memberName">{{ p.memberName }}</p>
+              <p class="shrink-0 font-semibold text-slate-800 sm:hidden">{{ formatCurrency(p.amount) }}</p>
+            </div>
+            <p class="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-slate-600">
+              <span class="whitespace-nowrap">{{ formatDate(p.date) }}</span>
+              <span aria-hidden="true">&middot;</span>
+              <span>{{ methodLabel(p.method) }}</span>
+            </p>
+            <p v-if="p.notes" class="mt-1 text-xs text-slate-600 break-words">{{ p.notes }}</p>
           </div>
-          <div class="flex items-center gap-1">
-            <p class="font-semibold text-slate-800">{{ formatCurrency(p.amount) }}</p>
-            <ReceiptActions :payment-id="p.id" />
-            <AppButton v-if="isOwner" size="sm" variant="ghost" @click="openEditPayment(p)">Edit</AppButton>
-            <AppButton v-if="isOwner" size="sm" variant="danger" :loading="deletingPaymentId === p.id" @click="deletePayment(p)">Delete</AppButton>
+          <div class="mt-2 flex items-center justify-between gap-1 border-t border-slate-100 pt-2 sm:mt-0 sm:justify-end sm:border-0 sm:pt-0">
+            <p class="hidden shrink-0 pr-2 font-semibold text-slate-800 sm:block">{{ formatCurrency(p.amount) }}</p>
+            <ReceiptActions :payment-id="p.id" class="-ml-2.5 sm:ml-0" />
+            <PaymentMoreMenu
+              v-if="isOwner"
+              :label="`${p.memberName}'s payment`"
+              :loading="deletingPaymentId === p.id"
+              @edit="openEditPayment(p)"
+              @delete="deletePayment(p)"
+            />
           </div>
         </div>
       </AppCard>
@@ -188,6 +206,9 @@ const paymentForm = reactive({
   notes: "",
 });
 const editForm = reactive({ amount: "", date: today, method: "cash", notes: "" });
+function methodLabel(method: string) {
+  return paymentMethodOptions.find(o => o.value === method)?.label ?? method;
+}
 const paymentMethodOptions = [
   { value: "cash", label: "Cash" },
   { value: "upi", label: "UPI" },
