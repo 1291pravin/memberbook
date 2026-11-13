@@ -196,6 +196,7 @@
               type="checkbox"
               class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary-600"
               :disabled="!data?.canTurnOnReminders"
+              @change="onRemindersTicked"
             >
             <span>
               <span class="block text-sm font-medium text-slate-700">Send reminders automatically</span>
@@ -222,19 +223,20 @@
         </div>
 
         <div class="rounded-lg border border-slate-200 p-3">
-          <label class="flex items-start gap-3" :class="data?.cloudAvailable && data?.sendsFrom === 'memberbook' ? 'cursor-pointer' : 'opacity-60'">
+          <label class="flex items-start gap-3" :class="canThankYou ? 'cursor-pointer' : 'opacity-60'">
             <input
               v-model="settingsForm.thankYouReceipts"
               type="checkbox"
               class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary-600"
-              :disabled="!(data?.cloudAvailable && data?.sendsFrom === 'memberbook')"
+              :disabled="!canThankYou"
             >
             <span>
               <span class="block text-sm font-medium text-slate-700">Send a thank-you with the receipt</span>
               <span class="block text-xs text-slate-600 mt-0.5">
                 When you record a payment, we send the {{ t.memberLower }} a WhatsApp thank-you with their PDF receipt.
                 Each one counts toward your {{ data?.reminderUsage?.limit ?? 500 }} messages a month.
-                <template v-if="!(data?.cloudAvailable && data?.sendsFrom === 'memberbook')">Needs automatic reminders switched on and paid.</template>
+                <template v-if="!canThankYou">Included with automatic reminders. Tick that first.</template>
+                <template v-else-if="data?.needsAddOn || data?.reminderBlocked === 'unpaid'">Included in the {{ formatCurrency(data?.reminderPlan.price ?? 19900) }} plan. Starts with reminders once your payment is confirmed.</template>
               </span>
             </span>
           </label>
@@ -441,6 +443,16 @@ const settingsForm = reactive({ upiId: "", upiPayeeName: "", reminderDaysBefore:
 const settingsError = ref("");
 const savingSettings = ref(false);
 
+// The receipt thank-you comes with automatic reminders from MemberBook's number
+// (part of the ₹199 plan): it unlocks, and ticks itself, when reminders are ticked.
+const canThankYou = computed(() =>
+  settingsForm.autoRemindersEnabled && (data.value?.sendsFrom === "memberbook" || !!data.value?.needsAddOn),
+);
+// Called when the owner ticks reminders (checkbox or a "Turn on" button), not when the form loads.
+function onRemindersTicked() {
+  if (settingsForm.autoRemindersEnabled && canThankYou.value) settingsForm.thankYouReceipts = true;
+}
+
 function openSettings(turnOnReminders = false) {
   const s = data.value?.settings;
   settingsForm.upiId = s?.upiId ?? "";
@@ -448,6 +460,7 @@ function openSettings(turnOnReminders = false) {
   settingsForm.reminderDaysBefore = String(s?.reminderDaysBefore ?? 3);
   settingsForm.autoRemindersEnabled = (s?.autoRemindersEnabled ?? false) || (turnOnReminders && !!data.value?.canTurnOnReminders);
   settingsForm.thankYouReceipts = s?.thankYouReceipts ?? false;
+  if (turnOnReminders && !s?.autoRemindersEnabled) onRemindersTicked();
   settingsError.value = "";
   showSettings.value = true;
 }
@@ -463,7 +476,7 @@ async function saveSettings() {
         upiPayeeName: settingsForm.upiPayeeName,
         reminderDaysBefore: Number(settingsForm.reminderDaysBefore),
         ...(data.value?.canTurnOnReminders ? { autoRemindersEnabled: settingsForm.autoRemindersEnabled } : {}),
-        ...(data.value?.cloudAvailable && data.value?.sendsFrom === "memberbook" ? { thankYouReceipts: settingsForm.thankYouReceipts } : {}),
+        ...(canThankYou.value || !settingsForm.autoRemindersEnabled ? { thankYouReceipts: canThankYou.value && settingsForm.thankYouReceipts } : {}),
       },
     });
     showSettings.value = false;
