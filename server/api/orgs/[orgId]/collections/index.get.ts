@@ -14,6 +14,11 @@ export default defineEventHandler(async (event) => {
   ]);
   await ensurePaymentLinks(access.orgId, items);
 
+  // Waiting for the ₹199 payment: hand the page the bill so the owner can pay right here.
+  const reminderPlan = getAddOn("auto_reminders")!;
+  const bill = sending.blocked === "unpaid" ? await openPrepaidBill(access.orgId, "auto_reminders") : null;
+  const billing = billingUpi(event);
+
   const overdue = items.filter(i => i.overdue);
   const upcoming = items.filter(i => !i.overdue);
 
@@ -35,6 +40,20 @@ export default defineEventHandler(async (event) => {
     reminderUsage: sending.usage,
     reminderBlocked: org.autoRemindersEnabled || sending.blocked === "unpaid" ? sending.blocked : null,
     reminderPaidUntil: sending.paidUntil,
+    // The owner can tick "Send reminders automatically": already set up, or by paying for the plan.
+    canTurnOnReminders: sending.available || sending.needsAddOn,
+    reminderPlan: { price: reminderPlan.price, included: INCLUDED_REMINDERS },
+    reminderBill: bill
+      ? {
+          id: bill.id,
+          amount: bill.amount,
+          status: bill.status,
+          upiRef: bill.upiRef,
+          upiLink: billing.upiId ? buildUpiLink({ upiId: billing.upiId, payeeName: billing.payeeName, amount: bill.amount, note: "MemberBook WhatsApp reminders" }) : null,
+          payTo: billing.upiId || null,
+          payeeName: billing.payeeName,
+        }
+      : null,
     summary: {
       overdueCount: overdue.length,
       overdueAmount: overdue.reduce((s, i) => s + i.amount, 0),

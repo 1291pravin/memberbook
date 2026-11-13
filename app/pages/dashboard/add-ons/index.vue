@@ -4,7 +4,9 @@
       <h1 class="text-2xl font-bold text-slate-800">Add-ons</h1>
       <p class="mt-1 max-w-2xl text-sm text-slate-600">
         MemberBook stays free. Switch on extra help when you want it. Paid add-ons are free for the first
-        {{ data?.trialDays ?? 30 }} days, except WhatsApp reminders, which are paid upfront because WhatsApp charges us for every message. You can switch any add-on off at any time.
+        {{ data?.trialDays ?? 30 }} days, and you can switch any add-on off at any time.
+        Automatic WhatsApp fee reminders are in
+        <NuxtLink to="/dashboard/collections?turnOn=1" class="font-medium text-primary-700 underline">Fees due</NuxtLink>.
       </p>
     </div>
 

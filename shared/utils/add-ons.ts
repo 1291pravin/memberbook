@@ -39,6 +39,11 @@ export interface AddOnDef {
   forTypes?: string[];
   /** Page in the app where the owner uses it, once switched on. */
   page?: string;
+  /**
+   * Not listed on the Add-ons page: it's a core feature the owner switches on
+   * where they use it (automatic reminders live in Fees due > Settings).
+   */
+  notInMenu?: boolean;
 }
 
 export const FREE_TRIAL_DAYS = 30;
@@ -115,6 +120,7 @@ export const ADD_ONS: AddOnDef[] = [
     prepaid: true,
     ready: true,
     page: "/dashboard/collections",
+    notInMenu: true,
   },
   {
     key: "own_number",

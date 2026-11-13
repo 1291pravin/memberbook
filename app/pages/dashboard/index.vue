@@ -58,6 +58,8 @@
         or
         <NuxtLink to="/dashboard/members/new" class="font-semibold text-primary-700 hover:underline">add {{ t.membersLower }} one by one</NuxtLink>.
       </p>
+
+      <AutoRemindersCard :data="collectionsData" :is-owner="isOwner" @turn-on="turnOnReminders" @pay="payForReminders" />
     </template>
 
     <!-- Running: the numbers that matter -->
@@ -83,6 +85,8 @@
           <p class="mt-2 text-2xl font-extrabold tracking-tight text-primary-800 sm:text-3xl">{{ stats.activeMembers }}</p>
         </NuxtLink>
       </div>
+
+      <AutoRemindersCard :data="collectionsData" :is-owner="isOwner" show-on @turn-on="turnOnReminders" @pay="payForReminders" />
 
       <div class="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
         <section class="rounded-[28px] border border-slate-200 bg-white p-4 sm:p-5">
@@ -135,6 +139,8 @@
 </template>
 
 <script setup lang="ts">
+import type { AutoRemindersData } from "~/components/AutoRemindersCard.vue";
+
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
 const { formatCurrency } = useFormatCurrency();
@@ -168,7 +174,7 @@ interface CollectionItem {
   message: string;
 }
 
-interface CollectionsResponse {
+interface CollectionsResponse extends AutoRemindersData {
   items: CollectionItem[];
   summary: { overdueCount: number; overdueAmount: number; upcomingCount: number; upcomingAmount: number };
 }
@@ -222,6 +228,14 @@ function initials(name: string) {
 function dueText(item: CollectionItem) {
   if (item.overdue) return item.daysLate === 1 ? "1 day late" : `${item.daysLate} days late`;
   return `due ${formatDate(item.dueDate)}`;
+}
+
+const isOwner = computed(() => currentOrg.value?.role === "owner");
+function turnOnReminders() {
+  navigateTo("/dashboard/collections?turnOn=1");
+}
+function payForReminders() {
+  navigateTo("/dashboard/collections?pay=1");
 }
 
 const { whatsappLink } = useSupport();

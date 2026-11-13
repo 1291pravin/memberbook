@@ -27,21 +27,26 @@ export default defineEventHandler(async (event) => {
   }
   if (body.autoRemindersEnabled !== undefined) {
     const on = body.autoRemindersEnabled === true;
+    const sending = await reminderSending(access.orgId);
     if (on) {
-      const sending = await reminderSending(access.orgId);
-      if (!sending.available) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: sending.needsAddOn
-            ? "Switch on \"Automatic fee reminders\" in Add-ons and pay for the month first."
-            : "Automatic WhatsApp reminders are not available yet.",
-        });
+      if (!sending.available && !sending.needsAddOn) {
+        throw createError({ statusCode: 400, statusMessage: "Automatic WhatsApp reminders are not available yet." });
       }
       const current = await getOrgCollectionSettings(access.orgId);
       const upiId = updates.upiId !== undefined ? updates.upiId : current?.upiId;
       if (!upiId) {
         throw createError({ statusCode: 400, statusMessage: "Add your UPI ID first, so every reminder has a pay link." });
       }
+      // From MemberBook's number this is the prepaid ₹199 plan: switching on
+      // creates the bill (unless still paid up). Reminders start once the
+      // admin verifies the payment; until then sending stays paused.
+      if (sending.needsAddOn) await startAddOn(access.orgId, "auto_reminders");
+    }
+    else if (sending.via !== "own") {
+      // Off: stop the plan so no renewal bill comes, and drop a bill they haven't paid.
+      // A paid period is kept, so switching on again within it costs nothing.
+      await stopAddOn(access.orgId, "auto_reminders");
+      await dropUnpaidPrepaidBill(access.orgId, "auto_reminders");
     }
     updates.autoRemindersEnabled = on;
   }
