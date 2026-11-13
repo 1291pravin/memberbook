@@ -20,6 +20,13 @@
           <p class="text-lg text-slate-800 leading-relaxed">{{ guide.answer }}</p>
         </div>
 
+        <YouTubeVideo
+          video-id="ULTf4xvi1yI"
+          title="MemberBook: you run the place, we collect the fees"
+          poster="/brand/memberbook-ad-poster.webp"
+          caption="One minute: how MemberBook loads your register and collects fees on WhatsApp with UPI pay links."
+        />
+
         <div class="guide-content" v-html="guide.content" />
 
         <section v-if="guide.faqs.length" class="mt-12">
@@ -98,6 +105,20 @@ useSeoMeta({
 });
 
 const scripts: { type: string; innerHTML: string }[] = [
+  {
+    type: "application/ld+json",
+    innerHTML: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": "MemberBook: you run the place, we collect the fees",
+      "description": "A one-minute look at the monthly fee chase in gyms, libraries and coaching centres, and how MemberBook loads your register and collects fees with WhatsApp reminders and UPI pay links.",
+      "thumbnailUrl": `${appUrl}/brand/memberbook-ad-poster.webp`,
+      "contentUrl": `${appUrl}/brand/memberbook-ad.mp4`,
+      "embedUrl": "https://www.youtube.com/embed/ULTf4xvi1yI",
+      "uploadDate": "2026-11-12",
+      "duration": "PT58S",
+    }),
+  },
   {
     type: "application/ld+json",
     innerHTML: JSON.stringify({
