@@ -12,8 +12,6 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
  * payments get receipts too.
  */
 
-export const RECEIPT_TEMPLATE_NAME = "payment_receipt";
-
 export interface ReceiptData {
   paymentId: number;
   orgId: number;
@@ -21,6 +19,7 @@ export interface ReceiptData {
   receiptNo: number;
   token: string;
   businessName: string;
+  businessType?: string | null;
   businessPhone: string | null;
   memberName: string;
   memberPhone: string | null;
@@ -68,6 +67,7 @@ async function loadReceipt(where: ReturnType<typeof eq>): Promise<Omit<ReceiptDa
     date: schema.payments.date,
     subscriptionId: schema.payments.subscriptionId,
     businessName: schema.organizations.name,
+    businessType: schema.organizations.type,
     businessPhone: schema.organizations.ownerWhatsapp,
     memberName: schema.members.name,
     memberPhone: schema.members.phone,
@@ -100,6 +100,7 @@ async function loadReceipt(where: ReturnType<typeof eq>): Promise<Omit<ReceiptDa
     receiptNo: row.receiptNo,
     token: row.token,
     businessName: row.businessName,
+    businessType: row.businessType,
     businessPhone: row.businessPhone,
     memberName: row.memberName,
     memberPhone: row.memberPhone,
@@ -249,6 +250,7 @@ export async function sendThankYouReceipt(orgId: number, paymentId: number): Pro
 
   const sending = await reminderSending(orgId);
   if (!sending.available || sending.via !== "memberbook" || sending.blocked) return { sent: false, reason: sending.blocked ?? "unavailable" };
+  if ((await sharedTemplateStatus(RECEIPT_TEMPLATE_NAME)) !== "APPROVED") return { sent: false, reason: "receipt template not approved yet" };
 
   const receipt = await getReceiptForPayment(orgId, paymentId);
   if (!receipt?.subscriptionId) return { sent: false, reason: "no subscription" };
@@ -257,7 +259,7 @@ export async function sendThankYouReceipt(orgId: number, paymentId: number): Pro
 
   const result = await sendReceiptTemplate(
     to,
-    [firstName(receipt.memberName), formatRupees(receipt.amount), receipt.businessName, receipt.planName || "your membership"],
+    [firstName(receipt.memberName), receipt.businessName, formatRupees(receipt.amount), businessEmoji(receipt.businessType), receipt.planName || "Membership"],
     receiptUrl(receipt.token),
     receiptFileName(receipt),
   );

@@ -437,7 +437,19 @@ export async function sendCloudReminder(item: CollectionItem, org: OrgCollection
       ? `now (it was due on ${formatShortDate(addDaysToDate(item.dueDate, 1))})`
       : item.daysLate === 0 ? "tomorrow" : `on ${formatShortDate(addDaysToDate(item.dueDate, 1))}`;
 
-  const result = await sendFeeReminderTemplate(to, [p.name, org.name, what, when, formatRupees(item.amount)], item.payToken, sender);
+  // MemberBook's number: the new layout (line breaks, bold) once Meta has approved it.
+  let result;
+  if (!sender && await useReminderV2()) {
+    const due = item.kind === "due"
+      ? "Now"
+      : item.daysLate > 0
+        ? `Overdue since ${formatShortDate(addDaysToDate(item.dueDate, 1))}`
+        : item.daysLate === 0 ? "Tomorrow" : formatShortDate(addDaysToDate(item.dueDate, 1));
+    result = await sendFeeReminderV2(to, [p.name, org.name, businessEmoji(org.type), what, formatRupees(item.amount), due], item.payToken);
+  }
+  else {
+    result = await sendFeeReminderTemplate(to, [p.name, org.name, what, when, formatRupees(item.amount)], item.payToken, sender);
+  }
   await logReminder({
     orgId: org.id,
     memberId: item.memberId,

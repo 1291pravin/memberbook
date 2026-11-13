@@ -446,16 +446,107 @@ export async function ensureAppWebhook(callbackUrl: string): Promise<{ ok: boole
   }
 }
 
-// ------------------------------------------------------------ receipt template
+// ------------------------------------------------------------ templates (MemberBook's number)
 
 /**
- * Send the thank-you template with the PDF receipt in its header. Body
- * variables: {{1}} member first name, {{2}} amount, {{3}} business name,
- * {{4}} what it was for. Meta downloads the PDF from `pdfUrl`.
+ * Templates on MemberBook's own WhatsApp account, with line breaks and bold.
+ * Variables can't hold line breaks, so the layout lives in the template.
+ *
+ * fee_reminder_v2: {{1}} first name, {{2}} business, {{3}} emoji, {{4}} what
+ * (e.g. "Monthly membership renewal"), {{5}} amount, {{6}} due ("Today",
+ * "14 Nov", "Overdue since 14 Nov"). URL button suffix = pay link token.
+ *
+ * payment_receipt_v2 (PDF header): {{1}} first name, {{2}} business,
+ * {{3}} amount, {{4}} emoji, {{5}} what it was for.
  */
-export async function sendReceiptTemplate(to: string, body: [string, string, string, string], pdfUrl: string, filename: string): Promise<TemplateSendResult> {
+export const REMINDER_TEMPLATE_V2 = "fee_reminder_v2";
+export const RECEIPT_TEMPLATE_NAME = "payment_receipt_v2";
+
+const REMINDER_V2_BODY = [
+  "Hi {{1}} 👋",
+  "",
+  "This is a friendly fee reminder from *{{2}}*.",
+  "",
+  "{{3}} *{{4}}*",
+  "💰 Amount: *{{5}}*",
+  "📅 Due: *{{6}}*",
+  "",
+  "Tap *Pay now* below to pay instantly by UPI.",
+  "",
+  "_If you have already paid, please ignore this message._",
+].join("\n");
+
+const RECEIPT_V2_BODY = [
+  "Hi {{1}} 🙏",
+  "",
+  "Thank you for your payment to *{{2}}*.",
+  "",
+  "✅ Paid: *{{3}}*",
+  "{{4}} For: *{{5}}*",
+  "",
+  "Your receipt is attached. Please keep it for your records.",
+].join("\n");
+
+/** Emoji for the business type, used in the v2 templates. */
+export function businessEmoji(type: string | null | undefined) {
+  return type === "gym" ? "🏋️" : type === "library" ? "📚" : type === "tuition" ? "🎓" : "🧾";
+}
+
+const cleanVar = (s: string) => s.replace(/[\n\t]+/g, " ").replace(/ {4,}/g, "   ").trim().slice(0, 200) || "-";
+
+/** All templates on MemberBook's account with their status. */
+export async function listSharedTemplates(): Promise<{ ok: boolean; templates?: { name: string; status: string; language: string; id: string }[]; error?: string }> {
+  const wabaId = await findBusinessAccountId().catch(() => null);
+  if (!wabaId) return { ok: false, error: "Could not find the WhatsApp Business Account" };
+  const r = await graph<{ data?: { name: string; status: string; language: string; id: string }[] }>(`${wabaId}/message_templates?fields=name,status,language,id&limit=100`);
+  if (!r.ok) return { ok: false, error: graphError(r) };
+  return { ok: true, templates: r.data.data ?? [] };
+}
+
+// Template statuses barely change, so each Worker isolate re-reads them at most every 10 minutes.
+let statusCache: { at: number; map: Map<string, string> } | null = null;
+export async function sharedTemplateStatus(name: string): Promise<string | null> {
+  if (!statusCache || Date.now() - statusCache.at > 600000) {
+    const list = await listSharedTemplates().catch(() => ({ ok: false as const }));
+    if (!list.ok || !("templates" in list) || !list.templates) return statusCache?.map.get(name) ?? null;
+    statusCache = { at: Date.now(), map: new Map(list.templates.map(t => [t.name, t.status])) };
+  }
+  return statusCache.map.get(name) ?? null;
+}
+
+/** Use the new reminder layout on MemberBook's number once Meta has approved it. */
+export async function useReminderV2(): Promise<boolean> {
+  return (await sharedTemplateStatus(REMINDER_TEMPLATE_V2)) === "APPROVED";
+}
+
+/** Send fee_reminder_v2 from MemberBook's number. */
+export async function sendFeeReminderV2(to: string, body: [string, string, string, string, string, string], payToken: string): Promise<TemplateSendResult> {
   const c = getWhatsAppCloudConfig();
-  const clean = (s: string) => s.replace(/[\n\t]+/g, " ").replace(/ {4,}/g, "   ").trim().slice(0, 200);
+  const r = await graph<{ messages?: { id: string }[] }>(`${c.phoneNumberId}/messages`, {
+    method: "POST",
+    body: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "template",
+      template: {
+        name: REMINDER_TEMPLATE_V2,
+        language: { code: c.templateLanguage || "en" },
+        components: [
+          { type: "body", parameters: body.map(text => ({ type: "text", text: cleanVar(text) })) },
+          { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: payToken }] },
+        ],
+      },
+    },
+  }).catch(err => ({ ok: false, data: { error: { message: String(err) } } as GraphError, status: 0 }));
+  const id = (r.data as { messages?: { id: string }[] }).messages?.[0]?.id;
+  if (!r.ok || !id) return { ok: false, error: graphError(r).slice(0, 500) };
+  return { ok: true, messageId: id };
+}
+
+/** Send the thank-you with the PDF receipt in its header. Meta downloads the PDF from `pdfUrl`. */
+export async function sendReceiptTemplate(to: string, body: [string, string, string, string, string], pdfUrl: string, filename: string): Promise<TemplateSendResult> {
+  const c = getWhatsAppCloudConfig();
   const r = await graph<{ messages?: { id: string }[] }>(`${c.phoneNumberId}/messages`, {
     method: "POST",
     body: {
@@ -468,7 +559,7 @@ export async function sendReceiptTemplate(to: string, body: [string, string, str
         language: { code: c.templateLanguage || "en" },
         components: [
           { type: "header", parameters: [{ type: "document", document: { link: pdfUrl, filename } }] },
-          { type: "body", parameters: body.map(text => ({ type: "text", text: clean(text) })) },
+          { type: "body", parameters: body.map(text => ({ type: "text", text: cleanVar(text) })) },
         ],
       },
     },
@@ -480,41 +571,70 @@ export async function sendReceiptTemplate(to: string, body: [string, string, str
 
 /** Status of the receipt template on MemberBook's WhatsApp account (null = not created). */
 export async function getReceiptTemplateStatus(): Promise<{ ok: boolean; status?: string | null; error?: string }> {
-  const wabaId = await findBusinessAccountId().catch(() => null);
-  if (!wabaId) return { ok: false, error: "Could not find the WhatsApp Business Account" };
-  const r = await graph<{ data?: { name: string; status: string; language: string }[] }>(`${wabaId}/message_templates?name=${RECEIPT_TEMPLATE_NAME}&fields=name,status,language`);
-  if (!r.ok) return { ok: false, error: graphError(r) };
-  return { ok: true, status: r.data.data?.find(t => t.name === RECEIPT_TEMPLATE_NAME)?.status ?? null };
+  const list = await listSharedTemplates();
+  if (!list.ok) return { ok: false, error: list.error };
+  return { ok: true, status: list.templates?.find(t => t.name === RECEIPT_TEMPLATE_NAME)?.status ?? null };
 }
 
-/** Create the receipt template (utility, PDF header) if it doesn't exist. `samplePdf` is the example Meta reviews. */
-export async function ensureReceiptTemplate(samplePdf: Uint8Array): Promise<{ ok: boolean; status?: string | null; created?: boolean; error?: string }> {
+/**
+ * Create the v2 templates (reminder and receipt) on MemberBook's account if
+ * they are missing. `samplePdf` is the example receipt Meta reviews.
+ */
+export async function ensureSharedTemplates(samplePdf: Uint8Array, appUrl: string): Promise<{ ok: boolean; results: Record<string, string>; error?: string }> {
   const c = getWhatsAppCloudConfig();
-  const current = await getReceiptTemplateStatus();
-  if (!current.ok) return current;
-  if (current.status) return { ok: true, status: current.status, created: false };
-
+  const lang = c.templateLanguage || "en";
+  const list = await listSharedTemplates();
+  if (!list.ok) return { ok: false, results: {}, error: list.error };
+  const have = new Map((list.templates ?? []).map(t => [t.name, t.status]));
   const wabaId = await findBusinessAccountId().catch(() => null);
-  const upload = await uploadProfilePhoto({ bytes: samplePdf, type: "application/pdf" });
-  if (!upload.ok || !upload.handle) return { ok: false, error: `Sample PDF upload failed: ${upload.error}` };
+  const results: Record<string, string> = {};
 
-  const r = await graph<{ id?: string; status?: string }>(`${wabaId}/message_templates`, {
-    method: "POST",
-    body: {
-      name: RECEIPT_TEMPLATE_NAME,
-      language: c.templateLanguage || "en",
-      category: "UTILITY",
-      components: [
-        { type: "HEADER", format: "DOCUMENT", example: { header_handle: [upload.handle] } },
-        {
-          type: "BODY",
-          text: "Hi {{1}}, thank you for your payment of {{2}} to {{3}} for {{4}}. Your receipt is attached. Please keep it for your records.",
-          example: { body_text: [["Rahul", "₹1,000", "Fit Zone Gym", "Monthly membership"]] },
+  if (have.has(REMINDER_TEMPLATE_V2)) results[REMINDER_TEMPLATE_V2] = have.get(REMINDER_TEMPLATE_V2)!;
+  else {
+    const r = await graph<{ id?: string; status?: string }>(`${wabaId}/message_templates`, {
+      method: "POST",
+      body: {
+        name: REMINDER_TEMPLATE_V2,
+        language: lang,
+        category: "UTILITY",
+        components: [
+          { type: "BODY", text: REMINDER_V2_BODY, example: { body_text: [["Rahul", "Iron Temple Gym", "🏋️", "Monthly membership renewal", "₹1,500", "14 Nov"]] } },
+          { type: "BUTTONS", buttons: [{ type: "URL", text: "Pay now", url: `${appUrl}/pay/{{1}}`, example: [`${appUrl}/pay/abc123`] }] },
+        ],
+      },
+    });
+    results[REMINDER_TEMPLATE_V2] = r.ok ? (r.data.status ?? "PENDING") : `error: ${graphError(r)}`;
+  }
+
+  if (have.has(RECEIPT_TEMPLATE_NAME)) results[RECEIPT_TEMPLATE_NAME] = have.get(RECEIPT_TEMPLATE_NAME)!;
+  else {
+    const upload = await uploadProfilePhoto({ bytes: samplePdf, type: "application/pdf" });
+    if (!upload.ok || !upload.handle) results[RECEIPT_TEMPLATE_NAME] = `error: sample PDF upload failed: ${upload.error}`;
+    else {
+      const r = await graph<{ id?: string; status?: string }>(`${wabaId}/message_templates`, {
+        method: "POST",
+        body: {
+          name: RECEIPT_TEMPLATE_NAME,
+          language: lang,
+          category: "UTILITY",
+          components: [
+            { type: "HEADER", format: "DOCUMENT", example: { header_handle: [upload.handle] } },
+            { type: "BODY", text: RECEIPT_V2_BODY, example: { body_text: [["Rahul", "Iron Temple Gym", "₹1,500", "🏋️", "Monthly membership"]] } },
+          ],
         },
-        { type: "FOOTER", text: "Sent by MemberBook" },
-      ],
-    },
-  });
-  if (!r.ok) return { ok: false, error: graphError(r) };
-  return { ok: true, status: r.data.status ?? "PENDING", created: true };
+      });
+      results[RECEIPT_TEMPLATE_NAME] = r.ok ? (r.data.status ?? "PENDING") : `error: ${graphError(r)}`;
+    }
+  }
+  statusCache = null;
+  return { ok: !Object.values(results).some(v => v.startsWith("error")), results };
+}
+
+/** Delete a template from MemberBook's account by name (all languages). */
+export async function deleteSharedTemplate(name: string): Promise<{ ok: boolean; error?: string }> {
+  const wabaId = await findBusinessAccountId().catch(() => null);
+  if (!wabaId) return { ok: false, error: "Could not find the WhatsApp Business Account" };
+  const r = await graph<{ success?: boolean }>(`${wabaId}/message_templates?name=${encodeURIComponent(name)}`, { method: "DELETE" });
+  statusCache = null;
+  return r.ok ? { ok: true } : { ok: false, error: graphError(r) };
 }
