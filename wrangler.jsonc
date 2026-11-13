@@ -49,6 +49,9 @@
     // Not secret: Meta WhatsApp Business Account and app ids (webhook link + profile photo upload).
     "NUXT_WHATSAPP_CLOUD_BUSINESS_ACCOUNT_ID": "1686210686459455",
     "NUXT_WHATSAPP_CLOUD_APP_ID": "2076715572848640",
+    // Automatic fee reminders from the MemberBook number (Pravin approved 2026-11-13).
+    // Each business still has to opt in on Collections > Payment settings.
+    "NUXT_WHATSAPP_CLOUD_ENABLED": "true",
     // Not secret: "Connect with WhatsApp" (embedded signup) app id. The config id
     // comes from Facebook Login for Business > Configurations in the Meta app.
     "NUXT_PUBLIC_WHATSAPP_SIGNUP_APP_ID": "2076715572848640",
