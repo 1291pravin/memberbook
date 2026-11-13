@@ -34,13 +34,28 @@
             </div>
 
             <template v-if="pay.upiLink">
-              <a
-                :href="pay.upiLink"
-                class="flex w-full items-center justify-center rounded-xl bg-primary-600 px-4 py-3.5 text-base font-semibold text-white hover:bg-primary-700"
-              >
-                Pay with any UPI app
-              </a>
-              <p class="text-xs text-slate-600 text-center -mt-2">Google Pay, PhonePe, Paytm, BHIM or your bank app</p>
+              <!-- iPhone has no UPI app picker, so offer the common apps directly. -->
+              <div v-if="isIos" class="space-y-2">
+                <a
+                  v-for="app in iosApps"
+                  :key="app.name"
+                  :href="app.href"
+                  class="flex w-full items-center justify-center rounded-xl bg-primary-600 px-4 py-3.5 text-base font-semibold text-white hover:bg-primary-700"
+                >
+                  Pay with {{ app.name }}
+                </a>
+              </div>
+              <template v-else>
+                <a
+                  :href="pay.upiLink"
+                  class="flex w-full items-center justify-center rounded-xl bg-primary-600 px-4 py-3.5 text-base font-semibold text-white hover:bg-primary-700"
+                >
+                  Pay with any UPI app
+                </a>
+                <p class="text-xs text-slate-600 text-center -mt-2">
+                  {{ autoOpened ? "Your UPI app should open now. If it didn't, tap the button." : "Google Pay, PhonePe, Paytm, BHIM or your bank app" }}
+                </p>
+              </template>
 
               <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
                 <p class="text-xs text-slate-600">Button not working? Pay {{ formatCurrency(pay.amount) }} to this UPI ID:</p>
@@ -78,8 +93,7 @@
       </div>
 
       <p class="text-xs text-slate-600 text-center mt-6">
-        Money goes directly to {{ pay?.orgName || "the business" }}. Secure link by
-        <a href="https://memberbook.in" class="font-medium text-slate-700 hover:underline">MemberBook</a>
+        Money goes directly to {{ pay?.orgName || "the business" }}.
       </p>
     </div>
   </div>
@@ -107,10 +121,47 @@ interface PayInfo {
 
 const { data: pay, error } = await useFetch<PayInfo>(`/api/pay/${token}`);
 
+// The link preview in WhatsApp shows the business, not us.
 useHead(() => ({
   title: pay.value ? `Pay ${pay.value.orgName}` : "Payment link",
-  meta: [{ name: "robots", content: "noindex, nofollow" }],
+  titleTemplate: null,
+  meta: [
+    { name: "robots", content: "noindex, nofollow" },
+    { property: "og:title", content: pay.value ? `Pay ${pay.value.orgName}` : "Payment link" },
+    { property: "og:description", content: pay.value && !pay.value.paid ? `${formatCurrency(pay.value.amount)} for your ${pay.value.planName} plan. Tap to pay by UPI.` : "Payment link" },
+    { property: "og:site_name", content: pay.value?.orgName || "Payment" },
+    { name: "description", content: pay.value ? `Pay ${pay.value.orgName} by UPI` : "Payment link" },
+  ],
 }));
+
+// Open the member's UPI app straight away, once per visit. Android shows its
+// app picker; iPhone can't, so it gets one button per app instead.
+const isIos = ref(false);
+const autoOpened = ref(false);
+const iosApps = computed(() => {
+  const q = pay.value?.upiLink?.split("?")[1] ?? "";
+  return [
+    { name: "Google Pay", href: `gpay://upi/pay?${q}` },
+    { name: "PhonePe", href: `phonepe://pay?${q}` },
+    { name: "Paytm", href: `paytmmp://pay?${q}` },
+  ];
+});
+onMounted(() => {
+  const ua = navigator.userAgent || "";
+  isIos.value = /iPhone|iPad|iPod/i.test(ua);
+  const p = pay.value;
+  if (!p?.upiLink || p.paid || claimed.value || !/Android/i.test(ua)) return;
+  const key = `upi-opened-${token}`;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+  }
+  catch {
+    // Storage blocked: still open once.
+  }
+  autoOpened.value = true;
+  window.location.href = p.upiLink;
+});
 
 const claimed = ref(false);
 watch(pay, (p) => { if (p?.claimed) claimed.value = true; }, { immediate: true });

@@ -422,16 +422,38 @@ export function reminderParts(item: Pick<CollectionItem, "kind" | "planName" | "
 }
 
 /** Full WhatsApp message for tap-to-send. */
-export function buildReminderMessage(item: CollectionItem, org: OrgCollectionSettings): string {
+/** The reminder's lines in the v2 layout: what is due, amount and due date text. */
+export function reminderV2Parts(item: Pick<CollectionItem, "kind" | "planName" | "amount" | "dueDate" | "daysLate" | "memberName">, org: Pick<OrgCollectionSettings, "name" | "type">) {
   const p = reminderParts(item, org);
-  const lines = [`Hi ${p.name}, this is ${p.orgName}. ${capitalize(p.status)}.`];
+  const what = item.kind === "due" ? `${p.what} balance` : `${p.what} renewal`;
+  const due = item.kind === "due"
+    ? "Now"
+    : item.daysLate > 0
+      ? `Overdue since ${formatShortDate(addDaysToDate(item.dueDate, 1))}`
+      : item.daysLate === 0 ? "Tomorrow" : formatShortDate(addDaysToDate(item.dueDate, 1));
+  return { name: p.name, orgName: org.name, emoji: businessEmoji(org.type), what: capitalize(what), amount: formatRupees(item.amount), due };
+}
+
+/** Tap-to-send text (from the owner's own WhatsApp), in the same layout as the automatic reminder. */
+export function buildReminderMessage(item: CollectionItem, org: OrgCollectionSettings): string {
+  const v = reminderV2Parts(item, org);
+  const lines = [
+    `Hi ${v.name} 👋`,
+    "",
+    `This is a friendly fee reminder from *${v.orgName}*.`,
+    "",
+    `${v.emoji} *${v.what}*`,
+    `💰 Amount: *${v.amount}*`,
+    `📅 Due: *${v.due}*`,
+    "",
+  ];
   if (org.upiId && item.payToken) {
-    lines.push("", `Pay by UPI here: ${payPageUrl(item.payToken)}`);
+    lines.push("👉 Tap here to pay instantly by UPI:", payPageUrl(item.payToken));
   }
   else {
-    lines.push("", "Please pay at the front desk on your next visit.");
+    lines.push("Please pay at the front desk on your next visit.");
   }
-  lines.push("", "Please ignore this if you have already paid. Thank you!");
+  lines.push("", "_If you have already paid, please ignore this message._");
   return lines.join("\n");
 }
 
@@ -463,12 +485,8 @@ export async function sendCloudReminder(item: CollectionItem, org: OrgCollection
   // MemberBook's number: the new layout (line breaks, bold) once Meta has approved it.
   let result;
   if (!sender && await useReminderV2()) {
-    const due = item.kind === "due"
-      ? "Now"
-      : item.daysLate > 0
-        ? `Overdue since ${formatShortDate(addDaysToDate(item.dueDate, 1))}`
-        : item.daysLate === 0 ? "Tomorrow" : formatShortDate(addDaysToDate(item.dueDate, 1));
-    result = await sendFeeReminderV2(to, [p.name, org.name, businessEmoji(org.type), what, formatRupees(item.amount), due], item.payToken);
+    const v = reminderV2Parts(item, org);
+    result = await sendFeeReminderV2(to, [v.name, v.orgName, v.emoji, v.what, v.amount, v.due], item.payToken);
   }
   else {
     result = await sendFeeReminderTemplate(to, [p.name, org.name, what, when, formatRupees(item.amount)], item.payToken, sender);
