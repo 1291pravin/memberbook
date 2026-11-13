@@ -23,18 +23,27 @@ export default defineEventHandler(async (event) => {
   if (!(file instanceof File) || file.size === 0) {
     throw createError({ statusCode: 400, statusMessage: "No image file provided" });
   }
+  // Small version for lists and the member page (sent by the app since Nov 2026)
+  const thumbField = form.get("thumb");
+  const thumb = thumbField instanceof File && thumbField.size > 0 ? thumbField : null;
 
   // Validate type + size (client resizes to webp, but accept common image types too)
   ensureBlob(file, {
     maxSize: "2MB",
     types: ["image/jpeg", "image/png", "image/webp"],
   });
+  if (thumb) {
+    ensureBlob(thumb, { maxSize: "128KB", types: ["image/jpeg", "image/png", "image/webp"] });
+  }
 
   // Upload under a per-org/per-member prefix; random suffix busts CDN/browser cache on replace
   const uploaded = await blob.put(`members/${access.orgId}/${memberId}`, file, {
     addRandomSuffix: true,
     contentType: file.type,
   });
+  if (thumb) {
+    await blob.put(memberThumbKey(uploaded.pathname), thumb, { contentType: thumb.type });
+  }
 
   await db
     .update(schema.members)
@@ -43,11 +52,7 @@ export default defineEventHandler(async (event) => {
 
   // Remove the previous photo after the new one is committed
   if (member.photoKey && member.photoKey !== uploaded.pathname) {
-    try {
-      await blob.del(member.photoKey);
-    } catch {
-      // Old object already gone — ignore
-    }
+    await deleteMemberPhoto(member.photoKey);
   }
 
   return { photoKey: uploaded.pathname };

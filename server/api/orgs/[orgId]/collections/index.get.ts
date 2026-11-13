@@ -1,11 +1,16 @@
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
+  // Settings and the WhatsApp sending state don't depend on each other: fetch together.
+  const sendingPromise = reminderSending(access.orgId);
   const org = await getOrgCollectionSettings(access.orgId);
-  if (!org) throw createError({ statusCode: 404, statusMessage: "Organization not found" });
+  if (!org) {
+    await sendingPromise.catch(() => {});
+    throw createError({ statusCode: 404, statusMessage: "Organization not found" });
+  }
 
   const [items, sending] = await Promise.all([
     getCollections(access.orgId, org.reminderDaysBefore),
-    reminderSending(access.orgId),
+    sendingPromise,
   ]);
   await ensurePaymentLinks(access.orgId, items);
 

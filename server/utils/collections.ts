@@ -213,6 +213,7 @@ export async function getCollections(orgId: number, daysBefore: number): Promise
     if (link && link.status === "open") {
       item.payToken = link.token;
       item.claimedAt = link.claimedAt;
+      openLinkAmounts.set(item, link.amount);
     }
   }
 
@@ -220,6 +221,10 @@ export async function getCollections(orgId: number, daysBefore: number): Promise
   items.sort((a, b) => Number(b.overdue) - Number(a.overdue) || b.daysLate - a.daysLate);
   return items;
 }
+
+// Amount stored on each item's open pay link, as read by getCollections, so
+// ensurePaymentLinks doesn't have to read the links again.
+const openLinkAmounts = new WeakMap<CollectionItem, number>();
 
 // D1 allows at most 100 bound parameters per statement.
 async function selectInChunks<I, T>(ids: I[], run: (chunk: I[]) => Promise<T[]>): Promise<T[]> {
@@ -254,13 +259,15 @@ export async function ensurePaymentLinks(orgId: number, items: CollectionItem[])
     const existingByKey = new Map(existing.map(l => [`${l.kind}:${l.subscriptionId}`, l]));
 
     const toInsert: typeof schema.paymentLinks.$inferInsert[] = [];
+    const reopens: Promise<unknown>[] = [];
     for (const item of missing) {
       const link = existingByKey.get(item.key);
       if (link) {
-        await db.update(schema.paymentLinks)
+        reopens.push(db.update(schema.paymentLinks)
           .set({ status: "open", amount: item.amount, claimedAt: null, paidAt: null, updatedAt: now })
-          .where(eq(schema.paymentLinks.id, link.id));
+          .where(eq(schema.paymentLinks.id, link.id)));
         item.payToken = link.token;
+        openLinkAmounts.set(item, item.amount);
       }
       else {
         item.payToken = generateToken();
@@ -279,34 +286,50 @@ export async function ensurePaymentLinks(orgId: number, items: CollectionItem[])
     }
     // 9 columns per row, so 10 rows stay under D1's 100-parameter limit.
     for (let i = 0; i < toInsert.length; i += 10) {
-      await db.insert(schema.paymentLinks).values(toInsert.slice(i, i + 10)).onConflictDoNothing();
+      reopens.push(db.insert(schema.paymentLinks).values(toInsert.slice(i, i + 10)).onConflictDoNothing());
     }
+    await Promise.all(reopens);
   }
 
-  // Keep amounts current (a partial payment shrinks the balance).
-  const tokens = items.map(i => i.payToken).filter((t): t is string => !!t);
-  if (tokens.length === 0) return;
-  const links = await selectInChunks(tokens, chunk => db
-    .select({ token: schema.paymentLinks.token, amount: schema.paymentLinks.amount })
-    .from(schema.paymentLinks)
-    .where(inArray(schema.paymentLinks.token, chunk)));
-  const amountByToken = new Map(links.map(l => [l.token, l.amount]));
+  // Keep amounts current (a partial payment shrinks the balance). Links read
+  // by getCollections already carry their amount; only links we just created
+  // or reopened need a read, to catch a lost insert race.
+  const amountByToken = new Map<string, number>();
+  const toCheck: string[] = [];
   for (const item of items) {
-    const current = amountByToken.get(item.payToken!);
+    if (!item.payToken) continue;
+    const known = openLinkAmounts.get(item);
+    if (known !== undefined) amountByToken.set(item.payToken, known);
+    else toCheck.push(item.payToken);
+  }
+  if (toCheck.length > 0) {
+    const links = await selectInChunks(toCheck, chunk => db
+      .select({ token: schema.paymentLinks.token, amount: schema.paymentLinks.amount })
+      .from(schema.paymentLinks)
+      .where(inArray(schema.paymentLinks.token, chunk)));
+    for (const l of links) amountByToken.set(l.token, l.amount);
+  }
+
+  const writes: Promise<unknown>[] = [];
+  for (const item of items) {
+    if (!item.payToken) continue;
+    const current = amountByToken.get(item.payToken);
     if (current === undefined) {
       // Lost an insert race with a concurrent request; re-read the winner's token.
-      const [link] = await db.select({ token: schema.paymentLinks.token })
+      writes.push(db.select({ token: schema.paymentLinks.token })
         .from(schema.paymentLinks)
         .where(and(eq(schema.paymentLinks.subscriptionId, item.subscriptionId), eq(schema.paymentLinks.kind, item.kind)))
-        .limit(1);
-      item.payToken = link?.token ?? null;
+        .limit(1)
+        .then(([link]) => { item.payToken = link?.token ?? null; }));
     }
     else if (current !== item.amount) {
-      await db.update(schema.paymentLinks)
+      writes.push(db.update(schema.paymentLinks)
         .set({ amount: item.amount, updatedAt: now })
-        .where(eq(schema.paymentLinks.token, item.payToken!));
+        .where(eq(schema.paymentLinks.token, item.payToken)));
+      openLinkAmounts.set(item, item.amount);
     }
   }
+  await Promise.all(writes);
 }
 
 export async function closePaymentLink(orgId: number, subscriptionId: number, kind: CollectionKind): Promise<void> {

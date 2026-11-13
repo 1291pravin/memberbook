@@ -1,5 +1,4 @@
 import { and, eq } from "drizzle-orm";
-import { blob } from "@nuxthub/blob";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -46,11 +45,7 @@ export default defineEventHandler(async (event) => {
 
   // Remove the member's photo from blob storage after the row is gone
   if (member.photoKey) {
-    try {
-      await blob.del(member.photoKey);
-    } catch {
-      // Object already gone — ignore
-    }
+    await deleteMemberPhoto(member.photoKey);
   }
 
   return { success: true };

@@ -12,7 +12,7 @@
               :title="hasPhoto ? 'Change photo' : 'Add photo'"
               @click="triggerPhotoPicker"
             >
-              <img v-if="hasPhoto" :src="photoUrl" alt="Member photo" class="h-full w-full object-cover">
+              <MemberPhoto v-if="hasPhoto && orgId && member?.photoKey" :org-id="orgId" :member-id="String(memberId)" :photo-key="member.photoKey" :size="64" alt="Member photo" />
               <span v-else>{{ initials }}</span>
               <span v-if="uploadingPhoto" class="absolute inset-0 flex items-center justify-center bg-white/70">
                 <svg class="h-5 w-5 animate-spin text-primary-600" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
@@ -646,11 +646,7 @@ const payments = computed(() => memberData.value?.payments ?? []);
 // Member photo
 const photoInput = ref<HTMLInputElement | null>(null);
 const uploadingPhoto = ref(false);
-const photoVersion = ref(0);
 const hasPhoto = computed(() => !!member.value?.photoKey);
-const photoUrl = computed(() =>
-  `/api/orgs/${orgId.value}/members/${memberId}/photo?v=${member.value?.photoKey ?? ""}&_=${photoVersion.value}`,
-);
 const initials = computed(() => {
   const name = member.value?.name?.trim() || "";
   if (!name) return "?";
@@ -664,7 +660,7 @@ function triggerPhotoPicker() {
 }
 
 // Downscale + re-encode to webp on the client to keep storage/bandwidth tiny
-async function resizeImage(file: File, maxSize = 800): Promise<Blob> {
+async function resizeImage(file: File, maxSize = 800, quality = 0.85): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
@@ -677,7 +673,7 @@ async function resizeImage(file: File, maxSize = 800): Promise<Blob> {
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close?.();
   return await new Promise<Blob>((resolve) => {
-    canvas.toBlob((blob) => resolve(blob ?? file), "image/webp", 0.85);
+    canvas.toBlob((blob) => resolve(blob ?? file), "image/webp", quality);
   });
 }
 
@@ -699,14 +695,14 @@ async function onPhotoSelected(e: Event) {
   uploadingPhoto.value = true;
   errorMessage.value = "";
   try {
-    const resized = await resizeImage(file);
+    const [resized, thumb] = await Promise.all([resizeImage(file), resizeImage(file, MEMBER_THUMB_SIZE, 0.8)]);
     const form = new FormData();
     form.append("file", resized, "photo.webp");
+    if (thumb !== file && thumb.type === "image/webp") form.append("thumb", thumb, "thumb.webp");
     await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/photo`, {
       method: "POST",
       body: form,
     });
-    photoVersion.value++;
     await refreshMember();
   } catch (err: unknown) {
     const ex = err as { data?: { statusMessage?: string }; message?: string };
@@ -723,7 +719,6 @@ async function removePhoto() {
   errorMessage.value = "";
   try {
     await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/photo`, { method: "DELETE" });
-    photoVersion.value++;
     await refreshMember();
   } catch (err: unknown) {
     const ex = err as { data?: { statusMessage?: string }; message?: string };
