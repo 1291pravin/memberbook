@@ -2,7 +2,7 @@
 
 Owners send their member list once from **Send us your data** (`/dashboard/upload`), or we add it for them from `/admin/setup`. It can be Excel or CSV files, photos of a paper register, a PDF, or pasted text, in any layout and often in Hinglish. A scheduled Claude Code routine runs every hour. It reads each waiting upload and loads the plans, members and due dates through the admin API. The data goes live straight away, with no human check, so load only what you can read with confidence.
 
-Everything runs through `scripts/uploads.mjs`, which needs `MEMBERBOOK_ADMIN_TOKEN` (the production `NUXT_ADMIN_API_TOKEN`) in the environment.
+Everything runs through `scripts/uploads.mjs`, which needs `MEMBERBOOK_UPLOADS_TOKEN` (the production `NUXT_AI_WORKER_UPLOADS_TOKEN`) in the environment. That token only opens the upload endpoints; never give the task the master admin token.
 
 ## Each run
 

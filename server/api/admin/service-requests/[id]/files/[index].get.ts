@@ -2,7 +2,7 @@ import { blob } from "@nuxthub/blob";
 
 /** Download one of a website's photos (for the routine to look at). */
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event);
+  await requireAdminOrAiWorker(event, "services");
   const req = await getServiceRequestOr404(event);
   const site = await ensureWebsite(req.orgId);
   const index = Number(getRouterParam(event, "index"));

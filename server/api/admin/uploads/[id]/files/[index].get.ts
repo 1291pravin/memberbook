@@ -2,7 +2,7 @@ import { blob } from "@nuxthub/blob";
 
 /** Download one file of an upload. */
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event);
+  await requireAdminOrAiWorker(event, "uploads");
   const upload = await getUploadOr404(event);
   const index = Number(getRouterParam(event, "index"));
   const file = parseUploadFiles(upload.files)[index];

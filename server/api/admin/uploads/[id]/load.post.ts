@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
  * plus optional `upiId` and `final: false` to load in several calls.
  */
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event);
+  await requireAdminOrAiWorker(event, "uploads");
   const upload = await getUploadOr404(event);
   if (upload.status !== "processing") {
     throw createError({ statusCode: 409, statusMessage: "Claim the upload first" });

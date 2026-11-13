@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
  * Reviews: { text } goes straight to the owner.
  */
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event);
+  await requireAdminOrAiWorker(event, "services");
   const req = await getServiceRequestOr404(event);
   if (req.status !== "working") throw createError({ statusCode: 409, statusMessage: "Claim the request first" });
   const body = await readBody<{ html?: string; summary?: string; text?: string }>(event);

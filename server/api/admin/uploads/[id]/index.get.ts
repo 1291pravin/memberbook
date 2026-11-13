@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 
 /** One upload with everything needed to read it: pasted text, file list and the business's current plans. */
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event);
+  await requireAdminOrAiWorker(event, "uploads");
   const upload = await getUploadOr404(event);
 
   const [org] = await db.select({
