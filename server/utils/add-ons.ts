@@ -130,6 +130,25 @@ async function createPrepaidBill(orgId: number, key: AddOnKey, amount: number, s
   return inserted.length > 0;
 }
 
+/** The open (due or claimed) prepaid bill for this add-on, if any. */
+export async function openPrepaidBill(orgId: number, key: AddOnKey) {
+  const open = await db.select().from(schema.addOnBills)
+    .where(and(eq(schema.addOnBills.orgId, orgId), inArray(schema.addOnBills.status, ["due", "claimed"])));
+  return open.find((b: typeof schema.addOnBills.$inferSelect) => parseJson<BillItem[]>(b.items, []).some(i => i.addOn === key && i.prepaid)) ?? null;
+}
+
+/**
+ * Owner switched a prepaid add-on off before paying: drop its unpaid bill so
+ * nothing is left asking for money. A bill they already claimed (entered a
+ * UPI reference) stays for the admin to check.
+ */
+export async function dropUnpaidPrepaidBill(orgId: number, key: AddOnKey) {
+  const bill = await openPrepaidBill(orgId, key);
+  if (bill?.status === "due") {
+    await db.delete(schema.addOnBills).where(and(eq(schema.addOnBills.id, bill.id), eq(schema.addOnBills.status, "due")));
+  }
+}
+
 /**
  * Admin verified (or waived) a bill: extend every prepaid add-on on it by
  * PREPAID_DAYS, from its current paid-until date or from today if it lapsed.

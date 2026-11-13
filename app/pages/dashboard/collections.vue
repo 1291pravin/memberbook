@@ -5,7 +5,7 @@
         <h1 class="text-xl font-bold text-slate-800">Collections</h1>
         <p class="text-sm text-slate-600 mt-0.5">Who owes you money. Remind them on WhatsApp with a UPI pay link, or mark them paid.</p>
       </div>
-      <AppButton v-if="isOwner" size="sm" variant="secondary" class="shrink-0 whitespace-nowrap !px-3" @click="openSettings">
+      <AppButton v-if="isOwner" size="sm" variant="secondary" class="shrink-0 whitespace-nowrap !px-3" @click="openSettings()">
         <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.3 4.3c.4-1.7 2.9-1.7 3.4 0a1.7 1.7 0 002.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 001 2.5c1.8.4 1.8 2.9 0 3.4a1.7 1.7 0 00-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 00-2.6 1c-.4 1.8-2.9 1.8-3.4 0a1.7 1.7 0 00-2.5-1c-1.6.9-3.3-.9-2.4-2.4a1.7 1.7 0 00-1.1-2.6c-1.7-.4-1.7-2.9 0-3.4a1.7 1.7 0 001.1-2.5c-.9-1.6.8-3.3 2.4-2.4a1.7 1.7 0 002.5-1.1z" /><circle cx="12" cy="12" r="3" /></svg>
         <span class="sm:hidden">Settings</span><span class="hidden sm:inline">Payment settings</span>
       </AppButton>
@@ -14,7 +14,7 @@
     <!-- UPI ID missing -->
     <div
       v-if="data && !data.settings.upiId"
-      class="rounded-xl border border-warning-200 bg-warning-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+      class="rounded-xl border border-accent-200 bg-accent-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3"
     >
       <div class="flex-1">
         <p class="text-sm font-semibold text-slate-800">Add your UPI ID to get paid faster</p>
@@ -22,30 +22,28 @@
           Every reminder will include a pay link. {{ t.members }} tap it, their UPI app opens with the amount filled in, and the money goes straight to your account.
         </p>
       </div>
-      <AppButton v-if="isOwner" size="sm" @click="openSettings">Add UPI ID</AppButton>
+      <AppButton v-if="isOwner" size="sm" @click="openSettings()">Add UPI ID</AppButton>
       <p v-else class="text-sm text-slate-700">Ask the owner to add it.</p>
     </div>
 
-    <!-- How reminders are sent -->
+    <!-- Automatic reminders: turn on / pay / checking -->
+    <AutoRemindersCard
+      :data="data"
+      :is-owner="isOwner"
+      compact
+      @turn-on="openSettings(true)"
+      @pay="showPay = true"
+    />
+
     <div
-      v-if="data?.reminderBlocked"
-      class="rounded-xl border border-warning-200 bg-warning-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+      v-if="data?.reminderBlocked === 'limit'"
+      class="rounded-xl border border-accent-200 bg-accent-50 p-4"
     >
-      <div class="flex-1">
-        <p class="text-sm font-semibold text-slate-800">{{ data.reminderBlocked === 'unpaid' ? 'Pay to start automatic reminders' : 'Automatic reminders are paused' }}</p>
-        <p class="text-sm text-slate-700 mt-0.5">
-          <template v-if="data.reminderBlocked === 'unpaid'">
-            Automatic reminders are paid upfront. Pay ₹199 for the month on the Add-ons page. Reminders start the morning after we confirm your payment.
-          </template>
-          <template v-else>
-            You have used all {{ data.reminderUsage?.limit }} WhatsApp reminders for this month. They start again on the 1st.
-          </template>
-          Until then, tap <span class="font-medium">Remind</span> to send from your own phone.
-        </p>
-      </div>
-      <NuxtLink v-if="data.reminderBlocked === 'unpaid'" to="/dashboard/add-ons">
-        <AppButton size="sm">Pay now</AppButton>
-      </NuxtLink>
+      <p class="text-sm font-semibold text-slate-800">Automatic reminders are paused</p>
+      <p class="text-sm text-slate-700 mt-0.5">
+        You have used all {{ data.reminderUsage?.limit }} WhatsApp reminders for this month. They start again on the 1st.
+        Until then, tap <span class="font-medium">Remind</span> to send from your own phone.
+      </p>
     </div>
     <p v-if="data" class="text-xs text-slate-600">
       <template v-if="data.sendsViaCloud && data.sendsFrom === 'own'">
@@ -57,7 +55,7 @@
       <template v-else-if="!data.reminderBlocked">
         Tap <span class="font-medium text-slate-700">Remind</span> and WhatsApp opens with the message ready. Just press send.
       </template>
-      <template v-if="data.reminderUsage && data.settings.autoRemindersEnabled">
+      <template v-if="data.reminderUsage && data.settings.autoRemindersEnabled && !data.reminderBlocked">
         {{ data.reminderUsage.used }} of {{ data.reminderUsage.limit }} reminders used this month.
       </template>
     </p>
@@ -192,12 +190,12 @@
         </div>
 
         <div class="rounded-lg border border-slate-200 p-3">
-          <label class="flex items-start gap-3" :class="data?.cloudAvailable ? 'cursor-pointer' : 'opacity-60'">
+          <label class="flex items-start gap-3" :class="data?.canTurnOnReminders ? 'cursor-pointer' : 'opacity-60'">
             <input
               v-model="settingsForm.autoRemindersEnabled"
               type="checkbox"
               class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary-600"
-              :disabled="!data?.cloudAvailable"
+              :disabled="!data?.canTurnOnReminders"
             >
             <span>
               <span class="block text-sm font-medium text-slate-700">Send reminders automatically</span>
@@ -209,8 +207,11 @@
                   Every morning, MemberBook sends due reminders from its WhatsApp number with your business name. Up to 3 reminders per payment, 3 days apart.
                 </template>
                 <template v-else-if="data?.needsAddOn">
-                  Switch on <NuxtLink to="/dashboard/add-ons" class="font-medium text-primary-700 underline">Automatic fee reminders</NuxtLink> in Add-ons first.
-                  It's ₹199 a month for up to 500 reminders, paid upfront.
+                  Every morning, MemberBook sends due reminders from its WhatsApp number with your business name and a UPI pay link. Up to 3 reminders per payment, 3 days apart.
+                  <span class="mt-1 block font-medium text-slate-700">
+                    {{ formatCurrency(data.reminderPlan.price) }} a month for up to {{ data.reminderPlan.included }} reminders, paid upfront.
+                    <template v-if="settingsForm.autoRemindersEnabled">Save, then pay by UPI on the next screen.</template>
+                  </span>
                 </template>
                 <template v-else>
                   Coming soon: MemberBook will send reminders for you every morning, so you don't have to.
@@ -246,10 +247,21 @@
         </div>
       </form>
     </AppModal>
+    <!-- Pay ₹199 to start automatic reminders -->
+    <AppModal :open="showPay && !!data?.reminderBill" title="Start automatic reminders" size="sm" @close="showPay = false">
+      <ReminderPayBox
+        v-if="data?.reminderBill"
+        :bill="data.reminderBill"
+        :included="data.reminderPlan.included"
+        @claimed="onClaimed"
+      />
+    </AppModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { ReminderBill } from "~/components/ReminderPayBox.vue";
+
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 useHead({ title: "Collections - MemberBook" });
 
@@ -287,6 +299,9 @@ interface CollectionsResponse {
   reminderUsage: { used: number; limit: number } | null;
   reminderBlocked: "limit" | "unpaid" | null;
   reminderPaidUntil: string | null;
+  canTurnOnReminders: boolean;
+  reminderPlan: { price: number; included: number };
+  reminderBill: ReminderBill | null;
   summary: { overdueCount: number; overdueAmount: number; upcomingCount: number; upcomingAmount: number };
   items: CollectionItem[];
 }
@@ -426,12 +441,12 @@ const settingsForm = reactive({ upiId: "", upiPayeeName: "", reminderDaysBefore:
 const settingsError = ref("");
 const savingSettings = ref(false);
 
-function openSettings() {
+function openSettings(turnOnReminders = false) {
   const s = data.value?.settings;
   settingsForm.upiId = s?.upiId ?? "";
   settingsForm.upiPayeeName = s?.upiPayeeName ?? "";
   settingsForm.reminderDaysBefore = String(s?.reminderDaysBefore ?? 3);
-  settingsForm.autoRemindersEnabled = s?.autoRemindersEnabled ?? false;
+  settingsForm.autoRemindersEnabled = (s?.autoRemindersEnabled ?? false) || (turnOnReminders && !!data.value?.canTurnOnReminders);
   settingsForm.thankYouReceipts = s?.thankYouReceipts ?? false;
   settingsError.value = "";
   showSettings.value = true;
@@ -447,12 +462,14 @@ async function saveSettings() {
         upiId: settingsForm.upiId,
         upiPayeeName: settingsForm.upiPayeeName,
         reminderDaysBefore: Number(settingsForm.reminderDaysBefore),
-        ...(data.value?.cloudAvailable ? { autoRemindersEnabled: settingsForm.autoRemindersEnabled } : {}),
+        ...(data.value?.canTurnOnReminders ? { autoRemindersEnabled: settingsForm.autoRemindersEnabled } : {}),
         ...(data.value?.cloudAvailable && data.value?.sendsFrom === "memberbook" ? { thankYouReceipts: settingsForm.thankYouReceipts } : {}),
       },
     });
     showSettings.value = false;
     await refresh();
+    // Just switched on the paid plan: go straight to paying for it.
+    if (settingsForm.autoRemindersEnabled && data.value?.reminderBill?.status === "due") showPay.value = true;
   }
   catch (err) {
     settingsError.value = errorMessage(err, "Could not save your settings.");
@@ -461,4 +478,20 @@ async function saveSettings() {
     savingSettings.value = false;
   }
 }
+
+// Pay for automatic reminders
+const showPay = ref(false);
+async function onClaimed() {
+  showPay.value = false;
+  await refresh();
+}
+
+// Links from Home: ?turnOn=1 opens settings with reminders ticked, ?pay=1 opens the payment.
+const route = useRoute();
+onMounted(() => {
+  if (!isOwner.value) return;
+  if (route.query.pay && data.value?.reminderBill?.status === "due") showPay.value = true;
+  else if (route.query.turnOn) openSettings(true);
+  if (route.query.pay || route.query.turnOn) navigateTo({ query: {} }, { replace: true });
+});
 </script>

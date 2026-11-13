@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.serviceRequests.orgId, access.orgId)).orderBy(desc(schema.serviceRequests.id)).limit(50),
   ]);
 
-  const visible = new Set(addOnsForType(org?.type).map(a => a.key));
+  const visible = new Set(addOnsForType(org?.type).filter(a => !a.notInMenu).map(a => a.key));
   const { upiId, payeeName } = billingUpi(event);
 
   return {
