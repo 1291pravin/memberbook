@@ -144,7 +144,7 @@
         <AppCard class="!p-4 hover:border-primary-200 transition-colors">
           <div class="flex items-start gap-3">
             <div class="h-10 w-10 shrink-0 rounded-full overflow-hidden bg-slate-100 ring-1 ring-slate-200 flex items-center justify-center text-sm font-semibold text-slate-600">
-              <img v-if="member.photoKey" :src="`/api/orgs/${orgId}/members/${member.id}/photo?v=${member.photoKey}`" alt="" class="h-full w-full object-cover">
+              <MemberPhoto v-if="member.photoKey && orgId" :org-id="orgId" :member-id="member.id" :photo-key="member.photoKey" />
               <span v-else>{{ memberInitials(member.name) }}</span>
             </div>
             <div class="min-w-0 flex-1">

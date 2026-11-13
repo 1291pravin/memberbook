@@ -238,14 +238,20 @@ export interface ReminderSending {
  * bills us per message, so there is no free month).
  */
 export async function reminderSending(orgId: number): Promise<ReminderSending> {
+  // Look up the add-on state alongside the own-number check (saves a database
+  // round trip on every Fees due / Home load); it's simply unused if they have their own number.
+  const sharedState = isWhatsAppCloudEnabled()
+    ? Promise.all([isPrepaidAddOnPaid(orgId, "auto_reminders"), sharedRemindersThisMonth(orgId)])
+    : null;
+  sharedState?.catch(() => {});
   const own = await getOwnSender(orgId);
   if (own) {
     return { available: true, via: "own", sender: own, displayPhoneNumber: own.displayPhoneNumber, needsAddOn: false, usage: null, blocked: null, paidUntil: null };
   }
-  if (!isWhatsAppCloudEnabled()) {
+  if (!sharedState) {
     return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: false, usage: null, blocked: null, paidUntil: null };
   }
-  const [plan, used] = await Promise.all([isPrepaidAddOnPaid(orgId, "auto_reminders"), sharedRemindersThisMonth(orgId)]);
+  const [plan, used] = await sharedState;
   if (!plan.active) {
     return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: true, usage: null, blocked: null, paidUntil: plan.paidUntil };
   }
