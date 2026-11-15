@@ -541,3 +541,14 @@ export const orgWhatsappAccounts = sqliteTable("org_whatsapp_accounts", {
   phoneIdx: index("org_whatsapp_accounts_phone_idx").on(table.phoneNumberId),
   wabaIdx: index("org_whatsapp_accounts_waba_idx").on(table.wabaId),
 }));
+
+// A business that signed up from another business's referral link and loaded
+// members; the referrer got REFERRAL_REWARD_DAYS of automatic reminders free.
+export const referralRewards = sqliteTable("referral_rewards", {
+  referredOrgId: integer("referred_org_id").primaryKey().references(() => organizations.id),
+  referrerOrgId: integer("referrer_org_id").notNull().references(() => organizations.id),
+  days: integer("days").notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  referrerIdx: index("referral_rewards_referrer_idx").on(table.referrerOrgId),
+}));

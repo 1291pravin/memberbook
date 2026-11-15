@@ -10,8 +10,10 @@ export default defineTask({
   },
   async run() {
     const result = await generateAddOnBills();
+    // Referral rewards first, so a free month earned today stops a renewal bill.
+    const referrals = await grantReferralRewards();
     const renewals = await generatePrepaidRenewals();
-    console.log(`[addons:billing] created=${result.created} businesses=${result.businesses} prepaidRenewals=${renewals}`);
-    return { result: `created ${result.created} bills, ${renewals} prepaid renewals` };
+    console.log(`[addons:billing] created=${result.created} businesses=${result.businesses} prepaidRenewals=${renewals} referralRewards=${referrals}`);
+    return { result: `created ${result.created} bills, ${renewals} prepaid renewals, ${referrals} referral rewards` };
   },
 });

@@ -134,6 +134,8 @@
           </ul>
         </section>
       </div>
+
+      <ReferCard v-if="isOwner" />
     </template>
   </div>
 </template>
