@@ -24,6 +24,7 @@
           <span v-if="addOn.prepaid && addOn.status === 'active'" class="block text-xs" :class="paidText.ok ? 'text-slate-600' : 'text-amber-700'">
             {{ paidText.text }}
           </span>
+          <span v-else-if="addOn.prepaid && addOn.trialDays && addOn.available" class="block text-xs text-slate-600">{{ addOn.trialDays }} days free, then paid upfront</span>
           <span v-else-if="addOn.prepaid && addOn.available" class="block text-xs text-slate-600">Paid upfront, no free month</span>
           <span v-else-if="addOn.status === 'active' && addOn.trialEndsOn" class="block text-xs text-slate-600">
             {{ trialText }}
@@ -41,7 +42,7 @@
         </template>
         <template v-else-if="addOn.available">
           <AppButton v-if="isOwner" size="sm" :loading="busy" @click="$emit('start')">
-            {{ addOn.prepaid && addOn.price > 0 ? 'Pay and switch on' : addOn.price > 0 ? 'Start free month' : 'Switch on' }}
+            {{ addOn.prepaid && addOn.trialDays ? 'Start free trial' : addOn.prepaid && addOn.price > 0 ? 'Pay and switch on' : addOn.price > 0 ? 'Start free month' : 'Switch on' }}
           </AppButton>
           <p v-else class="text-xs text-slate-600">Ask the owner to switch this on.</p>
         </template>
@@ -69,6 +70,7 @@ const props = defineProps<{
     status: "off" | "active" | "notify";
     trialEndsOn: string | null;
     prepaid?: boolean;
+    trialDays?: number;
     paidUntil?: string | null;
   };
   isOwner: boolean;

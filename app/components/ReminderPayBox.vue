@@ -9,7 +9,7 @@
 
     <template v-else>
       <p class="text-sm text-slate-700">
-        Pay {{ formatCurrency(bill.amount) }} for the first 30 days. That covers up to {{ included }} WhatsApp reminders.
+        Pay {{ formatCurrency(bill.amount) }} for 30 days. That covers up to {{ included }} WhatsApp reminders.
         Reminders start the morning after we confirm your payment.
       </p>
 

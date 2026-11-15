@@ -135,7 +135,7 @@
                 </div>
               </li>
             </ul>
-            <p class="addon-note">First month free on paid add-ons (WhatsApp reminders are paid upfront). Switch them on from the app.</p>
+            <p class="addon-note">First month free on paid add-ons, and 14 days free on WhatsApp reminders. Switch them on from the app.</p>
           </div>
         </div>
       </div>
@@ -298,7 +298,7 @@ function formatRupees(paise: number) {
 }
 
 const faqs: { question: string; answer: string }[] = [
-  { question: "Is it really free?", answer: "Yes. The app and setup are free forever, with no card and no contract. You only pay if you switch on a paid add-on, like your own website, and most paid add-ons start with a free month. Automatic WhatsApp reminders are paid upfront, because WhatsApp charges for every message." },
+  { question: "Is it really free?", answer: "Yes. The app and setup are free forever, with no card and no contract. You only pay if you switch on a paid add-on, like your own website, and paid add-ons start free: a free month on most, and 14 free days on automatic WhatsApp reminders." },
   { question: "How long does setup take?", answer: "Usually one working day after we get your register. You get a login, check everything, and tell us anything to fix." },
   { question: "Do my members need to install anything?", answer: "No. They get WhatsApp messages and pay by UPI. The app is for you and your staff, on any phone or computer." },
   { question: "Is my data safe?", answer: "Only you and the staff you add can see it. We never share or sell your members' numbers, and you can export everything to Excel any time." },

@@ -16,7 +16,17 @@ export default defineEventHandler(async (event) => {
 
   // Waiting for the ₹199 payment: hand the page the bill so the owner can pay right here.
   const reminderPlan = getAddOn("auto_reminders")!;
-  const bill = sending.blocked === "unpaid" ? await openPrepaidBill(access.orgId, "auto_reminders") : null;
+  // During the free trial the renewal bill appears a few days before the end, so
+  // the owner can pay early and reminders never stop.
+  const trialStart = sending.trialUntil || sending.trialEndedOn;
+  const [bill, trialResults] = await Promise.all([
+    sending.blocked === "unpaid"
+      ? ensurePrepaidBill(access.orgId, "auto_reminders")
+      : sending.trialUntil ? openPrepaidBill(access.orgId, "auto_reminders") : null,
+    trialStart && (sending.trialUntil || sending.blocked === "unpaid")
+      ? reminderResultsSince(access.orgId, addDaysToDate(trialStart, -((reminderPlan.trialDays ?? 14) - 1)))
+      : null,
+  ]);
   const billing = billingUpi(event);
 
   const overdue = items.filter(i => i.overdue);
@@ -40,9 +50,14 @@ export default defineEventHandler(async (event) => {
     reminderUsage: sending.usage,
     reminderBlocked: org.autoRemindersEnabled || sending.blocked === "unpaid" ? sending.blocked : null,
     reminderPaidUntil: sending.paidUntil,
+    reminderTrialUntil: sending.trialUntil ?? null,
+    reminderTrialEnded: Boolean(sending.trialEndedOn),
+    // Switching on now starts the free trial (never had it, never paid).
+    reminderTrialAvailable: sending.needsAddOn && !sending.trialEndedOn && !sending.paidUntil && Boolean(reminderPlan.trialDays),
+    trialResults,
     // The owner can tick "Send reminders automatically": already set up, or by paying for the plan.
     canTurnOnReminders: sending.available || sending.needsAddOn,
-    reminderPlan: { price: reminderPlan.price, included: INCLUDED_REMINDERS },
+    reminderPlan: { price: reminderPlan.price, included: INCLUDED_REMINDERS, trialDays: reminderPlan.trialDays ?? 0 },
     reminderBill: bill
       ? {
           id: bill.id,
