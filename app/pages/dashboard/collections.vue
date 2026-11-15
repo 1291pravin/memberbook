@@ -209,8 +209,14 @@
                 <template v-else-if="data?.needsAddOn">
                   Every morning, MemberBook sends due reminders from its WhatsApp number with your business name and a UPI pay link. Up to 3 reminders per payment, 3 days apart.
                   <span class="mt-1 block font-medium text-slate-700">
-                    {{ formatCurrency(data.reminderPlan.price) }} a month for up to {{ data.reminderPlan.included }} reminders, paid upfront.
-                    <template v-if="settingsForm.autoRemindersEnabled">Save, then pay by UPI on the next screen.</template>
+                    <template v-if="data.reminderTrialAvailable">
+                      Free for {{ data.reminderPlan.trialDays }} days. Then {{ formatCurrency(data.reminderPlan.price) }} a month for up to {{ data.reminderPlan.included }} reminders, paid upfront.
+                      <template v-if="settingsForm.autoRemindersEnabled">Save, and reminders start tomorrow morning.</template>
+                    </template>
+                    <template v-else>
+                      {{ formatCurrency(data.reminderPlan.price) }} a month for up to {{ data.reminderPlan.included }} reminders, paid upfront.
+                      <template v-if="settingsForm.autoRemindersEnabled">Save, then pay by UPI on the next screen.</template>
+                    </template>
                   </span>
                 </template>
                 <template v-else>
@@ -299,8 +305,12 @@ interface CollectionsResponse {
   reminderUsage: { used: number; limit: number } | null;
   reminderBlocked: "limit" | "unpaid" | null;
   reminderPaidUntil: string | null;
+  reminderTrialUntil: string | null;
+  reminderTrialEnded: boolean;
+  reminderTrialAvailable: boolean;
+  trialResults: { sent: number; paidCount: number; paidAmount: number } | null;
   canTurnOnReminders: boolean;
-  reminderPlan: { price: number; included: number };
+  reminderPlan: { price: number; included: number; trialDays: number };
   reminderBill: ReminderBill | null;
   summary: { overdueCount: number; overdueAmount: number; upcomingCount: number; upcomingAmount: number };
   items: CollectionItem[];

@@ -10,10 +10,10 @@
     <div class="min-w-0 flex-1">
       <p class="font-semibold text-slate-800">Automatic fee reminders</p>
       <p class="text-sm text-slate-600">
-        Every morning on WhatsApp, with a UPI pay link.<template v-if="needsPlan">{{ " " }}{{ formatCurrency(price) }} a month.</template>
+        Every morning on WhatsApp, with a UPI pay link.<template v-if="needsPlan">{{ " " }}{{ priceLine }}</template>
       </p>
       <div class="-ml-2.5 mt-1 flex flex-wrap items-center gap-1">
-        <AppAction v-if="isOwner" icon="check" tone="primary" @click="$emit('turn-on')">Turn on</AppAction>
+        <AppAction v-if="isOwner" icon="check" tone="primary" @click="$emit('turn-on')">{{ trialDays ? "Try free" : "Turn on" }}</AppAction>
         <AppAction icon="play" tone="slate" @click="videoOpen = true">How it works</AppAction>
       </div>
     </div>
@@ -66,9 +66,9 @@
           </li>
         </ul>
         <div class="mt-5 flex flex-wrap items-center gap-3">
-          <AppButton v-if="isOwner" @click="$emit('turn-on')">Turn on automatic reminders</AppButton>
+          <AppButton v-if="isOwner" @click="$emit('turn-on')">{{ trialDays ? `Try it free for ${trialDays} days` : "Turn on automatic reminders" }}</AppButton>
           <p v-else class="text-sm font-medium text-slate-700">Ask the owner to turn this on.</p>
-          <p v-if="needsPlan" class="text-sm text-slate-600">{{ formatCurrency(price) }} a month, up to {{ included }} reminders</p>
+          <p v-if="needsPlan" class="text-sm text-slate-600">{{ priceLine }} Up to {{ included }} reminders a month.</p>
         </div>
         <button
           v-if="!videoShown"
@@ -89,13 +89,37 @@
     class="flex flex-col gap-3 rounded-[28px] border border-accent-200 bg-accent-50 p-5 sm:flex-row sm:items-center"
   >
     <div class="flex-1">
-      <p class="font-semibold text-slate-800">Pay {{ formatCurrency(billAmount) }} to start automatic reminders</p>
+      <p class="font-semibold text-slate-800">
+        <template v-if="data?.reminderTrialEnded">Your free trial has ended. Pay {{ formatCurrency(billAmount) }} to keep reminders going</template>
+        <template v-else>Pay {{ formatCurrency(billAmount) }} to start automatic reminders</template>
+      </p>
+      <p v-if="resultsLine" class="mt-0.5 text-sm font-medium text-slate-800">{{ resultsLine }}</p>
       <p class="mt-0.5 text-sm text-slate-700">
         Reminders start the morning after we confirm your payment. Until then, tap Remind to send from your own phone.
       </p>
     </div>
     <AppButton v-if="isOwner" class="shrink-0" @click="$emit('pay')">Pay {{ formatCurrency(billAmount) }}</AppButton>
     <p v-else class="text-sm text-slate-700">Ask the owner to pay.</p>
+  </section>
+
+  <!-- Free trial running -->
+  <section
+    v-else-if="state === 'trial'"
+    class="flex flex-col gap-3 rounded-[28px] border border-primary-200 bg-primary-50 px-5 py-4 sm:flex-row sm:items-center"
+  >
+    <span class="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-[#128C4B] sm:flex">
+      <AppActionIcon name="whatsapp" class="!h-5 !w-5" />
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="font-semibold text-slate-800">Automatic reminders are on, free until {{ trialEndText }}</p>
+      <p class="mt-0.5 text-sm text-slate-700">
+        <template v-if="resultsLine">{{ resultsLine }} </template>
+        <template v-else>We send due reminders every morning. </template>
+        <template v-if="billStatus === 'claimed'">Thanks, we're checking your payment.</template>
+        <template v-else>Then {{ formatCurrency(price) }} a month to keep them going.</template>
+      </p>
+    </div>
+    <AppAction v-if="isOwner && billStatus === 'due'" icon="check" tone="primary" class="shrink-0" @click="$emit('pay')">Pay {{ formatCurrency(billAmount) }} now</AppAction>
   </section>
 
   <!-- Paid, we're checking -->
@@ -133,8 +157,12 @@ export interface AutoRemindersData {
   canTurnOnReminders?: boolean;
   reminderUsage: { used: number; limit: number } | null;
   reminderBlocked: "limit" | "unpaid" | null;
-  reminderPlan?: { price: number; included: number };
+  reminderPlan?: { price: number; included: number; trialDays?: number };
   reminderBill?: { amount: number; status: string } | null;
+  reminderTrialUntil?: string | null;
+  reminderTrialEnded?: boolean;
+  reminderTrialAvailable?: boolean;
+  trialResults?: { sent: number; paidCount: number; paidAmount: number } | null;
 }
 
 const props = defineProps<{
@@ -158,11 +186,34 @@ const price = computed(() => props.data?.reminderPlan?.price ?? 19900);
 const included = computed(() => props.data?.reminderPlan?.included ?? 500);
 const needsPlan = computed(() => Boolean(props.data?.needsAddOn));
 const billAmount = computed(() => props.data?.reminderBill?.amount ?? price.value);
+const billStatus = computed(() => props.data?.reminderBill?.status ?? null);
 
-const state = computed<"hidden" | "off" | "pay" | "checking" | "on">(() => {
+const trialDays = computed(() => (props.data?.reminderTrialAvailable && props.data.reminderPlan?.trialDays) || 0);
+const priceLine = computed(() => props.data?.reminderTrialAvailable && props.data.reminderPlan?.trialDays
+  ? `Free for ${props.data.reminderPlan.trialDays} days, then ${formatCurrency(price.value)} a month.`
+  : `${formatCurrency(price.value)} a month.`);
+
+const trialEndText = computed(() => {
+  const d = props.data?.reminderTrialUntil;
+  if (!d) return "";
+  return new Date(`${d}T00:00:00+05:30`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
+});
+
+// "12 reminders sent. 5 members paid ₹4,500 after one." Only once something was sent.
+const resultsLine = computed(() => {
+  const r = props.data?.trialResults;
+  if (!r || r.sent === 0) return "";
+  const sent = `${r.sent} ${r.sent === 1 ? "reminder" : "reminders"} sent so far.`;
+  if (r.paidCount === 0) return sent;
+  const who = r.paidCount === 1 ? t.value.memberLower : t.value.membersLower;
+  return `${sent} ${r.paidCount} ${who} paid ${formatCurrency(r.paidAmount)} after one.`;
+});
+
+const state = computed<"hidden" | "off" | "pay" | "checking" | "trial" | "on">(() => {
   const d = props.data;
   if (!d || !d.canTurnOnReminders) return "hidden";
   if (d.reminderBlocked === "unpaid") return d.reminderBill?.status === "claimed" ? "checking" : "pay";
+  if (d.sendsViaCloud && d.reminderTrialUntil) return "trial";
   if (d.sendsViaCloud) return "on";
   if (!d.settings.autoRemindersEnabled) return "off";
   return "hidden";

@@ -67,16 +67,24 @@ export async function startAddOn(orgId: number, key: AddOnKey) {
   }
   if (row?.status === "active") return;
 
-  // Prepaid: no free month. Bill now unless it's still paid up; it works once
-  // the admin verifies the payment.
+  // Prepaid: a free trial the first time (if the add-on has one), else bill
+  // now unless it's still paid up; it works once the admin verifies the payment.
   if (def.prepaid && def.price > 0) {
+    const firstTime = !row?.trialEndsOn && !row?.paidUntil;
+    const trialEndsOn = firstTime && def.trialDays
+      ? addDaysToDate(todayIST(), def.trialDays - 1)
+      : (row?.trialEndsOn ?? null);
     await upsertAddOn(orgId, key, {
       status: "active",
       price: def.price,
-      trialEndsOn: null,
+      trialEndsOn,
+      // The trial is simply a free prepaid period, so renewal bills, pausing and
+      // payment all work the same way as after a paid month.
+      ...(firstTime && def.trialDays ? { paidUntil: trialEndsOn } : {}),
       startedAt: new Date().toISOString(),
       cancelledAt: null,
     });
+    if (firstTime && def.trialDays) return;
     if (!isPrepaidActive(row?.paidUntil ?? null)) await createPrepaidBill(orgId, key, def.price, todayIST());
     return;
   }
@@ -103,9 +111,17 @@ export function isPrepaidActive(paidUntil: string | null | undefined) {
 
 /** Is this prepaid add-on switched on and paid up? */
 export async function isPrepaidAddOnPaid(orgId: number, key: AddOnKey) {
-  const [row] = await db.select({ status: schema.orgAddOns.status, paidUntil: schema.orgAddOns.paidUntil }).from(schema.orgAddOns)
+  const [row] = await db.select({ status: schema.orgAddOns.status, paidUntil: schema.orgAddOns.paidUntil, trialEndsOn: schema.orgAddOns.trialEndsOn, startedAt: schema.orgAddOns.startedAt }).from(schema.orgAddOns)
     .where(and(eq(schema.orgAddOns.orgId, orgId), eq(schema.orgAddOns.addOn, key))).limit(1);
-  return { active: row?.status === "active", paid: isPrepaidActive(row?.paidUntil), paidUntil: row?.paidUntil ?? null };
+  const paid = isPrepaidActive(row?.paidUntil);
+  return {
+    active: row?.status === "active",
+    paid,
+    paidUntil: row?.paidUntil ?? null,
+    // Still inside the free trial: paid-up only because of the trial days.
+    inTrial: paid && Boolean(row?.trialEndsOn) && row?.paidUntil === row?.trialEndsOn,
+    trialEndsOn: row?.trialEndsOn ?? null,
+  };
 }
 
 /**
@@ -128,6 +144,21 @@ async function createPrepaidBill(orgId: number, key: AddOnKey, amount: number, s
     updatedAt: now,
   }).onConflictDoNothing().returning({ id: schema.addOnBills.id });
   return inserted.length > 0;
+}
+
+/**
+ * Paused for payment but no bill yet (e.g. the free trial ran out before the
+ * daily billing task made the renewal bill): make one so the owner can pay now.
+ */
+export async function ensurePrepaidBill(orgId: number, key: AddOnKey) {
+  const existing = await openPrepaidBill(orgId, key);
+  if (existing) return existing;
+  const [row] = await db.select({ price: schema.orgAddOns.price }).from(schema.orgAddOns)
+    .where(and(eq(schema.orgAddOns.orgId, orgId), eq(schema.orgAddOns.addOn, key))).limit(1);
+  const price = row?.price || getAddOn(key)?.price || 0;
+  if (price <= 0) return null;
+  await createPrepaidBill(orgId, key, price, todayIST());
+  return openPrepaidBill(orgId, key);
 }
 
 /** The open (due or claimed) prepaid bill for this add-on, if any. */

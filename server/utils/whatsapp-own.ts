@@ -228,14 +228,18 @@ export interface ReminderSending {
   blocked: ReminderBlock | null;
   /** Prepaid through this IST date (shared number only). */
   paidUntil: string | null;
+  /** In the free trial, ending on this IST date (shared number only). */
+  trialUntil?: string | null;
+  /** The free trial was used (shared number only): when it ended. */
+  trialEndedOn?: string | null;
 }
 
 /**
  * How automatic reminders go out for this business, if at all: from its own
  * connected number (own_number add-on; Meta bills the business), else from
- * MemberBook's number, which needs the auto_reminders add-on paid upfront
- * (verified by the admin) and stays within INCLUDED_REMINDERS a month (Meta
- * bills us per message, so there is no free month).
+ * MemberBook's number, which needs the auto_reminders add-on in its free trial
+ * or paid upfront (verified by the admin), and stays within INCLUDED_REMINDERS
+ * a month (Meta bills us per message).
  */
 export async function reminderSending(orgId: number): Promise<ReminderSending> {
   // Look up the add-on state alongside the own-number check (saves a database
@@ -253,7 +257,7 @@ export async function reminderSending(orgId: number): Promise<ReminderSending> {
   }
   const [plan, used] = await sharedState;
   if (!plan.active) {
-    return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: true, usage: null, blocked: null, paidUntil: plan.paidUntil };
+    return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: true, usage: null, blocked: null, paidUntil: plan.paidUntil, trialEndedOn: plan.trialEndsOn };
   }
   const blocked: ReminderBlock | null = !plan.paid ? "unpaid" : used >= INCLUDED_REMINDERS ? "limit" : null;
   return {
@@ -265,6 +269,8 @@ export async function reminderSending(orgId: number): Promise<ReminderSending> {
     usage: { used, limit: INCLUDED_REMINDERS },
     blocked,
     paidUntil: plan.paidUntil,
+    trialUntil: plan.inTrial ? plan.trialEndsOn : null,
+    trialEndedOn: !plan.inTrial ? plan.trialEndsOn : null,
   };
 }
 

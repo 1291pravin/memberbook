@@ -37,6 +37,7 @@ export default defineEventHandler(async (event) => {
         status: state.status,
         trialEndsOn: state.trialEndsOn,
         prepaid: Boolean(def.prepaid),
+        trialDays: def.trialDays ?? 0,
         paidUntil: state.paidUntil,
       };
     }),
