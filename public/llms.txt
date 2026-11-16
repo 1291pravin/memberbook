@@ -29,4 +29,6 @@ Key facts:
 ## Free tools and templates
 
 - [Free tools](https://memberbook.in/tools): revenue calculator, fee receipt generator, WhatsApp reminder generator and more
+- [Automatic WhatsApp fee reminders](https://memberbook.in/guides/automatic-whatsapp-fee-reminders): reminders sent every morning with a UPI pay link; ₹199 a month after a 14-day free trial
+- [Gym fee reminder message](https://memberbook.in/guides/gym-fee-reminder-message): WhatsApp renewal messages for gyms in English, Hindi and Hinglish
 - [Fee reminder message templates](https://memberbook.in/guides/fee-reminder-message-templates): ready-to-send WhatsApp messages in English, Hindi, Hinglish, Marathi, Tamil and Bengali

@@ -89,6 +89,8 @@ export default defineNuxtConfig({
       { loc: "/blog/gym-owner-income-india", changefreq: "monthly", priority: 0.8 },
       { loc: "/blog/gym-bill-receipt-generator-india", changefreq: "monthly", priority: 0.8 },
       { loc: "/guides", changefreq: "weekly", priority: 0.9 },
+      { loc: "/guides/automatic-whatsapp-fee-reminders", changefreq: "monthly", priority: 0.9 },
+      { loc: "/guides/gym-fee-reminder-message", changefreq: "monthly", priority: 0.8 },
       { loc: "/guides/library-seat-management-software", changefreq: "monthly", priority: 0.8 },
       { loc: "/guides/study-room-management-app", changefreq: "monthly", priority: 0.8 },
       { loc: "/guides/abhyasika-management-software", changefreq: "monthly", priority: 0.8 },

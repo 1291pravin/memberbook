@@ -4,8 +4,8 @@
  * detail, then real FAQs (rendered as FAQPage schema).
  *
  * Honesty rules (see project memory): no invented stats, ratings or customer
- * counts, and don't claim reminders go out automatically until automatic
- * WhatsApp sending is switched on. Today the owner sends each reminder in one
+ * counts. Automatic WhatsApp reminders are live (₹199 a month after a 14-day
+ * free trial, from MemberBook's number); free users send each reminder in one
  * tap, with the amount and a UPI pay link already filled in.
  */
 
@@ -556,7 +556,7 @@ UPI-তে এক ট্যাপে পেমেন্ট করুন: {লি
 <p>Keep WhatsApp Business for conversations. Let MemberBook decide who needs a reminder and prepare it: you tap, WhatsApp opens with the message, and you hit send.</p>
 `,
     faqs: [
-      { q: "Can WhatsApp Business send automatic fee reminders?", a: "Not by itself. The app has no idea of due dates. Automatic messages need the WhatsApp Business Platform (Cloud API) connected to software that knows your members' dates." },
+      { q: "Can WhatsApp Business send automatic fee reminders?", a: "Not by itself. The app has no idea of due dates. Automatic messages need the WhatsApp Business Platform (Cloud API) connected to software that knows your members' dates, which is what MemberBook's automatic reminders do (14 days free, then ₹199 a month)." },
       { q: "Will reminders come from my own number?", a: "Today, when you tap a reminder in MemberBook, it opens your own WhatsApp, so it comes from your number." },
     ],
     publishedISO: PUBLISHED,
@@ -653,11 +653,98 @@ UPI-তে এক ট্যাপে পেমেন্ট করুন: {লি
     faqs: [
       { q: "What is the best free gym management software in India?", a: "The best one is the one that shows you every morning who owes you money and makes paying easy. MemberBook does that for free, with setup included; larger gyms needing biometrics or member apps may need paid software." },
       { q: "Is there free library management software for study rooms?", a: "Yes. MemberBook is free for self-study libraries and reading rooms, with seats, shifts, monthly fees and WhatsApp reminders." },
-      { q: "Is MemberBook really free, or a trial?", a: "Really free, forever, including setup. You only pay if you switch on an optional add-on, and each add-on starts with a free month." },
+      { q: "Is MemberBook really free, or a trial?", a: "Really free, forever, including setup. You only pay if you switch on an optional add-on, and each one starts free: a free month on most, and 14 free days on automatic WhatsApp reminders." },
     ],
     publishedISO: PUBLISHED,
     updatedISO: PUBLISHED,
     related: ["free-vs-paid-gym-software-india", "memberbook-vs-excel-register", "whatsapp-business-vs-memberbook"],
+  },
+  {
+    slug: "automatic-whatsapp-fee-reminders",
+    category: "comparison",
+    title: "Automatic WhatsApp Fee Reminders for Gyms, Libraries and Coaching Classes",
+    metaTitle: "Automatic WhatsApp Fee Reminders (14 Days Free)",
+    description: "Send fee reminders on WhatsApp automatically every morning, each with a UPI pay link to your own UPI ID. How it works, what it costs and how to start free for 14 days.",
+    answer: "Automatic fee reminders send each member a WhatsApp message on the morning their fee falls due, with the amount and a UPI link that pays you directly. With MemberBook it costs ₹199 a month for up to 500 reminders, and the first 14 days are free.",
+    content: `
+<h2>How automatic reminders work</h2>
+<ol>
+  <li><strong>Your members and due dates are in MemberBook.</strong> Send us your register in any format (photos, Excel, a list) and we load it for free.</li>
+  <li><strong>Every morning</strong> MemberBook checks who is due in the next few days and who is overdue.</li>
+  <li><strong>Each of them gets a WhatsApp message</strong> from the MemberBook number, with your business name, the amount and a <em>Pay now</em> link.</li>
+  <li><strong>The money goes straight to your UPI ID.</strong> MemberBook never holds it.</li>
+  <li>Up to 3 reminders per fee, 3 days apart. Then they stop, so nobody gets spammed.</li>
+</ol>
+
+<h2>What it costs</h2>
+<ul>
+  <li><strong>The app is free:</strong> members, plans, payments, receipts, and one-tap reminders you send yourself.</li>
+  <li><strong>Automatic reminders:</strong> ₹199 a month for up to 500 WhatsApp messages. The first 14 days are free, with no card needed.</li>
+  <li>When the trial ends, MemberBook shows you how many members paid after a reminder, so you can decide if it's worth it.</li>
+</ul>
+
+<h2>Why not just use WhatsApp Business?</h2>
+<p>The WhatsApp Business app can't send messages on a schedule, and it doesn't know when each member's fee is due. You end up scrolling your register and typing every message by hand. Automatic reminders need the official WhatsApp Business Platform connected to software that knows your due dates. That's what MemberBook does. See <a href="/guides/whatsapp-business-vs-memberbook">WhatsApp Business vs MemberBook</a>.</p>
+
+<h2>Start in three steps</h2>
+<ol>
+  <li><a href="/register">Sign up free</a> and send us your register.</li>
+  <li>Add your UPI ID in <strong>Fees due &gt; Settings</strong>.</li>
+  <li>Tick <strong>Send reminders automatically</strong>. Reminders start the next morning.</li>
+</ol>
+`,
+    faqs: [
+      { q: "Can I send fee reminders on WhatsApp automatically?", a: "Yes. MemberBook sends each member a WhatsApp reminder on the morning their fee is due, with a UPI pay link to your own UPI ID. It costs ₹199 a month for up to 500 reminders, and the first 14 days are free." },
+      { q: "Whose number do the reminders come from?", a: "From MemberBook's verified WhatsApp Business number, with your business name in every message. Members pay you directly by UPI." },
+      { q: "Does MemberBook take a cut of the fees?", a: "No. Payments go straight from the member's UPI app to your UPI ID. MemberBook only charges the flat ₹199 a month for automatic reminders." },
+      { q: "What if I don't want to pay?", a: "The app stays free. You can keep sending each reminder yourself in one tap, with the amount and pay link already filled in." },
+    ],
+    publishedISO: "2026-11-16",
+    updatedISO: "2026-11-16",
+    related: ["whatsapp-business-vs-memberbook", "fee-reminder-message-templates", "gym-fee-reminder-message"],
+  },
+  {
+    slug: "gym-fee-reminder-message",
+    category: "gym",
+    title: "Gym Fee Reminder Message for WhatsApp (English, Hindi and Hinglish)",
+    metaTitle: "Gym Fee Reminder Message for WhatsApp: Copy & Send",
+    description: "Copy-paste gym membership renewal and fee reminder messages for WhatsApp in English, Hindi and Hinglish: before expiry, on the day and after. Friendly, short, with a UPI pay link.",
+    answer: "A good gym fee reminder names the member, says when the membership ends, gives the renewal amount and includes a UPI pay link. Send it two or three days before expiry, again on the day, and once more a few days after.",
+    content: `
+<h2>Before the membership ends</h2>
+<h3>English</h3>
+<div class="template">Hi {Name}, your {Plan} membership at {Gym} ends on {Date}. Renew for ₹{Amount} to keep your streak going 💪
+Pay by UPI: {Link}</div>
+<h3>Hindi</h3>
+<div class="template">नमस्ते {नाम}, {जिम} में आपकी {प्लान} मेंबरशिप {तारीख} को खत्म हो रही है। ₹{राशि} में रिन्यू करें 💪
+UPI से भुगतान: {लिंक}</div>
+<h3>Hinglish</h3>
+<div class="template">Hi {Name}, {Gym} mein aapki membership {Date} ko khatam ho rahi hai. ₹{Amount} mein renew karein aur workout chalu rakhein 💪
+Pay karein: {Link}</div>
+
+<h2>On the day</h2>
+<div class="template">Hi {Name}, your membership at {Gym} ends today. Renew in one tap so there's no break: {Link}. Ignore if already paid. See you at the gym!</div>
+
+<h2>After it has ended</h2>
+<div class="template">Hi {Name}, we've missed you at {Gym}! Your membership ended on {Date}. Renew for ₹{Amount} here: {Link}. Reply if you'd like a different plan.</div>
+
+<h2>Tips that get renewals</h2>
+<ul>
+  <li>Send before the membership ends, not after. A member who stops coming is hard to win back.</li>
+  <li>Always include the amount and a pay link.</li>
+  <li>Offer a longer plan in the last message ("3 months for ₹X").</li>
+  <li>Send a thank-you with the receipt once they pay.</li>
+</ul>
+<p>MemberBook works out every member's expiry date and can send these reminders for you automatically every morning, with a UPI link to your own UPI ID. The app is free; <a href="/guides/automatic-whatsapp-fee-reminders">automatic reminders</a> are free for 14 days, then ₹199 a month.</p>
+`,
+    faqs: [
+      { q: "How do I remind gym members to renew?", a: "Send a short WhatsApp message two or three days before the membership ends, with the member's name, the end date, the renewal amount and a UPI pay link. Follow up on the day and once more after." },
+      { q: "Should I send gym reminders in Hindi?", a: "Use the language your members use with you. Hinglish reads naturally on WhatsApp for many gyms." },
+      { q: "Can gym fee reminders be sent automatically?", a: "Yes. MemberBook sends them every morning from its WhatsApp number with your gym's name and your UPI pay link. It's free for 14 days, then ₹199 a month for up to 500 reminders." },
+    ],
+    publishedISO: "2026-11-16",
+    updatedISO: "2026-11-16",
+    related: ["automatic-whatsapp-fee-reminders", "fee-reminder-message-templates", "gym-membership-form-format"],
   },
 ];
 
