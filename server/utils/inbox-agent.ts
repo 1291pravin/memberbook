@@ -45,6 +45,8 @@ export const MAX_REPLY_CHARS = 1200;
 export const REFIRE_AFTER_MS = 4 * 60000;
 /** Email the admin once if a message waits this long. */
 export const ALERT_AFTER_MS = 30 * 60000;
+/** The same when a scheduled task (every hour or so) does the replying. */
+export const SCHEDULED_ALERT_AFTER_MS = 100 * 60000;
 /** Don't start the AI task again within this long of the last start; the running one picks it up. */
 const FIRE_DEBOUNCE_MS = 90 * 1000;
 
@@ -66,6 +68,35 @@ export async function setAutoReply(on: boolean) {
   const now = new Date().toISOString();
   await db.insert(schema.appSettings).values({ key: AUTO_REPLY_KEY, value: on ? "on" : "off", updatedAt: now })
     .onConflictDoUpdate({ target: schema.appSettings.key, set: { value: on ? "on" : "off", updatedAt: now } });
+}
+
+/**
+ * How the AI gets started:
+ * - "services": the app fires the add-on delivery task the moment a message
+ *   arrives (needs that task's prompt to include the inbox part, see
+ *   docs/whatsapp-auto-reply.md).
+ * - "schedule" (default): a claude.ai scheduled task checks the inbox on its
+ *   own timetable and the app fires nothing. Slower, but needs no change to a
+ *   task only its owner can edit.
+ */
+export type InboxRunner = "services" | "schedule";
+const RUNNER_KEY = "inbox_ai_runner";
+
+export async function getInboxRunner(): Promise<InboxRunner> {
+  const [row] = await db.select({ value: schema.appSettings.value }).from(schema.appSettings)
+    .where(eq(schema.appSettings.key, RUNNER_KEY)).limit(1);
+  return row?.value === "services" ? "services" : "schedule";
+}
+
+export async function setInboxRunner(runner: InboxRunner) {
+  const now = new Date().toISOString();
+  await db.insert(schema.appSettings).values({ key: RUNNER_KEY, value: runner, updatedAt: now })
+    .onConflictDoUpdate({ target: schema.appSettings.key, set: { value: runner, updatedAt: now } });
+}
+
+/** How long a message may wait before the admin is emailed, given how the AI is started. */
+export function alertAfterMs(runner: InboxRunner) {
+  return runner === "services" ? ALERT_AFTER_MS : SCHEDULED_ALERT_AFTER_MS;
 }
 
 // ---------------------------------------------------------------------------
@@ -426,6 +457,7 @@ async function recordInboxFire(at: number) {
  */
 export async function fireInboxAgent(reason: string, opts: { event?: H3Event; minGapMs?: number } = {}) {
   if (!(await isAutoReplyOn())) return { fired: false, detail: "auto-reply off" };
+  if ((await getInboxRunner()) !== "services") return { fired: false, detail: "scheduled task replies" };
   const now = Date.now();
   const last = await lastInboxFireAt();
   if (last && now - last < (opts.minGapMs ?? FIRE_DEBOUNCE_MS)) return { fired: false, detail: "recently started" };
