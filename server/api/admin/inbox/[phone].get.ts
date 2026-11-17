@@ -16,11 +16,12 @@ export default defineEventHandler(async (event) => {
     status: schema.whatsappMessages.status,
     error: schema.whatsappMessages.error,
     media: schema.whatsappMessages.media,
+    sentBy: schema.whatsappMessages.sentBy,
     createdAt: schema.whatsappMessages.createdAt,
   })
     .from(schema.whatsappMessages)
     .where(eq(schema.whatsappMessages.phone, phone))
-    .orderBy(asc(schema.whatsappMessages.createdAt), asc(schema.whatsappMessages.id))
+    .orderBy(asc(schema.whatsappMessages.id))
     .limit(500);
 
   // A photo/file whose download failed when it arrived: try again (Meta keeps it ~30 days).
@@ -46,10 +47,23 @@ export default defineEventHandler(async (event) => {
   const lastIn = [...messages].reverse().find(m => m.direction === "in");
   const windowOpen = !!lastIn && Date.now() - new Date(lastIn.createdAt).getTime() < 24 * 60 * 60 * 1000;
 
+  const conv = await getConversation(phone);
+  const times = await chatTimes(phone);
+  const autoReply = await isAutoReplyOn();
+  const pausedUntil = times.lastAdminOutAt ? new Date(new Date(times.lastAdminOutAt).getTime() + ADMIN_HOLD_MS) : null;
+
   return {
     phone,
     canSend: canSendWhatsAppCloud(),
     windowOpen,
+    ai: {
+      autoReply,
+      mode: conv.mode,
+      handoffReason: conv.handoffReason,
+      notes: conv.notes,
+      orgId: conv.orgId,
+      pausedUntil: pausedUntil && pausedUntil.getTime() > Date.now() ? pausedUntil.toISOString() : null,
+    },
     messages: messages.map(({ media, ...m }) => {
       let file: { name: string; type: string; saved: boolean } | null = null;
       try {

@@ -30,6 +30,7 @@ export default defineEventHandler(async (event) => {
     body: text,
     status: result.ok ? "sent" : "failed",
     error: result.ok ? null : result.error ?? null,
+    sentBy: "admin", // pauses AI replies in this chat for a while (inbox-agent.ts)
   }).returning();
 
   await recordAdminAuditLog(event, "whatsapp_inbox_reply", { metadata: { phone, ok: result.ok } });

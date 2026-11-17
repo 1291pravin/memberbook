@@ -126,6 +126,8 @@ export default defineNuxtConfig({
       "30 3 * * *": ["reminders:daily", "addons:billing", "admin:digest"],
       // Zero-token backup for the on-demand AI runs (server/utils/ai-runs.ts).
       "41 * * * *": ["ai:wake"],
+      // WhatsApp auto-reply backup: re-start the AI or email the admin (server/tasks/inbox/check.ts).
+      "*/10 * * * *": ["inbox:check"],
     },
   },
   hub: {

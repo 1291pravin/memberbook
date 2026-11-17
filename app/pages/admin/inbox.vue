@@ -7,6 +7,27 @@
       </p>
     </div>
 
+    <div v-if="list" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-slate-200 bg-white p-3 text-sm">
+      <span class="inline-flex items-center gap-2 font-semibold text-slate-800">
+        <span class="h-2.5 w-2.5 rounded-full" :class="list.autoReply ? 'bg-green-600' : 'bg-slate-400'" aria-hidden="true" />
+        AI replies {{ list.autoReply ? "on" : "off" }}
+      </span>
+      <span class="text-slate-600">
+        {{ list.autoReply
+          ? "The AI answers new messages. Money questions and complaints come to you by email."
+          : "Nobody answers automatically. You get an email for every message." }}
+      </span>
+      <button
+        type="button"
+        class="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 font-medium text-primary-700 hover:bg-primary-50 disabled:opacity-50"
+        :disabled="togglingAi"
+        @click="toggleAutoReply"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" /></svg>
+        {{ list.autoReply ? "Turn off" : "Turn on" }}
+      </button>
+    </div>
+
     <div
       v-if="list && !list.canSend"
       class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
@@ -88,8 +109,10 @@
                 </div>
                 <p v-if="c.name" class="text-xs text-slate-600">+{{ c.phone }}</p>
                 <p class="mt-0.5 truncate text-sm text-slate-600">
-                  <span v-if="c.lastDirection === 'out'" class="text-slate-500">You: </span>{{ c.lastBody }}
+                  <span v-if="c.lastDirection === 'out'" class="text-slate-500">You: </span>
+                  <span v-else-if="c.lastDirection === 'ai'" class="text-slate-500">AI: </span>{{ c.lastBody }}
                 </p>
+                <p v-if="c.handedOver" class="mt-1 text-xs font-semibold text-amber-800">Needs you</p>
               </div>
               <span
                 v-if="c.unread"
@@ -110,16 +133,45 @@
             <button type="button" class="text-sm font-medium text-primary-600 md:hidden" @click="selected = null">
               Back
             </button>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <p class="truncate font-semibold text-slate-800">{{ threadName || `+${thread.phone}` }}</p>
               <a :href="`tel:+${thread.phone}`" class="text-xs text-slate-600 underline">+{{ thread.phone }}</a>
             </div>
+            <button
+              v-if="thread.ai"
+              type="button"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-50 disabled:opacity-50"
+              :disabled="changingMode"
+              @click="setMode(thread.ai.mode === 'human' ? 'auto' : 'human')"
+            >
+              <svg v-if="thread.ai.mode === 'human'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+              <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0" /></svg>
+              {{ thread.ai.mode === "human" ? "Let AI reply" : "I'll reply" }}
+            </button>
           </div>
 
+          <div v-if="thread.ai && thread.ai.mode === 'human'" class="border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+            <span class="font-semibold">You're handling this chat.</span>
+            <template v-if="thread.ai.handoffReason"> Reason: {{ thread.ai.handoffReason }}.</template>
+            The AI won't reply until you press "Let AI reply".
+          </div>
+          <div v-else-if="thread.ai?.pausedUntil && thread.ai.autoReply" class="border-b border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+            You replied here, so the AI waits until {{ formatClock(thread.ai.pausedUntil) }}.
+          </div>
+          <details v-if="thread.ai?.notes" class="border-b border-slate-200 px-4 py-2 text-sm">
+            <summary class="cursor-pointer font-medium text-slate-700">AI notes</summary>
+            <p class="mt-1 whitespace-pre-wrap text-slate-600">{{ thread.ai.notes }}</p>
+          </details>
+
           <div ref="scroller" class="flex-1 space-y-2 overflow-y-auto bg-slate-50 px-4 py-4">
+            <template v-for="m in thread.messages" :key="m.id">
+            <div v-if="m.direction === 'note'" class="flex justify-center">
+              <p class="max-w-[90%] whitespace-pre-wrap rounded-full bg-slate-200 px-3 py-1 text-center text-xs text-slate-700">
+                {{ m.body }} &middot; {{ formatTime(m.createdAt) }}
+              </p>
+            </div>
             <div
-              v-for="m in thread.messages"
-              :key="m.id"
+              v-else
               class="flex"
               :class="m.direction === 'out' ? 'justify-end' : 'justify-start'"
             >
@@ -136,12 +188,15 @@
                 <p v-else-if="m.file" class="mb-1 text-xs text-red-700">Couldn't save this file. Ask them to send it again.</p>
                 {{ m.body }}
                 <p class="mt-1 text-right text-[11px] text-slate-600">
+                  <span v-if="m.direction === 'out' && m.sentBy === 'ai'" class="mr-1 rounded bg-primary-100 px-1 font-semibold text-primary-800">AI</span>
+                  <span v-else-if="m.direction === 'out' && m.sentBy === 'system'" class="mr-1 rounded bg-slate-200 px-1 font-semibold text-slate-700">Auto</span>
                   {{ formatTime(m.createdAt) }}
                   <template v-if="m.direction === 'out'"> &middot; {{ m.status }}</template>
                 </p>
                 <p v-if="m.error" class="mt-1 text-xs text-red-700">{{ m.error }}</p>
               </div>
             </div>
+            </template>
           </div>
 
           <form class="border-t border-slate-200 p-3" @submit.prevent="send">
@@ -184,6 +239,7 @@ interface Conversation {
   lastAt: string;
   lastInAt: string | null;
   unread: number;
+  handedOver: boolean;
 }
 interface Message {
   id: number;
@@ -194,16 +250,18 @@ interface Message {
   status: string;
   error: string | null;
   file: { name: string; type: string; saved: boolean } | null;
+  sentBy: string | null;
   createdAt: string;
 }
 interface Thread {
   phone: string;
   canSend: boolean;
   windowOpen: boolean;
+  ai?: { autoReply: boolean; mode: string; handoffReason: string | null; notes: string | null; orgId: number | null; pausedUntil: string | null };
   messages: Message[];
 }
 
-const { data: list, pending: listPending, refresh: refreshList } = await useFetch<{ canSend: boolean; conversations: Conversation[] }>(
+const { data: list, pending: listPending, refresh: refreshList } = await useFetch<{ canSend: boolean; autoReply: boolean; conversations: Conversation[] }>(
   "/api/admin/inbox",
   { key: "admin-inbox" },
 );
@@ -331,6 +389,34 @@ async function send() {
   }
 }
 
+const togglingAi = ref(false);
+async function toggleAutoReply() {
+  if (!list.value) return;
+  togglingAi.value = true;
+  try {
+    await $fetch("/api/admin/inbox/settings", { method: "POST", body: { autoReply: !list.value.autoReply } });
+  }
+  finally {
+    togglingAi.value = false;
+    await refreshList();
+    if (selected.value) loadThread(selected.value);
+  }
+}
+
+const changingMode = ref(false);
+async function setMode(mode: "auto" | "human") {
+  if (!selected.value) return;
+  changingMode.value = true;
+  try {
+    await $fetch(`/api/admin/inbox/${selected.value}/mode`, { method: "POST", body: { mode } });
+  }
+  finally {
+    changingMode.value = false;
+    await loadThread(selected.value);
+    refreshList();
+  }
+}
+
 // Poll for new messages while the page is open.
 let timer: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
@@ -351,6 +437,9 @@ function formatShort(iso: string) {
   return Date.now() - d.getTime() < 24 * 60 * 60 * 1000
     ? d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" })
     : dateFmt.format(d);
+}
+function formatClock(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
 }
 function formatTime(iso: string) {
   return timeFmt.format(new Date(iso));

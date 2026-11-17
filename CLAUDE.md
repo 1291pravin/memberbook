@@ -129,6 +129,10 @@ Optional support channels (defaults in `nuxt.config.ts`, used by `useSupport()`)
 
 The two AI scheduled tasks on claude.ai (load owner uploads, deliver add-on services) have no schedule. The app starts them through their API triggers the moment work is queued (`server/utils/ai-runs.ts`, `wakeAiRunSoon`), and an hourly zero-token Worker cron (`ai:wake`, `41 * * * *`) re-fires a queue at most every 3 hours if work is still waiting and releases claims older than 2 hours. Needs the secrets `NUXT_AI_RUNS_UPLOADS_TOKEN` and `NUXT_AI_RUNS_SERVICES_TOKEN` (trigger IDs default in `nuxt.config.ts`); without them nothing fires.
 
+## WhatsApp auto-reply
+
+AI answers messages to the MemberBook WhatsApp number (`docs/whatsapp-auto-reply.md`). The webhook fires the add-on delivery task, which works the inbox first through `/api/admin/inbox-agent/*`; what the AI says lives in `server/utils/inbox-agent-playbook.ts`, the safety rules in `server/utils/inbox-agent.ts`. Money disputes and complaints go to Pravin by email. Switch it off or take over a chat on `/admin/inbox`.
+
 ## WhatsApp
 
 - Pravin's WhatsApp number: **9137849812** (+91 91378 49812)

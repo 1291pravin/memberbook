@@ -74,7 +74,20 @@ export default defineEventHandler(async (event) => {
             .set({ media: JSON.stringify(media) })
             .where(eq(schema.whatsappMessages.id, inserted[0]!.id));
         }
-        if (m.type !== "reaction") {
+        if (m.type === "reaction") continue;
+
+        // AI auto-reply (server/utils/inbox-agent.ts). Clear money disputes and
+        // complaints skip the AI and go to the admin; anything the AI may not
+        // answer (switched off, handed over, admin talking to them) emails the
+        // admin as before.
+        const conv = await getConversation(phone);
+        const blocked = (await isAutoReplyOn()) ? blockedReason(conv, await chatTimes(phone)) : "auto-reply is off";
+        if (!blocked) {
+          const sensitive = sensitiveReason(body);
+          if (sensitive) await handOff(event, phone, { reason: sensitive, by: "system", holdingReply: HOLDING_REPLY });
+          else wakeInboxAgent(event, `message from +${phone}`);
+        }
+        else {
           await sendInboxAlert(event, { phone, name, body });
         }
       }
