@@ -127,6 +127,13 @@
                 class="max-w-[80%] whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm shadow-sm"
                 :class="m.direction === 'out' ? 'bg-primary-50 text-slate-800' : 'bg-white text-slate-800'"
               >
+                <template v-if="m.file?.saved">
+                  <a v-if="m.file.type.startsWith('image/')" :href="`/api/admin/inbox/media/${m.id}`" target="_blank" rel="noopener" class="mb-1 block">
+                    <img :src="`/api/admin/inbox/media/${m.id}`" :alt="m.file.name" class="max-h-72 rounded" loading="lazy">
+                  </a>
+                  <a :href="`/api/admin/inbox/media/${m.id}?download=1`" class="mb-1 block text-xs font-medium text-primary-700 underline">Download {{ m.file.name }}</a>
+                </template>
+                <p v-else-if="m.file" class="mb-1 text-xs text-red-700">Couldn't save this file. Ask them to send it again.</p>
                 {{ m.body }}
                 <p class="mt-1 text-right text-[11px] text-slate-600">
                   {{ formatTime(m.createdAt) }}
@@ -186,6 +193,7 @@ interface Message {
   body: string;
   status: string;
   error: string | null;
+  file: { name: string; type: string; saved: boolean } | null;
   createdAt: string;
 }
 interface Thread {

@@ -176,6 +176,7 @@ export const whatsappMessages = sqliteTable("whatsapp_messages", {
   status: text("status").notNull(), // received, sent, delivered, read, failed
   error: text("error"),
   readAt: text("read_at"), // when an admin opened an inbound message
+  media: text("media"), // JSON { mediaId, key, name, type, size } for photos/files people send
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   waMessageIdUnique: uniqueIndex("whatsapp_messages_wa_id_unique").on(table.waMessageId),

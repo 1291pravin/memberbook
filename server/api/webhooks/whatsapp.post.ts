@@ -66,7 +66,15 @@ export default defineEventHandler(async (event) => {
           .values({ waMessageId: m.id, direction: "in", phone, contactName: name, type: String(m.type ?? "unknown"), body, status: "received", createdAt })
           .onConflictDoNothing()
           .returning({ id: schema.whatsappMessages.id });
-        if (inserted.length && m.type !== "reaction") {
+        if (!inserted.length) continue;
+        // Photos and files (e.g. a register to load): keep a copy we can open.
+        const media = await saveIncomingMedia(m, phone);
+        if (media) {
+          await db.update(schema.whatsappMessages)
+            .set({ media: JSON.stringify(media) })
+            .where(eq(schema.whatsappMessages.id, inserted[0]!.id));
+        }
+        if (m.type !== "reaction") {
           await sendInboxAlert(event, { phone, name, body });
         }
       }
