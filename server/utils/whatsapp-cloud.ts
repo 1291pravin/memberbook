@@ -1,3 +1,5 @@
+import { blob } from "@nuxthub/blob";
+
 /**
  * Meta WhatsApp Cloud API: sends fee reminders from MemberBook's own business
  * number, with the gym's name inside each message.
@@ -155,6 +157,11 @@ export async function sendWhatsAppText(to: string, text: string, sender?: WhatsA
   }
 }
 
+interface IncomingMedia {
+  id?: string;
+  mime_type?: string;
+}
+
 /** A readable one-line body for an incoming WhatsApp message of any type. */
 export interface IncomingWhatsAppMessage {
   id?: string;
@@ -164,9 +171,10 @@ export interface IncomingWhatsAppMessage {
   text?: { body?: string };
   button?: { text?: string };
   interactive?: { button_reply?: { title?: string }; list_reply?: { title?: string } };
-  image?: { caption?: string };
-  video?: { caption?: string };
-  document?: { filename?: string };
+  image?: IncomingMedia & { caption?: string };
+  video?: IncomingMedia & { caption?: string };
+  document?: IncomingMedia & { filename?: string; caption?: string };
+  audio?: IncomingMedia;
   location?: { name?: string; latitude?: number; longitude?: number };
   reaction?: { emoji?: string };
 }
@@ -178,7 +186,7 @@ export function describeIncomingMessage(m: IncomingWhatsAppMessage): string {
     case "interactive": return String(m.interactive?.button_reply?.title ?? m.interactive?.list_reply?.title ?? "[interactive reply]");
     case "image": return m.image?.caption ? `[image] ${m.image.caption}` : "[image]";
     case "video": return m.video?.caption ? `[video] ${m.video.caption}` : "[video]";
-    case "document": return `[document] ${m.document?.filename ?? ""}`.trim();
+    case "document": return `[document] ${m.document?.filename ?? ""}${m.document?.caption ? ` ${m.document.caption}` : ""}`.trim();
     case "audio": return "[voice note]";
     case "sticker": return "[sticker]";
     case "location": return `[location] ${m.location?.name ?? ""} ${m.location?.latitude ?? ""},${m.location?.longitude ?? ""}`.trim();
@@ -637,4 +645,59 @@ export async function deleteSharedTemplate(name: string): Promise<{ ok: boolean;
   const r = await graph<{ success?: boolean }>(`${wabaId}/message_templates?name=${encodeURIComponent(name)}`, { method: "DELETE" });
   statusCache = null;
   return r.ok ? { ok: true } : { ok: false, error: graphError(r) };
+}
+
+export interface SavedWhatsAppMedia {
+  mediaId: string;
+  key: string; // blob key, empty when the download failed
+  name: string;
+  type: string;
+  size: number;
+}
+
+const MEDIA_EXT: Record<string, string> = {
+  "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/heic": "heic",
+  "application/pdf": "pdf", "text/csv": "csv", "text/plain": "txt",
+  "application/vnd.ms-excel": "xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "audio/ogg": "ogg", "audio/mpeg": "mp3", "audio/mp4": "m4a", "video/mp4": "mp4", "video/3gpp": "3gp",
+};
+
+/**
+ * Save a photo/file/voice note someone sent us into blob storage so admins can
+ * see it (e.g. register photos to load). Meta only gives a media id; its
+ * download URL needs our token. Never throws: on failure the media id is kept
+ * (valid ~30 days) with an empty key.
+ */
+export async function saveIncomingMedia(m: IncomingWhatsAppMessage, phone: string): Promise<SavedWhatsAppMedia | null> {
+  const media = m.type === "image" ? m.image : m.type === "document" ? m.document : m.type === "video" ? m.video : m.type === "audio" ? m.audio : undefined;
+  if (!media?.id) return null;
+  const type = String(media.mime_type ?? "application/octet-stream").split(";")[0]!.trim();
+  const ext = MEDIA_EXT[type] ?? "bin";
+  const given = m.type === "document" ? m.document?.filename : undefined;
+  const name = (given || `${m.type}-${(m.timestamp ?? String(Date.now())).slice(-6)}.${ext}`).slice(0, 120);
+  const saved: SavedWhatsAppMedia = { mediaId: media.id, key: "", name, type, size: 0 };
+
+  const c = getWhatsAppCloudConfig();
+  if (!c.accessToken) return saved;
+  try {
+    const info = await $fetch<{ url?: string; file_size?: number }>(
+      `https://graph.facebook.com/${c.apiVersion}/${encodeURIComponent(media.id)}`,
+      { headers: { Authorization: `Bearer ${c.accessToken}` } },
+    );
+    if (!info.url) return saved;
+    const res = await fetch(info.url, { headers: { Authorization: `Bearer ${c.accessToken}` } });
+    if (!res.ok) return saved;
+    const data = await res.arrayBuffer();
+    if (data.byteLength > 25 * 1024 * 1024) return saved;
+    const key = `whatsapp/${phone}/${m.id?.replace(/[^\w-]/g, "").slice(-40) ?? Date.now()}.${ext}`;
+    await blob.put(key, new Blob([data], { type }), { contentType: type });
+    return { ...saved, key, size: data.byteLength };
+  }
+  catch (err) {
+    console.error("[whatsapp] media download failed", media.id, String(err).slice(0, 200));
+    return saved;
+  }
 }
