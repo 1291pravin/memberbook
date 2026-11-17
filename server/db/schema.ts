@@ -177,11 +177,33 @@ export const whatsappMessages = sqliteTable("whatsapp_messages", {
   error: text("error"),
   readAt: text("read_at"), // when an admin opened an inbound message
   media: text("media"), // JSON { mediaId, key, name, type, size } for photos/files people send
+  // out / note rows: admin, ai or system (NULL on old rows = admin). direction "note" is
+  // a log line shown in the inbox (e.g. "AI handed this to Pravin: refund"), never sent.
+  sentBy: text("sent_by"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   waMessageIdUnique: uniqueIndex("whatsapp_messages_wa_id_unique").on(table.waMessageId),
   phoneIdx: index("whatsapp_messages_phone_idx").on(table.phone, table.createdAt),
 }));
+
+// One row per WhatsApp contact for AI auto-replies (server/utils/inbox-agent.ts).
+export const whatsappConversations = sqliteTable("whatsapp_conversations", {
+  phone: text("phone").primaryKey(),
+  mode: text("mode").notNull().default("auto"), // auto = AI answers, human = Pravin answers
+  handoffReason: text("handoff_reason"),
+  handoffAt: text("handoff_at"),
+  orgId: integer("org_id").references(() => organizations.id), // business set up for this contact
+  notes: text("notes"), // the AI's running notes about this contact
+  claimedAt: text("claimed_at"), // an AI run is answering this chat
+  alertedAt: text("alerted_at"), // emailed the admin that a message went unanswered
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const appSettings = sqliteTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
 
 export const inquiries = sqliteTable("inquiries", {
   id: integer("id").primaryKey({ autoIncrement: true }),
