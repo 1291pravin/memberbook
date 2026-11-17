@@ -425,6 +425,7 @@ async function recordInboxFire(at: number) {
  * seconds: that run keeps checking for new messages before it ends.
  */
 export async function fireInboxAgent(reason: string, opts: { event?: H3Event; minGapMs?: number } = {}) {
+  if (!(await isAutoReplyOn())) return { fired: false, detail: "auto-reply off" };
   const now = Date.now();
   const last = await lastInboxFireAt();
   if (last && now - last < (opts.minGapMs ?? FIRE_DEBOUNCE_MS)) return { fired: false, detail: "recently started" };
