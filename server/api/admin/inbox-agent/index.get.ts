@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
   return {
     enabled,
     canSend: canSendWhatsAppCloud(),
+    runner: await getInboxRunner(),
     now: new Date().toISOString(),
     waiting: waiting.map(w => ({ phone: w.phone, name: w.name, lastInAt: w.lastInAt, claimedByAnotherRun: w.claimed })),
     playbook: INBOX_PLAYBOOK,

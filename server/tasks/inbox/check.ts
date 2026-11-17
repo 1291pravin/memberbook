@@ -23,6 +23,7 @@ export default defineTask({
       ? await fireInboxAgent(`${stale.length} chat(s) still waiting (10-minute check)`, { minGapMs: 8 * 60000 })
       : { fired: false, detail: "claimed" };
 
+    const alertAfter = alertAfterMs(await getInboxRunner());
     let alerted = 0;
     const env = (context as { cloudflare?: { env?: Record<string, unknown> } } | undefined)?.cloudflare?.env as Parameters<typeof sendAdminEmailVia>[0];
     const config = useRuntimeConfig();
@@ -30,7 +31,7 @@ export default defineTask({
     const appUrl = String(config.public.appUrl || "https://memberbook.in");
     for (const w of stale) {
       const waitedMin = Math.round((now - new Date(w.lastInAt).getTime()) / 60000);
-      if (waitedMin * 60000 < ALERT_AFTER_MS) continue;
+      if (waitedMin * 60000 < alertAfter) continue;
       const conv = await getConversation(w.phone);
       if (conv.alertedAt && conv.alertedAt >= w.lastInAt) continue;
       const who = w.name ? `${w.name} (+${w.phone})` : `+${w.phone}`;
