@@ -54,7 +54,7 @@ function greeting(lead: Lead) {
   return first ? `Hi ${first},` : "Hello,";
 }
 
-/** Plain-text bodies; the HTML version is the same text with links. */
+/** A plain-text body plus a branded HTML version of the same words. */
 export function outreachEmail(lead: Lead, kind: "first" | "follow_up", appUrl: string) {
   const w = words(lead);
   const unsubscribeUrl = `${appUrl}/unsubscribe/${lead.token}`;
@@ -62,37 +62,63 @@ export function outreachEmail(lead: Lead, kind: "first" | "follow_up", appUrl: s
   const subject = kind === "first"
     ? `Fee tracking for ${lead.businessName}`
     : `Re: Fee tracking for ${lead.businessName}`;
+  const replySubject = encodeURIComponent(`Set up MemberBook for ${lead.businessName}`);
+  const replyUrl = `mailto:${OUTREACH_REPLY_TO}?subject=${replySubject}`;
 
-  const lines = kind === "first"
+  const paragraphs = kind === "first"
     ? [
-        greeting(lead),
-        "",
         `I found ${lead.businessName} online and had a quick question: how do you keep track of which ${w.people} have paid this month and who still owes fees?`,
-        "",
-        `MemberBook is a free app made for gyms, libraries and coaching centres in India. You send us your register (a photo or an Excel file) and we load it for you. After that it shows who owes fees each day and sends them a WhatsApp reminder with a UPI pay link, so the money comes straight to you.`,
-        "",
-        `It's free to use, and we set it up for you. If you'd like us to set up your ${w.place}, just reply to this email.`,
-        "",
-        "Team MemberBook",
-        site,
+        `MemberBook is a free app made for gyms, libraries and coaching centres in India. You send us your register (a photo or an Excel file) and we load it for you.`,
       ]
     : [
-        greeting(lead),
-        "",
-        `Just checking whether you saw my note last week. If chasing fees takes up your time, we can set up MemberBook for ${lead.businessName} for free. Reply with a photo of your register, or send it on WhatsApp to +91 91378 49812, and we'll load it the same day.`,
-        "",
-        "If it's not for you, no problem. This is my last email.",
-        "",
-        "Team MemberBook",
-        site,
+        `Just checking whether you saw my note last week. If chasing fees takes up your time, we can set up MemberBook for ${lead.businessName} for free.`,
+        `Reply with a photo of your register, or send it on WhatsApp to +91 91378 49812, and we'll load it the same day.`,
       ];
+  const bullets = kind === "first"
+    ? [
+        `See who owes fees today, in one list`,
+        `WhatsApp reminders with a UPI pay link`,
+        `Money goes straight to your own UPI`,
+      ]
+    : [];
+  const closing = kind === "first"
+    ? `It's free to use, and we set it up for you. If you'd like us to set up your ${w.place}, just reply to this email.`
+    : `If it's not for you, no problem. This is my last email.`;
+  const cta = kind === "first" ? "Yes, set it up for me" : "Send my register";
 
   const footer = `You're getting this because ${lead.businessName}'s email is listed publicly. Don't want emails from MemberBook? Unsubscribe: ${unsubscribeUrl}`;
-  const text = [...lines, "", "--", footer, "MemberBook, Panvel, Maharashtra, India"].join("\n");
-  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#1e293b;max-width:560px">`
-    + lines.map(l => l === site ? `<a href="${site}">memberbook.in</a>` : (l ? esc(l) : "")).join("<br>")
-    + `<p style="margin-top:24px;font-size:12px;color:#475569">${esc(footer.replace(unsubscribeUrl, ""))}<a href="${unsubscribeUrl}">Unsubscribe</a><br>MemberBook, Panvel, Maharashtra, India</p></div>`;
+  const text = [
+    greeting(lead), "",
+    ...paragraphs.flatMap(p => [p, ""]),
+    ...(bullets.length ? [...bullets.map(b => `- ${b}`), ""] : []),
+    closing, "",
+    "Team MemberBook", site, "",
+    "--", footer, "MemberBook, Panvel, Maharashtra, India",
+  ].join("\n");
+
+  const esc = (str: string) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const font = "font-family:'Plus Jakarta Sans',-apple-system,'Segoe UI',Roboto,Arial,sans-serif";
+  const para = (t: string) => `<p style="margin:0 0 16px;${font};font-size:16px;line-height:1.6;color:#13232B">${esc(t)}</p>`;
+  const bulletRows = bullets.map(b => `<tr><td width="28" valign="top" style="padding:6px 0;${font};font-size:16px;line-height:1.5;color:#0F766E;font-weight:700">&#10003;</td><td style="padding:6px 0;${font};font-size:15px;line-height:1.5;color:#13232B">${esc(b)}</td></tr>`).join("");
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:0;background:#F4F2EC">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(kind === "first" ? "Free fee tracking and WhatsApp reminders. We set it up for you." : "We can load your register the same day, free.")}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F2EC"><tr><td align="center" style="padding:24px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border-radius:16px;border:1px solid #E7E4DC">
+<tr><td style="padding:24px 28px 8px"><a href="${site}"><img src="${appUrl}/logo.png" width="150" height="36" alt="MemberBook" style="display:block;border:0;width:150px;height:auto"></a></td></tr>
+<tr><td style="padding:16px 28px 4px">
+${para(greeting(lead))}
+${paragraphs.map(para).join("\n")}
+${bullets.length ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;background:#F0FAF8;border-radius:12px;width:100%"><tr><td style="padding:12px 16px"><table role="presentation" cellpadding="0" cellspacing="0">${bulletRows}</table></td></tr></table>` : ""}
+${para(closing)}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 20px"><tr><td style="border-radius:10px;background:#0F766E"><a href="${replyUrl}" style="display:inline-block;padding:13px 22px;${font};font-size:16px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:10px">${esc(cta)}</a></td></tr></table>
+<p style="margin:0 0 4px;${font};font-size:16px;line-height:1.6;color:#13232B">Team MemberBook</p>
+<p style="margin:0 0 24px;${font};font-size:14px;line-height:1.6"><a href="${site}" style="color:#0F766E;text-decoration:none">memberbook.in</a> &middot; <span style="color:#475569">WhatsApp +91 91378 49812</span></p>
+</td></tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px"><tr><td style="padding:16px 28px;${font};font-size:12px;line-height:1.6;color:#475569;text-align:center">
+You're getting this because ${esc(lead.businessName)}'s email is listed publicly.<br><a href="${unsubscribeUrl}" style="color:#475569">Unsubscribe</a> &middot; MemberBook, Panvel, Maharashtra, India
+</td></tr></table>
+</td></tr></table></body></html>`;
   return { subject, text, html, unsubscribeUrl };
 }
 
