@@ -142,3 +142,7 @@ AI answers messages to the MemberBook WhatsApp number (`docs/whatsapp-auto-reply
 
 - Do not use claude as the commit author
 - Always commit and push directly to `master`. Do not create feature branches.
+
+## Cold email outreach
+
+Outreach to gyms, libraries and coaching centres goes out from support@memberbook.in through Resend (`server/utils/outreach.ts`), never from anyone's personal Gmail. Leads (only publicly listed emails) are added with `POST /api/admin/outreach/leads`; the daily task `outreach:send` (09:00 IST) sends follow-ups then new leads up to 20 a day, one follow-up after 5 days, then stops. Unsubscribe page: `/unsubscribe/<token>` (plus one-click List-Unsubscribe). Needs the secret `NUXT_RESEND_API_KEY`; nothing sends until `NUXT_OUTREACH_ENABLED=true` (wrangler.jsonc vars). `POST /api/admin/outreach/test` sends a sample to support@ even while it's off. Mark replies with `POST /api/admin/outreach/leads/<id>` `{status:"replied"}`.

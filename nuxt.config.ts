@@ -123,7 +123,7 @@ export default defineNuxtConfig({
     experimental: { tasks: true },
     // 03:30 UTC = 09:00 IST. The same crons must be listed in wrangler.jsonc "triggers".
     scheduledTasks: {
-      "30 3 * * *": ["reminders:daily", "addons:billing", "admin:digest"],
+      "30 3 * * *": ["reminders:daily", "addons:billing", "admin:digest", "outreach:send"],
       // Zero-token backup for the on-demand AI runs (server/utils/ai-runs.ts).
       "41 * * * *": ["ai:wake"],
       // WhatsApp auto-reply backup: re-start the AI or email the admin (server/tasks/inbox/check.ts).
@@ -149,6 +149,13 @@ export default defineNuxtConfig({
     // Email for new WhatsApp inbox messages (must be a verified Email Routing
     // destination; sent through the ALERT_EMAIL send_email binding).
     inboxAlertEmail: "",
+    // Cold email from support@memberbook.in through Resend (server/utils/outreach.ts).
+    // NUXT_RESEND_API_KEY is a secret; NUXT_OUTREACH_ENABLED=true switches sending on.
+    resendApiKey: "",
+    outreach: {
+      enabled: "false",
+      dailyCap: 20,
+    },
     // MemberBook's own UPI ID for add-on bills (NUXT_BILLING_UPI_ID). Until it is
     // set, owners with a bill see "we'll send payment details on WhatsApp".
     billingUpiId: "",

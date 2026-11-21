@@ -575,3 +575,23 @@ export const referralRewards = sqliteTable("referral_rewards", {
 }, table => ({
   referrerIdx: index("referral_rewards_referrer_idx").on(table.referrerOrgId),
 }));
+
+// Cold email outreach (server/utils/outreach.ts). status: new, sent, followed_up,
+// replied, unsubscribed, bounced, failed. token is the unsubscribe link key.
+export const outreachLeads = sqliteTable("outreach_leads", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  email: text("email").notNull().unique(),
+  businessName: text("business_name").notNull(),
+  contactName: text("contact_name"),
+  businessType: text("business_type"), // gym, library, coaching, other
+  city: text("city"),
+  sourceUrl: text("source_url"), // the public page the email was found on
+  status: text("status").notNull().default("new"),
+  token: text("token").notNull().unique(),
+  sentAt: text("sent_at"),
+  followedUpAt: text("followed_up_at"),
+  lastError: text("last_error"),
+  notes: text("notes"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
