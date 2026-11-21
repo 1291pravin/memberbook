@@ -58,7 +58,8 @@ function greeting(lead: Lead) {
 export function outreachEmail(lead: Lead, kind: "first" | "follow_up", appUrl: string) {
   const w = words(lead);
   const unsubscribeUrl = `${appUrl}/unsubscribe/${lead.token}`;
-  const site = `${appUrl}/?utm_source=email&utm_medium=email&utm_campaign=outreach-${kind}`;
+  const step = kind === "first" ? "first" : "follow-up";
+  const site = `${appUrl}/?utm_source=email&utm_medium=cold-email&utm_campaign=outreach-${step}&utm_content=${encodeURIComponent(lead.businessType || "other")}`;
   const subject = kind === "first"
     ? `Fee tracking for ${lead.businessName}`
     : `Re: Fee tracking for ${lead.businessName}`;
@@ -92,7 +93,8 @@ export function outreachEmail(lead: Lead, kind: "first" | "follow_up", appUrl: s
     ...paragraphs.flatMap(p => [p, ""]),
     ...(bullets.length ? [...bullets.map(b => `- ${b}`), ""] : []),
     closing, "",
-    "Team MemberBook", site, "",
+    `See how MemberBook works: ${site}`, "",
+    "Team MemberBook", "",
     "--", footer, "MemberBook, Panvel, Maharashtra, India",
   ].join("\n");
 
@@ -111,7 +113,8 @@ ${para(greeting(lead))}
 ${paragraphs.map(para).join("\n")}
 ${bullets.length ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;background:#F0FAF8;border-radius:12px;width:100%"><tr><td style="padding:12px 16px"><table role="presentation" cellpadding="0" cellspacing="0">${bulletRows}</table></td></tr></table>` : ""}
 ${para(closing)}
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 20px"><tr><td style="border-radius:10px;background:#0F766E"><a href="${replyUrl}" style="display:inline-block;padding:13px 22px;${font};font-size:16px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:10px">${esc(cta)}</a></td></tr></table>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 12px"><tr><td style="border-radius:10px;background:#0F766E"><a href="${replyUrl}" style="display:inline-block;padding:13px 22px;${font};font-size:16px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:10px">${esc(cta)}</a></td></tr></table>
+<p style="margin:0 0 22px;${font};font-size:15px;line-height:1.6"><a href="${site}" style="color:#0F766E;font-weight:700;text-decoration:underline">See how MemberBook works &rarr;</a></p>
 <p style="margin:0 0 4px;${font};font-size:16px;line-height:1.6;color:#13232B">Team MemberBook</p>
 <p style="margin:0 0 24px;${font};font-size:14px;line-height:1.6"><a href="${site}" style="color:#0F766E;text-decoration:none">memberbook.in</a> &middot; <span style="color:#475569">WhatsApp +91 91378 49812</span></p>
 </td></tr></table>
