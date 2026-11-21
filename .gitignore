@@ -33,8 +33,8 @@ logs
 google-service-account.json
 
 # Outreach lead data (contains PII — never commit)
-outreach/
-!outreach/.gitkeep
+/outreach/
+!/outreach/.gitkeep
 
 # WhatsApp Baileys session (contains auth keys — never commit)
 outreach/.wa-session/
