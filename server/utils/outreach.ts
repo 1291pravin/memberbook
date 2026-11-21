@@ -126,8 +126,8 @@ You're getting this because ${esc(lead.businessName)}'s email is listed publicly
 }
 
 /** Send one email through Resend. Returns the Resend id, or throws with Resend's message. */
-export async function sendViaResend(apiKey: string, msg: { to: string; subject: string; text: string; html: string; unsubscribeUrl?: string }) {
-  const headers: Record<string, string> = {};
+export async function sendViaResend(apiKey: string, msg: { to: string; subject: string; text: string; html: string; unsubscribeUrl?: string; headers?: Record<string, string> }) {
+  const headers: Record<string, string> = { ...msg.headers };
   if (msg.unsubscribeUrl) {
     headers["List-Unsubscribe"] = `<${msg.unsubscribeUrl}>, <mailto:${OUTREACH_REPLY_TO}?subject=unsubscribe>`;
     headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";

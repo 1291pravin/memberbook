@@ -15,12 +15,15 @@ export default defineTask({
     const now = Date.now();
     if (!(await isAutoReplyOn())) return { result: "auto-reply off" };
     await releaseStaleInboxClaims(now);
+    await releaseStaleEmailClaims(now);
     const waiting = await listWaitingChats(now);
     const stale = waiting.filter(w => now - new Date(w.lastInAt).getTime() > REFIRE_AFTER_MS);
-    if (!stale.length) return { result: `waiting=${waiting.length}` };
+    const emails = await listWaitingEmails(now);
+    const staleEmails = emails.filter(e => now - new Date(e.lastInAt).getTime() > REFIRE_AFTER_MS);
+    if (!stale.length && !staleEmails.length) return { result: `waiting=${waiting.length} emails=${emails.length}` };
 
-    const fire = stale.some(w => !w.claimed)
-      ? await fireInboxAgent(`${stale.length} chat(s) still waiting (10-minute check)`, { minGapMs: 8 * 60000 })
+    const fire = stale.some(w => !w.claimed) || staleEmails.some(e => !e.claimed)
+      ? await fireInboxAgent(`${stale.length} chat(s) and ${staleEmails.length} email(s) still waiting (10-minute check)`, { minGapMs: 8 * 60000 })
       : { fired: false, detail: "claimed" };
 
     const alertAfter = alertAfterMs(await getInboxRunner());
@@ -45,7 +48,23 @@ export default defineTask({
         await updateConversation(w.phone, { alertedAt: new Date(now).toISOString() });
       }
     }
-    const result = `waiting=${waiting.length} stale=${stale.length} fired=${fire.detail} alerted=${alerted}`;
+    for (const e of staleEmails) {
+      const waitedMin = Math.round((now - new Date(e.lastInAt).getTime()) / 60000);
+      if (waitedMin * 60000 < alertAfter) continue;
+      const thread = await getThread(e.id);
+      if (!thread || (thread.alertedAt && thread.alertedAt >= e.lastInAt)) continue;
+      const who = e.name ? `${e.name} <${e.address}>` : e.address;
+      const sent = await sendAdminEmailVia(env, to, `Email unanswered: ${who}`, [
+        `${who} emailed support@ ${waitedMin} minutes ago${e.subject ? ` ("${e.subject}")` : ""} and the AI hasn't replied.`,
+        "The AI task may be failing. Reply from the admin inbox, or check the scheduled task on claude.ai.",
+        `Open it: ${appUrl}/admin/inbox?email=${e.id}`,
+      ].join("\n\n"));
+      if (sent) {
+        alerted++;
+        await updateThread(e.id, { alertedAt: new Date(now).toISOString() });
+      }
+    }
+    const result = `waiting=${waiting.length} stale=${stale.length} emails=${emails.length} staleEmails=${staleEmails.length} fired=${fire.detail} alerted=${alerted}`;
     console.log(`[inbox:check] ${result}`);
     return { result };
   },

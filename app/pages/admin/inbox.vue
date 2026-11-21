@@ -1,10 +1,27 @@
 <template>
   <div class="space-y-4">
     <div>
-      <h1 class="text-2xl font-semibold text-slate-900">WhatsApp inbox</h1>
+      <h1 class="text-2xl font-semibold text-slate-900">Inbox</h1>
       <p class="mt-1 text-sm text-slate-600">
-        Messages to MemberBook's WhatsApp number. You can reply for 24 hours after their last message.
+        {{ tab === "email"
+          ? "Emails to support@memberbook.in. Replies go out from support@ in the same email thread."
+          : "Messages to MemberBook's WhatsApp number. You can reply for 24 hours after their last message." }}
       </p>
+    </div>
+
+    <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-sm" role="tablist">
+      <button
+        v-for="t in tabs"
+        :key="t.key"
+        type="button"
+        role="tab"
+        :aria-selected="tab === t.key"
+        class="rounded-md px-3 py-1.5 font-medium"
+        :class="tab === t.key ? 'bg-primary-600 text-white' : 'text-slate-700 hover:bg-slate-50'"
+        @click="setTab(t.key)"
+      >
+        {{ t.label }}
+      </button>
     </div>
 
     <div v-if="list" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-slate-200 bg-white p-3 text-sm">
@@ -14,7 +31,7 @@
       </span>
       <span class="text-slate-600">
         {{ list.autoReply
-          ? "The AI answers new messages. Money questions and complaints come to you by email."
+          ? "The AI answers new WhatsApp messages and emails. Money questions and complaints come to you by email."
           : "Nobody answers automatically. You get an email for every message." }}
       </span>
       <button
@@ -28,6 +45,9 @@
       </button>
     </div>
 
+    <AdminEmailInbox v-if="tab === 'email'" :initial-id="initialEmailId" />
+
+    <template v-else>
     <div
       v-if="list && !list.canSend"
       class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
@@ -225,6 +245,7 @@
         </div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
@@ -300,6 +321,14 @@ async function registerNumber() {
 }
 
 const route = useRoute();
+const router = useRouter();
+const tabs = [{ key: "whatsapp", label: "WhatsApp" }, { key: "email", label: "Email" }] as const;
+const initialEmailId = Number(route.query.email) || null;
+const tab = ref<"whatsapp" | "email">(route.query.email !== undefined || route.query.tab === "email" ? "email" : "whatsapp");
+function setTab(key: "whatsapp" | "email") {
+  tab.value = key;
+  router.replace({ query: key === "email" ? { tab: "email" } : {} });
+}
 const linking = ref(false);
 const savingProfile = ref(false);
 const actionMessage = ref("");

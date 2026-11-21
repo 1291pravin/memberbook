@@ -463,7 +463,7 @@ export async function fireInboxAgent(reason: string, opts: { event?: H3Event; mi
   if (last && now - last < (opts.minGapMs ?? FIRE_DEBOUNCE_MS)) return { fired: false, detail: "recently started" };
   if (!aiRunsConfigured("services", opts.event)) return { fired: false, detail: "not configured" };
   await recordInboxFire(now);
-  return fireAiRun("services", `WhatsApp inbox: ${reason}`, opts.event);
+  return fireAiRun("services", `Inbox (WhatsApp and email): ${reason}`, opts.event);
 }
 
 export function wakeInboxAgent(event: H3Event, reason: string) {
