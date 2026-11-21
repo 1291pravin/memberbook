@@ -199,6 +199,41 @@ export const whatsappConversations = sqliteTable("whatsapp_conversations", {
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+// Emails to support@memberbook.in, answered by the AI like WhatsApp (server/utils/email-inbox.ts).
+export const emailThreads = sqliteTable("email_threads", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  address: text("address").notNull().unique(), // sender, lowercased
+  name: text("name"),
+  subject: text("subject"), // latest subject they used
+  mode: text("mode").notNull().default("auto"), // auto = AI answers, human = Pravin answers
+  handoffReason: text("handoff_reason"),
+  handoffAt: text("handoff_at"),
+  notes: text("notes"),
+  claimedAt: text("claimed_at"),
+  alertedAt: text("alerted_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const emailMessages = sqliteTable("email_messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  threadId: integer("thread_id").notNull().references(() => emailThreads.id),
+  direction: text("direction").notNull(), // in, out, note
+  messageId: text("message_id"), // RFC 5322 Message-ID, with <>
+  referencesHeader: text("references_header"),
+  subject: text("subject"),
+  body: text("body").notNull(),
+  attachments: text("attachments"), // JSON [{ name, type, size }] (not stored)
+  status: text("status").notNull(), // received, sent, failed, note
+  error: text("error"),
+  sentBy: text("sent_by"), // out/note: ai, admin, system
+  readAt: text("read_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => ({
+  threadIdx: index("email_messages_thread_idx").on(table.threadId, table.id),
+  messageIdIdx: index("email_messages_message_id_idx").on(table.messageId),
+}));
+
 export const appSettings = sqliteTable("app_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
