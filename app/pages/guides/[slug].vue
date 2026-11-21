@@ -20,6 +20,15 @@
           <p class="text-lg text-slate-800 leading-relaxed">{{ guide.answer }}</p>
         </div>
 
+        <!-- Early, small CTA: most readers leave before the bottom of the page -->
+        <div class="-mt-6 mb-10 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3">
+          <p class="flex-1 min-w-[12rem] text-sm text-slate-700">
+            <span class="font-semibold text-slate-800">MemberBook is free.</span> Send a photo of your register and we load it for you.
+          </p>
+          <a :href="setupLink" :target="setupLink.startsWith('http') ? '_blank' : undefined" rel="noopener" class="text-sm font-semibold text-primary-700 hover:underline">Send your register</a>
+          <NuxtLink to="/register" class="text-sm font-semibold text-primary-700 hover:underline">Sign up free</NuxtLink>
+        </div>
+
         <YouTubeVideo
           video-id="ULTf4xvi1yI"
           title="MemberBook: you run the place, we collect the fees"
