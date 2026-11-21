@@ -146,3 +146,7 @@ AI answers messages to the MemberBook WhatsApp number (`docs/whatsapp-auto-reply
 ## Cold email outreach
 
 Outreach to gyms, libraries and coaching centres goes out from support@memberbook.in through Resend (`server/utils/outreach.ts`), never from anyone's personal Gmail. Leads (only publicly listed emails) are added with `POST /api/admin/outreach/leads`; the daily task `outreach:send` (09:00 IST) sends follow-ups then new leads up to 20 a day, one follow-up after 5 days, then stops. Unsubscribe page: `/unsubscribe/<token>` (plus one-click List-Unsubscribe). Needs the secret `NUXT_RESEND_API_KEY`; nothing sends until `NUXT_OUTREACH_ENABLED=true` (wrangler.jsonc vars). `POST /api/admin/outreach/test` sends a sample to support@ even while it's off. Mark replies with `POST /api/admin/outreach/leads/<id>` `{status:"replied"}`.
+
+## Email auto-reply (support@)
+
+Email Routing sends support@memberbook.in to the Worker (`server/plugins/inbound-email.ts`, `cloudflare:email` hook). It forwards a copy to `NUXT_INBOX_ALERT_EMAIL` first, then `server/utils/email-inbox.ts` saves real emails (bounces, auto-replies, lists, no-reply and our own addresses are skipped) as one thread per sender, marks cold-email leads replied/unsubscribed, and wakes the same AI run as WhatsApp. The AI answers via `/api/admin/inbox-agent/email/<id>/*` (playbook section "Answering email"); replies go out from support@ through Resend with In-Reply-To/References. Admin view: `/admin/inbox` Email tab. End-to-end test: `POST /api/admin/inbox/email/test` (sends from e2e-test@memberbook.in).
