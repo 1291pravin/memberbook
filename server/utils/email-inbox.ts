@@ -330,6 +330,40 @@ export async function sendEmailReply(threadId: number, text: string, by: "ai" | 
   return { ok: !error, error: error ?? undefined, message: saved! };
 }
 
+/**
+ * Start a new conversation from support@ (not a reply): saves a thread for the address so their
+ * answer lands in /admin/inbox with our email above it, and the AI can pick it up.
+ */
+export async function sendNewEmail(opts: { to: string; name?: string | null; subject: string; text: string; by: "admin" | "system" }) {
+  const apiKey = String(useRuntimeConfig().resendApiKey || "");
+  if (!apiKey) return { ok: false, error: "NUXT_RESEND_API_KEY is not set" };
+  const now = new Date().toISOString();
+  const [thread] = await db.insert(schema.emailThreads)
+    .values({ address: opts.to, name: opts.name ?? null, subject: opts.subject, createdAt: now, updatedAt: now })
+    .onConflictDoUpdate({ target: schema.emailThreads.address, set: { updatedAt: now } })
+    .returning();
+  const bodies = emailReplyBodies(opts.text, null);
+  let resendId: string | null = null;
+  let error: string | null = null;
+  try {
+    resendId = await sendViaResend(apiKey, { to: opts.to, subject: opts.subject, text: bodies.text, html: bodies.html });
+  }
+  catch (err) {
+    error = err instanceof Error ? err.message : String(err);
+  }
+  const [saved] = await db.insert(schema.emailMessages).values({
+    threadId: thread!.id,
+    direction: "out",
+    messageId: resendId ? `resend:${resendId}` : null,
+    subject: opts.subject,
+    body: opts.text,
+    status: error ? "failed" : "sent",
+    error,
+    sentBy: opts.by,
+  }).returning();
+  return { ok: !error, error: error ?? undefined, threadId: thread!.id, message: saved! };
+}
+
 // ---------------------------------------------------------------------------
 // Hand-over
 // ---------------------------------------------------------------------------
