@@ -1,5 +1,6 @@
 import { and, desc, eq, gt, sql } from "drizzle-orm";
 import PostalMime from "postal-mime";
+import { brandedEmail, type Quoted } from "./email-layout";
 
 /**
  * AI replies to emails sent to support@memberbook.in, the email twin of the
@@ -261,31 +262,9 @@ export async function checkEmailReply(threadId: number, text: string) {
 // Sending a reply
 // ---------------------------------------------------------------------------
 
-function escapeHtml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-function linkify(escaped: string) {
-  return escaped.replace(/\bhttps?:\/\/[^\s<]+[^\s<.,;:!?)]/g, url => `<a href="${url}" style="color:#0F766E">${url}</a>`);
-}
-
-/** The reply as text and simple branded HTML, with their last email quoted under it. */
-export function emailReplyBodies(text: string, quoted: { name: string | null; address: string; at: string; body: string } | null) {
-  const signature = ["MemberBook team", "https://memberbook.in · WhatsApp +91 91378 49812"];
-  const when = quoted ? new Date(quoted.at).toUTCString().replace(/:\d\d GMT$/, " GMT") : "";
-  const who = quoted ? (quoted.name ? `${quoted.name} <${quoted.address}>` : quoted.address) : "";
-  const quotedText = quoted ? quoted.body.slice(0, 3000).split("\n").map(l => `> ${l}`).join("\n") : "";
-  const plain = [text.trim(), "", ...signature, ...(quoted ? ["", `On ${when}, ${who} wrote:`, quotedText] : [])].join("\n");
-
-  const font = "font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif";
-  const paras = text.trim().split(/\n{2,}/).map(p => `<p style="margin:0 0 14px;${font};font-size:15px;line-height:1.6;color:#1e293b">${linkify(escapeHtml(p)).replace(/\n/g, "<br>")}</p>`).join("");
-  const html = `<div style="${font}">${paras}`
-    + `<p style="margin:18px 0 0;${font};font-size:14px;line-height:1.5;color:#334155"><strong style="color:#0F766E">MemberBook team</strong><br>`
-    + `<a href="https://memberbook.in" style="color:#0F766E">memberbook.in</a> · WhatsApp +91 91378 49812</p>`
-    + (quoted ? `<div style="margin-top:22px;${font};font-size:13px;color:#475569">On ${escapeHtml(when)}, ${escapeHtml(who)} wrote:</div>`
-      + `<blockquote style="margin:6px 0 0;padding:0 0 0 12px;border-left:3px solid #cbd5e1;${font};font-size:13px;line-height:1.5;color:#475569">${escapeHtml(quoted.body.slice(0, 3000)).replace(/\n/g, "<br>")}</blockquote>` : "")
-    + `</div>`;
-  return { text: plain, html };
+/** The reply as branded HTML + text (see email-layout.ts), with their last email quoted under it. */
+export function emailReplyBodies(text: string, quoted: Quoted | null, subject = "MemberBook") {
+  return brandedEmail({ subject, body: text, quoted });
 }
 
 /** Reply in the thread from support@ through Resend, and log it. */
@@ -303,7 +282,7 @@ export async function sendEmailReply(threadId: number, text: string, by: "ai" | 
     headers["In-Reply-To"] = lastIn.messageId;
     headers.References = [lastIn.referencesHeader, lastIn.messageId].filter(Boolean).join(" ").split(/\s+/).slice(-20).join(" ");
   }
-  const bodies = emailReplyBodies(text, lastIn ? { name: thread.name, address: thread.address, at: lastIn.createdAt, body: lastIn.body } : null);
+  const bodies = emailReplyBodies(text, lastIn ? { name: thread.name, address: thread.address, at: lastIn.createdAt, body: lastIn.body } : null, subject);
 
   const apiKey = String(useRuntimeConfig().resendApiKey || "");
   let resendId: string | null = null;
@@ -342,7 +321,7 @@ export async function sendNewEmail(opts: { to: string; name?: string | null; sub
     .values({ address: opts.to, name: opts.name ?? null, subject: opts.subject, createdAt: now, updatedAt: now })
     .onConflictDoUpdate({ target: schema.emailThreads.address, set: { updatedAt: now } })
     .returning();
-  const bodies = emailReplyBodies(opts.text, null);
+  const bodies = emailReplyBodies(opts.text, null, opts.subject);
   let resendId: string | null = null;
   let error: string | null = null;
   try {

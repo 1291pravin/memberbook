@@ -127,6 +127,8 @@ You're getting this because ${esc(lead.businessName)}'s email is listed publicly
 
 /** Send one email through Resend. Returns the Resend id, or throws with Resend's message. */
 export async function sendViaResend(apiKey: string, msg: { to: string; subject: string; text: string; html: string; unsubscribeUrl?: string; headers?: Record<string, string> }) {
+  // Every email to owners and leads uses a branded HTML layout (outreachEmail or brandedEmail); never send a bare one.
+  if (!/<table[\s>]/i.test(msg.html) || !/logo\.png/.test(msg.html)) throw new Error("Not sent: use the branded email layout (brandedEmail in email-layout.ts)");
   const headers: Record<string, string> = { ...msg.headers };
   if (msg.unsubscribeUrl) {
     headers["List-Unsubscribe"] = `<${msg.unsubscribeUrl}>, <mailto:${OUTREACH_REPLY_TO}?subject=unsubscribe>`;

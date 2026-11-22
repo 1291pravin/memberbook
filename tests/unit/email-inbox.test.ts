@@ -54,9 +54,22 @@ describe("email inbox", () => {
 
   it("builds a reply with signature and quote", () => {
     const b = emailReplyBodies("Hi Ravi,\n\nIt's free. Send your register on WhatsApp.", { name: "Ravi", address: "ravi@x.com", at: "2026-11-22T04:00:00Z", body: "How much?" });
-    expect(b.text).toContain("MemberBook team");
+    expect(b.text).toContain("Team MemberBook");
     expect(b.text).toContain("> How much?");
     expect(b.html).toContain("<blockquote");
+    expect(b.html).toContain("/logo.png");
     expect(b.html).not.toContain("<script");
+  });
+
+  it("always renders the branded layout: buttons, lists, links, escaping", () => {
+    const b = emailReplyBodies("Hi <b>Ravi</b>,\n\nAll we need:\n1. Your plans\n2. Your list\n\n[Send on WhatsApp](https://wa.me/919137849812)\n\nOr see [our guide](https://memberbook.in/guides).", null, "Setup");
+    expect(b.html).toContain("<title>Setup</title>");
+    expect(b.html).toContain("&lt;b&gt;Ravi&lt;/b&gt;");
+    expect(b.html).toContain("background:#0F766E\"><a href=\"https://wa.me/919137849812\"");
+    expect(b.html).toContain(">Send on WhatsApp</a>");
+    expect(b.html).toContain(">our guide</a>");
+    expect(b.html).toContain("2.</td>");
+    expect(b.text).toContain("Send on WhatsApp: https://wa.me/919137849812");
+    expect(b.text).not.toContain("<a ");
   });
 });
