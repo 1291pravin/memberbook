@@ -65,6 +65,7 @@ const nav = [
   { to: "/admin/setup", label: "Set up", icon: "M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" },
   { to: "/admin/services", label: "Add-ons", icon: "M12 3v18M3 12h18M5 5h14v14H5z" },
   { to: "/admin/inbox", label: "Inbox", icon: "M4 4h16v12H8l-4 4z" },
+  { to: "/admin/outreach", label: "Outreach", icon: "M3 6h18v12H3zM3 6l9 7 9-7" },
 ];
 
 async function logout() {
