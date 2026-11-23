@@ -1,5 +1,6 @@
 import { and, asc, eq, isNull, lte, sql } from "drizzle-orm";
 import { db, schema } from "@nuxthub/db";
+import { localPagePath, localPages } from "../../app/data/local-pages";
 
 /**
  * Cold email outreach to gyms, libraries and coaching centres.
@@ -54,12 +55,34 @@ function greeting(lead: Lead) {
   return first ? `Hi ${first},` : "Hello,";
 }
 
+/** Lead city as a URL slug: "New Delhi" -> "delhi", "Laxmi Nagar, Delhi" -> "delhi", "Allahabad" -> "prayagraj". */
+function citySlug(city: string | null) {
+  const parts = String(city || "").toLowerCase().split(",").map(p => p.trim().replace(/^new\s+/, "").replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "")).filter(Boolean);
+  return parts.map(p => (p === "allahabad" ? "prayagraj" : p === "bombay" ? "mumbai" : p));
+}
+
+/** The city landing page (PR #70) for this lead's type and city, if we have one. */
+export function outreachCityPage(lead: Pick<Lead, "businessType" | "city">) {
+  const kind = lead.businessType;
+  if (kind !== "gym" && kind !== "library" && kind !== "coaching") return null;
+  const slugs = citySlug(lead.city);
+  const page = localPages.find(p => p.kind === kind && slugs.includes(p.slug));
+  if (!page) return null;
+  const words = kind === "library" ? "libraries" : kind === "gym" ? "gyms" : "coaching centres";
+  return { path: localPagePath(page), slug: page.slug, city: page.city, label: `${words} in ${page.city}` };
+}
+
 /** A plain-text body plus a branded HTML version of the same words. */
 export function outreachEmail(lead: Lead, kind: "first" | "follow_up", appUrl: string) {
   const w = words(lead);
   const unsubscribeUrl = `${appUrl}/unsubscribe/${lead.token}`;
   const step = kind === "first" ? "first" : "follow-up";
-  const site = `${appUrl}/?utm_source=email&utm_medium=cold-email&utm_campaign=outreach-${step}&utm_content=${encodeURIComponent(lead.businessType || "other")}`;
+  const cityPage = outreachCityPage(lead);
+  // City leads land on their city page (utm_campaign=city-<type>-<city>); others on the homepage.
+  const site = cityPage
+    ? `${appUrl}${cityPage.path}?utm_source=email&utm_medium=cold-email&utm_campaign=city-${lead.businessType}-${cityPage.slug}&utm_content=${step}`
+    : `${appUrl}/?utm_source=email&utm_medium=cold-email&utm_campaign=outreach-${step}&utm_content=${encodeURIComponent(lead.businessType || "other")}`;
+  const siteLabel = cityPage ? `See how it works for ${cityPage.label}` : "See how MemberBook works";
   const subject = kind === "first"
     ? `Fee tracking for ${lead.businessName}`
     : `Re: Fee tracking for ${lead.businessName}`;
@@ -68,7 +91,7 @@ export function outreachEmail(lead: Lead, kind: "first" | "follow_up", appUrl: s
 
   const paragraphs = kind === "first"
     ? [
-        `I found ${lead.businessName} online and had a quick question: how do you keep track of which ${w.people} have paid this month and who still owes fees?`,
+        `I found ${lead.businessName} ${cityPage ? `while looking at ${cityPage.label}` : "online"} and had a quick question: how do you keep track of which ${w.people} have paid this month and who still owes fees?`,
         `MemberBook is a free app made for gyms, libraries and coaching centres in India. You send us your register (a photo or an Excel file) and we load it for you.`,
       ]
     : [
@@ -93,7 +116,7 @@ export function outreachEmail(lead: Lead, kind: "first" | "follow_up", appUrl: s
     ...paragraphs.flatMap(p => [p, ""]),
     ...(bullets.length ? [...bullets.map(b => `- ${b}`), ""] : []),
     closing, "",
-    `See how MemberBook works: ${site}`, "",
+    `${siteLabel}: ${site}`, "",
     "Team MemberBook", "",
     "--", footer, "MemberBook, Panvel, Maharashtra, India",
   ].join("\n");
@@ -114,7 +137,7 @@ ${paragraphs.map(para).join("\n")}
 ${bullets.length ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;background:#F0FAF8;border-radius:12px;width:100%"><tr><td style="padding:12px 16px"><table role="presentation" cellpadding="0" cellspacing="0">${bulletRows}</table></td></tr></table>` : ""}
 ${para(closing)}
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 12px"><tr><td style="border-radius:10px;background:#0F766E"><a href="${replyUrl}" style="display:inline-block;padding:13px 22px;${font};font-size:16px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:10px">${esc(cta)}</a></td></tr></table>
-<p style="margin:0 0 22px;${font};font-size:15px;line-height:1.6"><a href="${site}" style="color:#0F766E;font-weight:700;text-decoration:underline">See how MemberBook works &rarr;</a></p>
+<p style="margin:0 0 22px;${font};font-size:15px;line-height:1.6"><a href="${site}" style="color:#0F766E;font-weight:700;text-decoration:underline">${esc(siteLabel)} &rarr;</a></p>
 <p style="margin:0 0 4px;${font};font-size:16px;line-height:1.6;color:#13232B">Team MemberBook</p>
 <p style="margin:0 0 24px;${font};font-size:14px;line-height:1.6"><a href="${site}" style="color:#0F766E;text-decoration:none">memberbook.in</a> &middot; <span style="color:#475569">WhatsApp +91 91378 49812</span></p>
 </td></tr></table>
