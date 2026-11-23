@@ -11,6 +11,9 @@ export default defineTask({
     description: "Start the AI tasks if uploads or add-on requests are waiting",
   },
   async run() {
+    // Runs on the shared every-10-minutes cron; act once an hour only.
+    const minute = new Date().getUTCMinutes();
+    if (minute < 40 || minute >= 50) return { result: "skipped (not the hourly slot)" };
     const now = Date.now();
     const out: string[] = [];
     for (const queue of ["uploads", "services"] as const) {
