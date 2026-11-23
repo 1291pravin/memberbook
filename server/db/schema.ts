@@ -240,6 +240,18 @@ export const appSettings = sqliteTable("app_settings", {
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+// Phones that get admin inbox alerts (Web Push, server/utils/web-push.ts).
+export const pushSubscriptions = sqliteTable("push_subscriptions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  device: text("device"),
+  lastSentAt: text("last_sent_at"),
+  lastError: text("last_error"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
 export const inquiries = sqliteTable("inquiries", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   orgId: integer("org_id").notNull().references(() => organizations.id),

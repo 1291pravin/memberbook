@@ -1,7 +1,7 @@
 <template>
   <div class="admin-shell min-h-screen lg:flex">
-    <aside class="admin-sidebar flex flex-wrap items-center gap-1 border-b px-3 py-2 lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:shrink-0 lg:flex-col lg:flex-nowrap lg:items-stretch lg:border-b-0 lg:border-r lg:px-3.5 lg:py-5">
-      <NuxtLink to="/admin/today" class="mr-3 flex items-center gap-2.5 px-2.5 py-1 lg:mr-0 lg:pb-5">
+    <aside class="admin-sidebar flex flex-nowrap items-center gap-1 overflow-x-auto border-b px-3 py-2 lg:overflow-visible lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:shrink-0 lg:flex-col lg:flex-nowrap lg:items-stretch lg:border-b-0 lg:border-r lg:px-3.5 lg:py-5">
+      <NuxtLink to="/admin/today" class="mr-3 flex shrink-0 items-center gap-2.5 px-2.5 py-1 lg:mr-0 lg:pb-5">
         <BrandMark :size="28" />
         <span class="flex flex-col leading-tight">
           <span class="text-sm font-semibold">MemberBook</span>
@@ -13,7 +13,7 @@
         v-for="item in nav"
         :key="item.to"
         :to="item.to"
-        class="admin-nav-link flex min-h-10 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium"
+        class="admin-nav-link flex min-h-10 shrink-0 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium"
         active-class="admin-nav-link--active"
       >
         <svg class="h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
@@ -26,7 +26,7 @@
 
       <button
         type="button"
-        class="admin-nav-link ml-auto flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-sm lg:ml-0"
+        class="admin-nav-link ml-auto flex min-h-10 shrink-0 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-sm lg:ml-0"
         @click="logout"
       >
         <svg class="h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
@@ -49,8 +49,17 @@ useSeoMeta({
   robots: "noindex, nofollow",
 });
 
+// Admin can be added to the phone's home screen as "MB Inbox" (opens the inbox,
+// gets alerts through public/admin-sw.js).
 useHead({
+  meta: [
+    { name: "apple-mobile-web-app-capable", content: "yes" },
+    { name: "mobile-web-app-capable", content: "yes" },
+    { name: "apple-mobile-web-app-title", content: "MB Inbox" },
+    { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+  ],
   link: [
+    { rel: "manifest", href: "/admin.webmanifest", key: "manifest" },
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
     { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
     { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" },

@@ -393,6 +393,14 @@ export async function handleIncomingEmail(raw: ArrayBuffer, envelopeFrom: string
   if (saved.duplicate) return "duplicate";
   const { threadId } = saved;
 
+  // Alert on the admin's phone (inbox added to the home screen).
+  await sendAdminPush({
+    title: `Email: ${mail.name || mail.from}`,
+    body: [mail.subject, mail.text].filter(Boolean).join("\n").replace(/\s+/g, " ").trim().slice(0, 300),
+    url: `/admin/inbox?email=${threadId}`,
+    tag: `email-${threadId}`,
+  });
+
   // Replies to our cold emails.
   const [lead] = await db.select().from(schema.outreachLeads).where(eq(schema.outreachLeads.email, mail.from)).limit(1);
   if (lead && isOptOut(mail.subject, mail.text)) {

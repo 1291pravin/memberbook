@@ -20,3 +20,12 @@ Messages to MemberBook's WhatsApp number (+91 91378 49812) are answered by AI. P
 
 - "AI replies on/off" switch for the whole inbox (`app_settings.inbox_auto_reply`, on by default). Off = old behaviour: an email for every message.
 - Per chat: "I'll reply" (take over) and "Let AI reply" (hand back; also lifts the 6-hour pause). AI messages carry an **AI** tag, automatic holding replies an **Auto** tag, and hand-overs/skips/setup steps show as grey log lines. "AI notes" shows what the AI remembers about the contact.
+
+## Phone alerts for the admin (Web Push)
+
+Open `/admin/inbox` on the phone and add it to the home screen ("MB Inbox"; on iPhone use Share > Add to Home Screen, and open it from there). Tap **Turn on** in the Phone alerts card. Every new WhatsApp message (webhook) and email to support@ then sends a push alert; tapping it opens that chat (`/admin/inbox?phone=…` or `?email=…`).
+
+- Code: `server/utils/web-push.ts` (VAPID + RFC 8291 encryption with WebCrypto), `server/api/admin/push/*`, `public/admin-sw.js`, `public/admin.webmanifest`, `app/components/AdminPushAlerts.vue`.
+- Saved phones: table `push_subscriptions` (migration 0029). Dead ones (404/410) are deleted automatically.
+- The VAPID key pair is generated on first use and stored in `app_settings` (`vapid_keys`). No secret to set. Deleting it cuts off every saved phone until alerts are turned on again.
+- Test: "Send test" on the card, or `POST /api/admin/push/test`.

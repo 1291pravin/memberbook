@@ -24,7 +24,8 @@
       </button>
     </div>
 
-    <div v-if="list" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-slate-200 bg-white p-3 text-sm">
+    <!-- On a phone an open chat comes first (e.g. opened from an alert); these cards wait on the list view. -->
+    <div v-if="list" class="flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-slate-200 bg-white p-3 text-sm" :class="chatOpen ? 'hidden lg:flex' : 'flex'">
       <span class="inline-flex items-center gap-2 font-semibold text-slate-800">
         <span class="h-2.5 w-2.5 rounded-full" :class="list.autoReply ? 'bg-green-600' : 'bg-slate-400'" aria-hidden="true" />
         AI replies {{ list.autoReply ? "on" : "off" }}
@@ -45,6 +46,8 @@
       </button>
     </div>
 
+    <AdminPushAlerts :class="chatOpen ? 'hidden lg:block' : ''" />
+
     <AdminEmailInbox v-if="tab === 'email'" :initial-id="initialEmailId" />
 
     <template v-else>
@@ -55,7 +58,7 @@
       Replies are off until the WhatsApp number is connected (access token and phone number ID).
     </div>
 
-    <div v-else-if="number" class="rounded-lg border border-slate-200 bg-white p-3 text-sm">
+    <div v-else-if="number" class="rounded-lg border border-slate-200 bg-white p-3 text-sm" :class="chatOpen ? 'hidden lg:block' : ''">
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
         <p class="font-semibold text-slate-800">
           {{ number.verifiedName || "WhatsApp number" }} {{ number.displayPhoneNumber }}
@@ -375,6 +378,7 @@ async function saveProfile() {
 }
 
 const selected = ref<string | null>(null);
+const chatOpen = computed(() => tab.value === "whatsapp" && Boolean(selected.value));
 const thread = ref<Thread | null>(null);
 const draft = ref("");
 const sending = ref(false);
