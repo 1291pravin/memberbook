@@ -40,6 +40,8 @@ export const organizations = sqliteTable("organizations", {
   // Send a WhatsApp thank-you with the PDF receipt when a payment is recorded (counts toward the reminder allowance)
   thankYouReceipts: integer("thank_you_receipts", { mode: "boolean" }).notNull().default(false),
   checkInToken: text("check_in_token"), // public self check-in link /checkin/<token>, null = not set up
+  googleReviewUrl: text("google_review_url"), // owner's Google "write a review" link, for the review poster
+  reviewToken: text("review_token"), // public short link /r/<token> that counts scans and goes to googleReviewUrl
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -496,6 +498,16 @@ export const siteVisits = sqliteTable("site_visits", {
 }, (table) => ({
   dayIdx: index("site_visits_day_idx").on(table.day),
   visitorIdx: index("site_visits_visitor_idx").on(table.visitorId, table.createdAt),
+}));
+
+// One row per scan of a business's review poster QR (or tap on its /r/ link).
+export const reviewLinkScans = sqliteTable("review_link_scans", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  source: text("source").notNull().default("qr"), // qr (poster), wa (WhatsApp message link)
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  orgCreatedIdx: index("review_link_scans_org_created_idx").on(table.orgId, table.createdAt),
 }));
 
 // Add-on services a business has switched on. Also the per-business feature

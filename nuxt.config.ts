@@ -69,6 +69,8 @@ export default defineNuxtConfig({
       "/register",
       "/pay/**",
       "/checkin/**",
+      "/r/**",
+      "/review-poster/**",
     ],
     defaults: {
       changefreq: "weekly",

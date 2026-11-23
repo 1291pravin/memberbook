@@ -11,6 +11,7 @@
 export type AddOnKey =
   | "website"
   | "reviews"
+  | "review_poster"
   | "self_check_in"
   | "auto_reminders"
   | "own_number"
@@ -95,16 +96,29 @@ export const ADD_ONS: AddOnDef[] = [
   },
   {
     key: "reviews",
-    name: "Google review help",
+    name: "Google review replies",
     tagline: "Replies written for your Google reviews, and a monthly summary of what members say.",
     points: [
       "Paste a review, get a polite reply to post",
       "Monthly summary: what members love and what to fix",
-      "Ask your members for reviews in one tap",
+      "Free review poster for your front desk included",
     ],
     price: 19900,
     ready: true,
     page: "/dashboard/add-ons/reviews",
+  },
+  {
+    key: "review_poster",
+    name: "Google review poster",
+    tagline: "A QR poster for your front desk. Members scan it and review you on Google in 30 seconds.",
+    points: [
+      "Print-ready A4 poster with your business name",
+      "See how many people scanned it each month",
+      "Send it to a print shop on WhatsApp in one tap",
+    ],
+    price: 0,
+    ready: true,
+    page: "/dashboard/add-ons/review-poster",
   },
   {
     key: "self_check_in",
