@@ -45,6 +45,7 @@ export default defineEventHandler(async (event) => {
         await updateOwnTemplateStatus(entry.id, value.message_template_name, value.event);
         continue;
       }
+      if (change.field === "account_update") console.log("[wa-webhook] account_update", JSON.stringify(value).slice(0, 1000));
       if (change.field === "account_update" && entry.id && value.event === "PARTNER_REMOVED") {
         await markOwnAccountRemoved(entry.id);
         continue;

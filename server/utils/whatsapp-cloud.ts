@@ -241,6 +241,10 @@ export interface PhoneNumberStatus {
   qualityRating?: string;
   businessAccountId?: string | null;
   webhooksSubscribed?: boolean | null;
+  codeVerificationStatus?: string;
+  accountMode?: string;
+  health?: unknown;
+  subscribedApps?: unknown;
 }
 
 /** Find the WhatsApp Business Account that owns our phone number, from the token's granted scopes. */
@@ -269,14 +273,17 @@ export async function getPhoneNumberStatus(): Promise<PhoneNumberStatus> {
     const r = await graph<{
       id?: string; display_phone_number?: string; verified_name?: string; name_status?: string;
       status?: string; platform_type?: string; quality_rating?: string;
-    }>(`${c.phoneNumberId}?fields=display_phone_number,verified_name,name_status,status,platform_type,quality_rating`);
+      code_verification_status?: string; account_mode?: string; health_status?: unknown;
+    }>(`${c.phoneNumberId}?fields=display_phone_number,verified_name,name_status,status,platform_type,quality_rating,code_verification_status,account_mode,health_status`);
     if (!r.ok) return { ok: false, error: graphError(r) };
 
     const businessAccountId = await findBusinessAccountId().catch(() => null);
     let webhooksSubscribed: boolean | null = null;
+    let subscribedApps: unknown;
     if (businessAccountId) {
       const subs = await graph<{ data?: unknown[] }>(`${businessAccountId}/subscribed_apps`);
       webhooksSubscribed = subs.ok ? (subs.data.data?.length ?? 0) > 0 : null;
+      subscribedApps = subs.ok ? subs.data.data : undefined;
     }
     return {
       ok: true,
@@ -287,6 +294,10 @@ export async function getPhoneNumberStatus(): Promise<PhoneNumberStatus> {
       status: r.data.status,
       platformType: r.data.platform_type,
       qualityRating: r.data.quality_rating,
+      codeVerificationStatus: r.data.code_verification_status,
+      accountMode: r.data.account_mode,
+      health: r.data.health_status,
+      subscribedApps,
       businessAccountId,
       webhooksSubscribed,
     };
