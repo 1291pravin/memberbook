@@ -92,6 +92,14 @@ export default defineEventHandler(async (event) => {
         else {
           await sendInboxAlert(event, { phone, name, body });
         }
+
+        // Alert on the admin's phone (inbox added to the home screen).
+        pushInBackground(event, {
+          title: `WhatsApp: ${name || `+${phone}`}${blocked ? "" : " (AI replying)"}`,
+          body,
+          url: `/admin/inbox?phone=${phone}`,
+          tag: `wa-${phone}`,
+        });
       }
 
       for (const s of value.statuses ?? []) {
