@@ -25,7 +25,10 @@ interface CloudConfig {
 }
 
 export function getWhatsAppCloudConfig(): CloudConfig {
-  return useRuntimeConfig().whatsappCloud as CloudConfig;
+  const c = useRuntimeConfig().whatsappCloud as CloudConfig;
+  // Secrets pasted with a trailing newline still work in Graph URLs but break
+  // id comparisons (e.g. the webhook treating our own number as a business's).
+  return { ...c, phoneNumberId: String(c.phoneNumberId ?? "").trim(), businessAccountId: String(c.businessAccountId ?? "").trim() };
 }
 
 export function isWhatsAppCloudEnabled(): boolean {
