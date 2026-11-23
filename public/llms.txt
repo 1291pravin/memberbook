@@ -4,7 +4,7 @@
 
 Key facts:
 
-- Price: the software and the setup are free forever, with no card and no contract. Optional paid add-ons: your own website (Rs 299 a month) and Google review help (Rs 199 a month), each with a free first month, and automatic WhatsApp fee reminders (Rs 199 a month, up to 500 reminders, paid upfront). Member self check-in is free.
+- Price: the software and the setup are free forever, with no card and no contract. Optional paid add-ons: your own website (Rs 299 a month) and Google review help (Rs 199 a month), each with a free first month, and automatic WhatsApp fee reminders (Rs 199 a month, up to 500 reminders, after a 14-day free trial). Member self check-in is free.
 - Who it is for: owners of gyms, fitness studios, self-study libraries, reading rooms (abhyasika), coaching classes and tuition centres in India.
 - Payments: members pay the owner directly by UPI. MemberBook never holds the money.
 - Members install nothing. They get a WhatsApp message and pay by UPI.
@@ -20,6 +20,22 @@ Key facts:
 - [Coaching and tuition fee software](https://memberbook.in/tuition): students, batches and fee reminders to parents
 - [Features](https://memberbook.in/features)
 - [About](https://memberbook.in/about)
+
+## By city
+
+- [Library management software in Patna](https://memberbook.in/library-software/patna)
+- [Library management software in Delhi](https://memberbook.in/library-software/delhi)
+- [Library management software in Lucknow](https://memberbook.in/library-software/lucknow)
+- [Library management software in Jaipur](https://memberbook.in/library-software/jaipur)
+- [Library management software in Indore](https://memberbook.in/library-software/indore)
+- [Library management software in Prayagraj](https://memberbook.in/library-software/prayagraj)
+- [Gym management software in Mumbai](https://memberbook.in/gym-software/mumbai)
+- [Gym management software in Pune](https://memberbook.in/gym-software/pune)
+- [Gym management software in Hyderabad](https://memberbook.in/gym-software/hyderabad)
+- [Gym management software in Delhi](https://memberbook.in/gym-software/delhi)
+- [Coaching class fee software in Kota](https://memberbook.in/coaching-software/kota)
+- [Coaching class fee software in Patna](https://memberbook.in/coaching-software/patna)
+- [Coaching class fee software in Delhi](https://memberbook.in/coaching-software/delhi)
 
 ## Guides and comparisons
 

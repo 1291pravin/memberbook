@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from "@tailwindcss/vite";
+import { localPagePath, localPages } from "./app/data/local-pages";
 
 const releaseId = process.env.NUXT_PUBLIC_RELEASE_ID || `build-${Date.now()}`;
 
@@ -108,6 +109,7 @@ export default defineNuxtConfig({
       { loc: "/tools/whatsapp-gym-renewal-reminder", changefreq: "monthly", priority: 0.8 },
       { loc: "/tools/tuition-fee-receipt-generator", changefreq: "monthly", priority: 0.8 },
       { loc: "/tools/gym-membership-revenue-calculator", changefreq: "monthly", priority: 0.8 },
+      ...localPages.map(p => ({ loc: localPagePath(p), changefreq: "monthly" as const, priority: 0.7 })),
     ],
   },
 
