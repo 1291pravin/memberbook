@@ -1,0 +1,97 @@
+import type { H3Event } from "h3";
+import { and, eq } from "drizzle-orm";
+import { db, schema } from "@nuxthub/db";
+
+/**
+ * Automatic emails to business owners at moments where they need us: right after sign-up
+ * (we offer to load their register) and when an upload couldn't be read (what to send instead).
+ * They go out from support@ in the branded layout (sendNewEmail -> brandedEmail) and are saved as
+ * an inbox thread, so the owner's reply reaches /admin/inbox and the AI answers it.
+ */
+
+const APP = "https://memberbook.in";
+
+function peopleWord(type: string) {
+  return type === "tuition" ? "students" : type === "clinic" ? "patients" : "members";
+}
+
+function firstName(name: string | null | undefined) {
+  const first = String(name || "").trim().split(/\s+/)[0] || "";
+  return /^[\p{L}][\p{L}.'-]{1,30}$/u.test(first) ? first.charAt(0).toUpperCase() + first.slice(1).toLowerCase() : "";
+}
+
+function whatsAppLink(businessName: string) {
+  return `https://wa.me/919137849812?text=${encodeURIComponent(`Hi MemberBook, please set up ${businessName}. Here is my register:`)}`;
+}
+
+function deliverable(email: string | null | undefined): email is string {
+  return !!email && /@/.test(email) && !/\.invalid$/i.test(email);
+}
+
+/** Send after the response, never failing the request. */
+function inBackground(event: H3Event, job: Promise<unknown>) {
+  const safe = job.catch(err => console.error("[owner-emails]", err));
+  const ctx = event.context.cloudflare?.context as { waitUntil?: (p: Promise<unknown>) => void } | undefined;
+  if (ctx?.waitUntil) ctx.waitUntil(safe);
+  else if (typeof event.waitUntil === "function") event.waitUntil(safe);
+}
+
+export function welcomeEmailText(opts: { ownerName: string | null; businessName: string; type: string }) {
+  const hi = firstName(opts.ownerName);
+  const people = peopleWord(opts.type);
+  return [
+    hi ? `Hi ${hi},` : "Hello,",
+    `Thanks for signing up ${opts.businessName} on MemberBook. We can load your whole register for you, free, so you don't have to type anything in.`,
+    [
+      "Just send us:",
+      `1. Your fee plans, for example "Monthly ₹800, Quarterly ₹2,200"`,
+      `2. Your ${people.replace(/s$/, "")} list: photos of your register, an Excel sheet or a typed list, with names, phone numbers and the date each fee is due`,
+    ].join("\n"),
+    `[Send it on WhatsApp](${whatsAppLink(opts.businessName)})`,
+    `Or upload it in the app: [Send us your data](${APP}/dashboard/upload)`,
+    `Once it's loaded, MemberBook shows you every morning who has to pay, and you can send each of them a WhatsApp reminder with a UPI pay link in one tap. The money goes straight to your own UPI.`,
+    "Any questions? Just reply to this email.",
+  ].join("\n\n");
+}
+
+export function uploadFailedEmailText(opts: { ownerName: string | null; businessName: string; message: string }) {
+  const hi = firstName(opts.ownerName);
+  return [
+    hi ? `Hi ${hi},` : "Hello,",
+    `Thanks for sending your files for ${opts.businessName}. We couldn't load them this time. ${opts.message.trim()}`,
+    `[Send it on WhatsApp](${whatsAppLink(opts.businessName)})`,
+    `Or upload again in the app: [Send us your data](${APP}/dashboard/upload)`,
+    "If you're not sure what to send, just reply to this email and we'll help.",
+  ].join("\n\n");
+}
+
+/** Right after an owner creates their business. */
+export function sendWelcomeEmail(event: H3Event, opts: { to: string | null | undefined; ownerName: string | null; businessName: string; type: string }) {
+  if (!deliverable(opts.to)) return;
+  inBackground(event, sendNewEmail({
+    to: opts.to,
+    name: opts.ownerName,
+    subject: `Welcome to MemberBook: we'll set up ${opts.businessName} for you`,
+    text: welcomeEmailText(opts),
+    by: "system",
+  }));
+}
+
+/** When an owner's upload couldn't be read. */
+export function sendUploadFailedEmail(event: H3Event, orgId: number, message: string) {
+  inBackground(event, (async () => {
+    const [row] = await db.select({ businessName: schema.organizations.name, email: schema.users.email, ownerName: schema.users.name })
+      .from(schema.organizations)
+      .innerJoin(schema.orgMemberships, and(eq(schema.orgMemberships.orgId, schema.organizations.id), eq(schema.orgMemberships.role, "owner")))
+      .innerJoin(schema.users, eq(schema.users.id, schema.orgMemberships.userId))
+      .where(eq(schema.organizations.id, orgId)).limit(1);
+    if (!row || !deliverable(row.email)) return;
+    await sendNewEmail({
+      to: row.email,
+      name: row.ownerName,
+      subject: `We couldn't read your upload for ${row.businessName}`,
+      text: uploadFailedEmailText({ ownerName: row.ownerName, businessName: row.businessName, message }),
+      by: "system",
+    });
+  })());
+}

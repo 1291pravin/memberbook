@@ -28,5 +28,7 @@ export default defineEventHandler(async (event) => {
     currentOrg: { orgId: org.id, name: org.name, slug: org.slug, type: org.type, role: "owner" },
   });
 
+  sendWelcomeEmail(event, { to: user.email, ownerName: user.name ?? null, businessName: org.name, type: org.type });
+
   return { org };
 });
