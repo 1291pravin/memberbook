@@ -7,11 +7,14 @@ export default defineEventHandler(async (event) => {
   await requireAdminAccess(event);
   const cfg = outreachConfig();
   if (!cfg.apiKey) throw createError({ statusCode: 400, statusMessage: "NUXT_RESEND_API_KEY is not set" });
-  const body = await readBody<{ to?: unknown }>(event).catch(() => ({} as { to?: unknown }));
+  const body = await readBody<{ to?: unknown; businessType?: unknown; city?: unknown }>(event).catch(() => ({} as { to?: unknown; businessType?: unknown; city?: unknown }));
   const to = normaliseEmail(body?.to ?? OUTREACH_REPLY_TO);
   if (!to) throw createError({ statusCode: 400, statusMessage: "to must be an email" });
   const sample = {
-    id: 0, email: to, businessName: "Test Fitness Studio", contactName: "Ravi", businessType: "gym", city: "Panvel",
+    id: 0, email: to, businessName: body?.businessType === "library" ? "Test Study Library" : body?.businessType === "coaching" ? "Test Classes" : "Test Fitness Studio", contactName: "Ravi",
+    // Pass businessType + city (e.g. "library", "Patna") to preview the city-page version.
+    businessType: ["gym", "library", "coaching"].includes(String(body?.businessType)) ? String(body?.businessType) : "gym",
+    city: typeof body?.city === "string" ? body.city.slice(0, 60) : "Panvel",
     sourceUrl: null, status: "new", token: "test-token", sentAt: null, followedUpAt: null, lastError: null, notes: null,
     createdAt: "", updatedAt: "",
   };
