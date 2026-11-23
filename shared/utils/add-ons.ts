@@ -95,12 +95,13 @@ export const ADD_ONS: AddOnDef[] = [
   },
   {
     key: "reviews",
-    name: "Google review help",
-    tagline: "Replies written for your Google reviews, and a monthly summary of what members say.",
+    name: "More Google reviews",
+    tagline: "A QR poster for your front desk that gets members to review you on Google, and replies written for every review.",
     points: [
+      "Print-ready poster with your name: members scan and review in 30 seconds",
+      "See how many people scanned it each month",
       "Paste a review, get a polite reply to post",
       "Monthly summary: what members love and what to fix",
-      "Ask your members for reviews in one tap",
     ],
     price: 19900,
     ready: true,
