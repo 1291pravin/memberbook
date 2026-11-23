@@ -27,8 +27,14 @@ export default defineEventHandler(async (event) => {
   if (taken && taken.orgId !== access.orgId) {
     throw createError({ statusCode: 409, statusMessage: "This WhatsApp number is already connected to another business on MemberBook." });
   }
+  // MemberBook's own number may only be connected to a test business (used for
+  // Meta's app review recording). Real businesses can't take it over.
   if (phoneNumberId === getWhatsAppCloudConfig().phoneNumberId) {
-    throw createError({ statusCode: 409, statusMessage: "That's MemberBook's own number." });
+    const [org] = await db.select({ name: schema.organizations.name }).from(schema.organizations)
+      .where(eq(schema.organizations.id, access.orgId)).limit(1);
+    if (!/\btest\b/i.test(org?.name ?? "")) {
+      throw createError({ statusCode: 409, statusMessage: "That's MemberBook's own number." });
+    }
   }
 
   const session = await getUserSession(event);
