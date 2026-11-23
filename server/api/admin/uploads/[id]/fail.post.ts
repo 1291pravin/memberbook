@@ -11,5 +11,6 @@ export default defineEventHandler(async (event) => {
   await db.update(schema.dataUploads)
     .set({ status: "failed", message, processedAt: new Date().toISOString() })
     .where(eq(schema.dataUploads.id, upload.id));
+  if (upload.source === "owner") sendUploadFailedEmail(event, upload.orgId, message);
   return { ok: true };
 });
