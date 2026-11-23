@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
       // Messages to a business's own number are theirs, not for MemberBook's
       // admin inbox. (Delivery ticks below still update their reminders.)
       const toOwnBusinessNumber = await isOwnBusinessNumber(value.metadata?.phone_number_id);
+      console.log("[wa-webhook]", JSON.stringify({ entry: entry.id, field: change.field, phoneId: value.metadata?.phone_number_id, own: toOwnBusinessNumber, messages: value.messages?.length ?? 0, statuses: value.statuses?.length ?? 0 }));
 
       for (const m of toOwnBusinessNumber ? [] : value.messages ?? []) {
         if (!m.id || !m.from) continue;
