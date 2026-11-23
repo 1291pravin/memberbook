@@ -2,7 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@nuxthub/db";
 
 /**
- * Google review poster (part of the "reviews" add-on). The poster QR points at
+ * Google review poster (free "review_poster" add-on, also included with "reviews"). The poster QR points at
  * our short link /r/<token>, which counts the scan and sends the member on to the
  * owner's Google "write a review" link. Going through our link means the owner
  * sees how many people scanned, and can fix a wrong Google link without
@@ -113,6 +113,12 @@ export async function getReviewScanStats(orgId: number) {
     poster30: Number(row?.qr30 ?? 0),
     whatsapp30: Number(row?.wa30 ?? 0),
   };
+}
+
+/** The poster is free, and also comes with the paid review replies add-on. */
+export async function isReviewPosterActive(orgId: number) {
+  const [poster, replies] = await Promise.all([isAddOnActive(orgId, "review_poster"), isAddOnActive(orgId, "reviews")]);
+  return poster || replies;
 }
 
 export function reviewShortUrl(appUrl: string, token: string, source?: "wa") {

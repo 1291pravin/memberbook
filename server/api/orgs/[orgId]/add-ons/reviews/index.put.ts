@@ -2,7 +2,9 @@
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
   requireOwner(access);
-  await requireAddOn(access.orgId, "reviews");
+  if (!(await isReviewPosterActive(access.orgId))) {
+    throw createError({ statusCode: 403, statusMessage: "Switch on the Google review poster first" });
+  }
   const body = await readBody<{ googleReviewUrl?: string }>(event);
   const result = normaliseGoogleReviewUrl(String(body?.googleReviewUrl ?? ""));
   if ("error" in result) throw createError({ statusCode: 400, statusMessage: result.error });
