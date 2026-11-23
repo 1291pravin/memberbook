@@ -84,6 +84,8 @@
       </div>
     </section>
 
+    <LocalCityLinks kind="library" />
+
     <!-- CTA -->
     <section class="py-16 px-4 text-center bg-slate-800 text-white">
       <div class="max-w-xl mx-auto">
