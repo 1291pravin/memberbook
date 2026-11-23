@@ -175,7 +175,7 @@ function errMsg(e: unknown, fallback: string) {
 // ------------------------------------------------ Meta's JS SDK + signup popup
 
 const sdkReady = ref(false);
-let signupInfo: { wabaId?: string; phoneNumberId?: string } = {};
+let signupInfo: { wabaId?: string; phoneNumberId?: string; businessApp?: boolean } = {};
 
 function onSignupMessage(event: MessageEvent) {
   if (!/^https:\/\/([a-z0-9-]+\.)?facebook\.com$/.test(event.origin)) return;
@@ -188,7 +188,13 @@ function onSignupMessage(event: MessageEvent) {
   }
   if (msg?.type !== "WA_EMBEDDED_SIGNUP") return;
   if (msg.event?.startsWith("FINISH")) {
-    signupInfo = { wabaId: msg.data?.waba_id, phoneNumberId: msg.data?.phone_number_id };
+    // Meta decides which steps ran: the app-number steps end with
+    // FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING, the new-number steps with FINISH.
+    signupInfo = {
+      wabaId: msg.data?.waba_id,
+      phoneNumberId: msg.data?.phone_number_id,
+      businessApp: msg.event === "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING",
+    };
   }
   else if (msg.event === "CANCEL") {
     signupInfo = {};
@@ -260,7 +266,7 @@ async function finish(code: string, businessApp: boolean) {
     }
     await api(`/api/orgs/${orgId.value}/add-ons/whatsapp/connect`, {
       method: "POST",
-      body: JSON.stringify({ code, wabaId: signupInfo.wabaId, phoneNumberId: signupInfo.phoneNumberId, businessApp }),
+      body: JSON.stringify({ code, wabaId: signupInfo.wabaId, phoneNumberId: signupInfo.phoneNumberId, businessApp: signupInfo.businessApp ?? businessApp }),
     });
     await refresh();
   }

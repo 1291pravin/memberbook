@@ -375,11 +375,29 @@ export async function refreshOwnAccount(orgId: number, appUrl: string): Promise<
   if (!token) return account;
 
   const errors: string[] = [];
-  const phone = await graphCall<{ display_phone_number?: string; verified_name?: string }>(
-    `${account.phoneNumberId}?fields=display_phone_number,verified_name`,
+  const phone = await graphCall<{ display_phone_number?: string; verified_name?: string; platform_type?: string }>(
+    `${account.phoneNumberId}?fields=display_phone_number,verified_name,platform_type`,
     token,
   );
   if (!phone.ok) errors.push(`Number: ${phone.error}`);
+
+  // A number that isn't on the Cloud API yet (platform NOT_APPLICABLE) still
+  // needs registering, e.g. when the popup ran the "new number" steps after
+  // the owner tapped the WhatsApp Business app button.
+  let pinEnc = account.pinEnc;
+  let businessApp = account.businessApp;
+  if (phone.ok && phone.data.platform_type === "NOT_APPLICABLE") {
+    const pin = randomPin();
+    const reg = await graphCall<{ success?: boolean }>(`${account.phoneNumberId}/register`, token, {
+      method: "POST",
+      body: { messaging_product: "whatsapp", pin },
+    });
+    if (reg.ok) {
+      pinEnc = await encryptSecret(pin);
+      businessApp = false;
+    }
+    else errors.push(`Register: ${reg.error}`);
+  }
 
   const tpl = await ensureTemplate(token, account.wabaId, account.templateName, account.templateLanguage, appUrl);
   if (!tpl.ok) errors.push(`Template: ${tpl.error}`);
@@ -390,6 +408,8 @@ export async function refreshOwnAccount(orgId: number, appUrl: string): Promise<
   const [row] = await db.update(schema.orgWhatsappAccounts).set({
     displayPhoneNumber: phone.data.display_phone_number ?? account.displayPhoneNumber,
     verifiedName: phone.data.verified_name ?? account.verifiedName,
+    pinEnc,
+    businessApp,
     templateStatus: tpl.ok ? tpl.status : account.templateStatus,
     status: tokenDead ? "error" : account.status,
     lastError: errors.length ? errors.join(" | ").slice(0, 1000) : null,
