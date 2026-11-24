@@ -37,6 +37,16 @@
           </div>
         </div>
 
+        <div v-if="data.paymentProblem" class="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          <p class="font-semibold">WhatsApp stopped your reminders: Meta billing isn't set up</p>
+          <p class="mt-1">
+            WhatsApp charges your business a few paise per reminder. Open
+            <a href="https://business.facebook.com/billing_hub/accounts" target="_blank" rel="noopener" class="font-medium underline">Meta Billing &amp; payments</a>,
+            pick your WhatsApp account, add a card, fill in Business info and tick the confirmation box, then Save.
+            Until then, use tap-to-send on the Fees due page.
+          </p>
+        </div>
+
         <div v-if="account.ready && !data.autoRemindersEnabled" class="mt-4 rounded-xl bg-primary-50 p-3 text-sm text-slate-700">
           Last step: switch on <span class="font-semibold">Send reminders automatically</span> on the
           <NuxtLink to="/dashboard/collections" class="font-medium text-primary-700 hover:underline">Fees due</NuxtLink> page
@@ -92,6 +102,7 @@
               <li>A Facebook window opens. Log in with the Facebook account that runs your business.</li>
               <li>Pick or create your business, then pick your WhatsApp number.</li>
               <li>We set up your reminder message. WhatsApp checks it, usually within a few minutes.</li>
+              <li>Add a card in Meta Billing &amp; payments and fill in Business info. WhatsApp charges your business a few paise per reminder.</li>
             </ol>
             <p class="mt-2">Your number and chats stay yours. You can disconnect any time.</p>
           </div>
@@ -125,6 +136,7 @@ interface OwnWhatsAppData {
   account: OwnAccount | null;
   autoRemindersEnabled: boolean;
   hasUpiId: boolean;
+  paymentProblem?: boolean;
 }
 
 interface FbLoginResponse { authResponse?: { code?: string } | null; status?: string }
