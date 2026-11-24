@@ -41,7 +41,7 @@
     >
       <p class="text-sm font-semibold text-slate-800">Automatic reminders are paused</p>
       <p class="text-sm text-slate-700 mt-0.5">
-        You have used all {{ data.reminderUsage?.limit }} WhatsApp reminders for this month. They start again on the 1st.
+        You have used all {{ data.reminderUsage?.limit }} free-trial WhatsApp reminders for this month. Pay for automatic reminders to keep sending (extra messages are 20 paise each).
         Until then, tap <span class="font-medium">Remind</span> to send from your own phone.
       </p>
     </div>
@@ -56,7 +56,7 @@
         Tap <span class="font-medium text-slate-700">Remind</span> and WhatsApp opens with the message ready. Just press send.
       </template>
       <template v-if="data.reminderUsage && data.settings.autoRemindersEnabled && !data.reminderBlocked">
-        {{ data.reminderUsage.used }} of {{ data.reminderUsage.limit }} reminders used this month.
+        {{ data.reminderUsage.used }} of {{ data.reminderUsage.limit }} included reminders used this month<template v-if="data.reminderUsage.used > data.reminderUsage.limit">; extras are 20 paise each on next month's bill</template>.
       </template>
     </p>
 
@@ -239,7 +239,7 @@
               <span class="block text-sm font-medium text-slate-700">Send a thank-you with the receipt</span>
               <span class="block text-xs text-slate-600 mt-0.5">
                 When you record a payment, we send the {{ t.memberLower }} a WhatsApp thank-you with their PDF receipt.
-                Each one counts toward your {{ data?.reminderUsage?.limit ?? 500 }} messages a month.
+                Each one counts toward your {{ data?.reminderUsage?.limit ?? 500 }} included messages a month.
                 <template v-if="!(data?.cloudAvailable && data?.sendsFrom === 'memberbook')">Needs automatic reminders switched on and paid.</template>
               </span>
             </span>

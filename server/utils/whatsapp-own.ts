@@ -259,7 +259,8 @@ export async function reminderSending(orgId: number): Promise<ReminderSending> {
   if (!plan.active) {
     return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: true, usage: null, blocked: null, paidUntil: plan.paidUntil, trialEndedOn: plan.trialEndsOn };
   }
-  const blocked: ReminderBlock | null = !plan.paid ? "unpaid" : used >= INCLUDED_REMINDERS ? "limit" : null;
+  // Paid months go past the limit and pay for the extras; the free trial stops there.
+  const blocked: ReminderBlock | null = !plan.paid ? "unpaid" : plan.inTrial && used >= INCLUDED_REMINDERS ? "limit" : null;
   return {
     available: true,
     via: "memberbook",

@@ -65,11 +65,15 @@ export const PREPAID_RENEW_DAYS_BEFORE = 3;
  * WhatsApp reminders a business can send each month (IST calendar month) from
  * MemberBook's number with the auto_reminders add-on. Meta charges us about
  * ₹0.14 per utility message with GST, so 500 costs us about ₹70 of the ₹199.
- * Sending stops at the limit; reminders from the business's own number don't
- * count (Meta bills them directly). The add-on is prepaid after a short free
+ * Past the limit, paid businesses keep sending and pay EXTRA_REMINDER_PRICE per
+ * extra message on a bill for that month (the free trial still stops at the
+ * limit). Reminders from the business's own number don't count (Meta bills them directly). The add-on is prepaid after a short free
  * trial (REMINDER_TRIAL_DAYS), because Meta bills us from the first message.
  */
 export const INCLUDED_REMINDERS = 500;
+
+/** Paise per reminder over INCLUDED_REMINDERS in a month: Meta's ~₹0.115 + 18% GST, plus a little. */
+export const EXTRA_REMINDER_PRICE = 20;
 
 /**
  * Free days of automatic reminders the first time a business switches them on.
@@ -140,7 +144,7 @@ export const ADD_ONS: AddOnDef[] = [
     points: [
       "Sent from the MemberBook WhatsApp number with your business name",
       "Each reminder has a pay link to your UPI ID",
-      `Up to ${INCLUDED_REMINDERS} reminders a month included`,
+      `${INCLUDED_REMINDERS} reminders a month included, then 20 paise per extra message`,
       `First ${REMINDER_TRIAL_DAYS} days free, then paid upfront each month`,
     ],
     price: 19900,
@@ -158,8 +162,9 @@ export const ADD_ONS: AddOnDef[] = [
       "Members see your number, not ours",
       "Keep using the WhatsApp Business app as usual",
       "Connect in two minutes with your Facebook login",
+      "WhatsApp bills your business directly for each message (about 14 paise), so you add a card in Meta once",
     ],
-    price: 49900,
+    price: 4900,
     ready: false,
     waitingOn: "Meta Tech Provider app review (embedded signup is built; switch on per business to test)",
     page: "/dashboard/add-ons/whatsapp",

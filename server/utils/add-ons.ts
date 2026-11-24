@@ -432,6 +432,36 @@ export function billingUpi(event?: H3Event) {
  * month is over. Runs daily; a bill is created once per business per month
  * and never changed afterwards (the admin can waive it).
  */
+/**
+ * Daily, acts on the 1st to 3rd of the month: a bill for last month's reminders over
+ * INCLUDED_REMINDERS from MemberBook's number, at EXTRA_REMINDER_PRICE each.
+ * One per business per month (period "YYYY-MM-extra"), so re-runs are no-ops.
+ */
+export async function generateExtraReminderBills() {
+  const today = todayIST();
+  if (Number(today.slice(8, 10)) > 3) return 0;
+  const [y, m] = today.slice(0, 7).split("-").map(Number) as [number, number];
+  const prev = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
+  const from = new Date(`${prev}-01T00:00:00+05:30`).toISOString();
+  const to = new Date(`${today.slice(0, 7)}-01T00:00:00+05:30`).toISOString();
+  const rows = await db.all(sql`SELECT org_id AS orgId, COUNT(*) AS n FROM reminder_logs
+    WHERE channel = 'whatsapp_api' AND via = 'memberbook' AND status != 'failed'
+      AND created_at >= ${from} AND created_at < ${to}
+    GROUP BY org_id HAVING COUNT(*) > ${INCLUDED_REMINDERS}`) as { orgId: number; n: number }[];
+  let created = 0;
+  for (const r of rows) {
+    const extra = Number(r.n) - INCLUDED_REMINDERS;
+    const amount = extra * EXTRA_REMINDER_PRICE;
+    const now = new Date().toISOString();
+    const items: BillItem[] = [{ addOn: "auto_reminders", name: `Extra WhatsApp reminders in ${prev} (${extra} × ₹${(EXTRA_REMINDER_PRICE / 100).toFixed(2)})`, amount }];
+    const inserted = await db.insert(schema.addOnBills).values({
+      orgId: Number(r.orgId), period: `${prev}-extra`, amount, items: JSON.stringify(items), createdAt: now, updatedAt: now,
+    }).onConflictDoNothing().returning({ id: schema.addOnBills.id });
+    created += inserted.length;
+  }
+  return created;
+}
+
 export async function generateAddOnBills() {
   const today = todayIST();
   const period = today.slice(0, 7);
