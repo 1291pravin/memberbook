@@ -1,5 +1,6 @@
 import { ORG_TYPES } from "../../../utils/org-setup";
 import { eq } from "drizzle-orm";
+import { parseOrgContact } from "../../../utils/org-contact";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -24,6 +25,14 @@ export default defineEventHandler(async (event) => {
     updates.gracePeriodDays = days;
   }
 
+  if (body.ownerWhatsapp !== undefined) {
+    try {
+      updates.ownerWhatsapp = parseOrgContact(body.ownerWhatsapp || null, undefined).ownerWhatsapp;
+    }
+    catch (err) {
+      throw createError({ statusCode: 400, statusMessage: (err as Error).message });
+    }
+  }
   if (body.gstin !== undefined) {
     const gstin = typeof body.gstin === "string" ? body.gstin.trim().toUpperCase() : "";
     // 15 characters: 2-digit state code, PAN, entity number, Z, check character.

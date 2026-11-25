@@ -11,7 +11,7 @@
               You get paid <del class="strike">late</del> on time.
             </h1>
             <p class="hero-sub">
-              Send us a photo of your register. We set up everything for you, free. Every morning you see who to collect from.
+              Free forever. Send us a photo of your register and we set everything up for you. Then we collect your fees with WhatsApp reminders and UPI pay links.
             </p>
             <div class="hero-ctas">
               <a :href="setupLink" :target="setupLink.startsWith('http') ? '_blank' : undefined" rel="noopener" class="btn btn-accent" @click="trackCtaClick('home_hero_send_register')">
@@ -271,7 +271,7 @@ const IcWhatsapp: FunctionalComponent<IconProps> = (p) =>
   ]);
 
 /* ── Copy ───────────────────────────────────────────────────────────── */
-const heroNotes = ["Free forever", "Setup done for you", "Works on any phone"];
+const heroNotes = ["Free forever", "We set it up for you", "We chase the fees"];
 
 const setupSteps = [
   { icon: IcPhone, title: "Send your register", text: "Photos, Excel or a typed list. Messy handwriting is fine." },
@@ -288,6 +288,9 @@ const freeFeatures = [
   "Fees due list and one-tap WhatsApp reminders",
   "UPI pay link for every member",
   "We load your register for you",
+  "A page for every member: plan, dues and receipts",
+  "Free business page with an enquiry form",
+  "GST invoices, instalments and pausing",
   "Staff logins and more than one branch",
 ];
 

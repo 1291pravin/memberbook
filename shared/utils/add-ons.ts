@@ -12,6 +12,7 @@ export type AddOnKey =
   | "website"
   | "reviews"
   | "review_poster"
+  | "business_page"
   | "self_check_in"
   | "auto_reminders"
   | "own_number"
@@ -123,6 +124,19 @@ export const ADD_ONS: AddOnDef[] = [
     price: 0,
     ready: true,
     page: "/dashboard/add-ons/review-poster",
+  },
+  {
+    key: "business_page",
+    name: "Free business page",
+    tagline: "A simple page for your business with your plans, prices and an enquiry form. Free, made in one tap.",
+    points: [
+      "Your plans and prices, phone, WhatsApp and address",
+      "Enquiries from the page come straight into MemberBook",
+      "Share the link on WhatsApp, Instagram and Google",
+    ],
+    price: 0,
+    ready: true,
+    page: "/dashboard/add-ons/business-page",
   },
   {
     key: "self_check_in",
