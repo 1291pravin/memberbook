@@ -158,7 +158,8 @@ export default defineNuxtConfig({
     resendApiKey: "",
     outreach: {
       enabled: "false",
-      dailyCap: 20,
+      // Follow-ups count too. Resend free tier allows 100 a day across all our email, so 50 leaves room for replies and owner emails.
+      dailyCap: 50,
     },
     // MemberBook's own UPI ID for add-on bills (NUXT_BILLING_UPI_ID). Until it is
     // set, owners with a bill see "we'll send payment details on WhatsApp".

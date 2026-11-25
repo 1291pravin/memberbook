@@ -49,7 +49,7 @@ export function welcomeEmailText(opts: { ownerName: string | null; businessName:
     ].join("\n"),
     `[Send it on WhatsApp](${whatsAppLink(opts.businessName)})`,
     `Or upload it in the app: [Send us your data](${APP}/dashboard/upload)`,
-    `Once it's loaded, MemberBook shows you every morning who has to pay, and you can send each of them a WhatsApp reminder with a UPI pay link in one tap. The money goes straight to your own UPI.`,
+    `Once it's loaded, MemberBook shows you every morning who has to pay, and you get ${REMINDER_TRIAL_DAYS} days of automatic WhatsApp fee reminders free: each ${people.replace(/s$/, "")} gets a reminder with a pay link straight to your own UPI.`,
     "Any questions? Just reply to this email.",
   ].join("\n\n");
 }

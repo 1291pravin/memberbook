@@ -502,6 +502,7 @@ onMounted(() => {
   if (!isOwner.value) return;
   if (route.query.pay && data.value?.reminderBill?.status === "due") showPay.value = true;
   else if (route.query.turnOn) openSettings(true);
-  if (route.query.pay || route.query.turnOn) navigateTo({ query: {} }, { replace: true });
+  else if (route.query.settings) openSettings();
+  if (route.query.pay || route.query.turnOn || route.query.settings) navigateTo({ query: {} }, { replace: true });
 });
 </script>

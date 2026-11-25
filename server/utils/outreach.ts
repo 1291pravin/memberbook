@@ -16,7 +16,7 @@ import { localPagePath, localPages } from "../../app/data/local-pages";
 export const OUTREACH_FROM = "MemberBook <support@memberbook.in>";
 export const OUTREACH_REPLY_TO = "support@memberbook.in";
 export const OUTREACH_FOLLOW_UP_DAYS = 5;
-const DEFAULT_DAILY_CAP = 20;
+const DEFAULT_DAILY_CAP = 50;
 
 type Lead = typeof schema.outreachLeads.$inferSelect;
 
