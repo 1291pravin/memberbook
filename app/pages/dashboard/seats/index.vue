@@ -101,7 +101,47 @@
     />
 
     <!-- Seat Grid -->
-    <AppCard title="Seats" class="!p-3 sm:!p-5">
+    <AppCard class="!p-3 sm:!p-5">
+      <div class="mb-3 flex items-center justify-between gap-2">
+        <h2 class="text-sm font-semibold text-slate-700">Seats</h2>
+        <div class="flex rounded-full bg-slate-100 p-0.5 text-xs font-semibold" role="tablist" aria-label="Seat view">
+          <button
+            v-for="v in (['map', 'cards'] as const)"
+            :key="v"
+            role="tab"
+            :aria-selected="seatView === v"
+            class="rounded-full px-3 py-1"
+            :class="seatView === v ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-600'"
+            @click="setSeatView(v)"
+          >
+            {{ v === 'map' ? 'Map' : 'Cards' }}
+          </button>
+        </div>
+      </div>
+      <!-- Colour seat map: one tile per seat, coloured by who's in it -->
+      <div v-if="seatView === 'map' && !loading && filteredSeats.length > 0">
+        <div class="mb-3 flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-slate-700">
+          <span v-for="l in mapLegend" :key="l.key" class="inline-flex items-center gap-1.5">
+            <span class="h-3 w-3 rounded" :class="l.swatch" />{{ l.label }} ({{ mapCounts[l.key] }})
+          </span>
+        </div>
+        <div class="grid grid-cols-6 gap-1.5 sm:grid-cols-10 lg:grid-cols-12">
+          <button
+            v-for="seat in filteredSeats"
+            :key="seat.id"
+            class="relative flex aspect-square min-w-0 flex-col items-center justify-center rounded-lg border text-center leading-none transition-transform active:scale-95"
+            :class="MAP_STYLE[seatState(seat)].tile"
+            :title="seatTitle(seat)"
+            :aria-label="seatTitle(seat)"
+            @click="handleSeatClick(seat)"
+          >
+            <span class="text-xs font-bold sm:text-sm">{{ seat.seatNumber }}</span>
+            <span v-if="seatPerson(seat)" class="mt-0.5 w-full truncate px-0.5 text-[9px] font-medium opacity-90">{{ seatPerson(seat) }}</span>
+            <span v-if="seat.isOccupied" class="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-white ring-1 ring-emerald-700" />
+          </button>
+        </div>
+      </div>
+      <template v-else>
       <div v-if="loading" class="text-center py-8">
         <p class="text-sm text-slate-600">Loading seats...</p>
       </div>
@@ -124,6 +164,7 @@
           @click="handleSeatClick"
         />
       </div>
+      </template>
     </AppCard>
 
     <!-- Seat Details Modal -->
@@ -371,6 +412,49 @@ interface Seat {
 }
 
 const seats = ref<Seat[]>([]);
+
+// ---------------------------------------------------------------- colour map
+type SeatState = "free" | "paid" | "due" | "expired";
+const MAP_STYLE: Record<SeatState, { tile: string; swatch: string; label: string }> = {
+  free: { tile: "border-emerald-300 bg-emerald-50 text-emerald-800", swatch: "border border-emerald-300 bg-emerald-50", label: "Free" },
+  paid: { tile: "border-primary-700 bg-primary-600 text-white", swatch: "bg-primary-600", label: "Taken, paid" },
+  due: { tile: "border-amber-500 bg-amber-400 text-amber-950", swatch: "bg-amber-400", label: "Fee due" },
+  expired: { tile: "border-danger-700 bg-danger-600 text-white", swatch: "bg-danger-600", label: "Expired" },
+};
+const seatView = ref<"map" | "cards">("map");
+onMounted(() => {
+  try {
+    const v = localStorage.getItem("mb-seat-view");
+    if (v === "map" || v === "cards") seatView.value = v;
+  }
+  catch { /* storage blocked: keep the map */ }
+});
+function setSeatView(v: "map" | "cards") {
+  seatView.value = v;
+  try { localStorage.setItem("mb-seat-view", v); }
+  catch { /* ignore */ }
+}
+function seatState(seat: Seat): SeatState {
+  if (!seat.assignedMember && !seat.currentOccupant) return "free";
+  const a = seat.memberAlert;
+  if (a && !a.hasActiveSubscription) return "expired";
+  if (a && (a.paymentStatus === "unpaid" || a.paymentStatus === "partial")) return "due";
+  return "paid";
+}
+function seatPerson(seat: Seat) {
+  const name = seat.currentOccupant?.memberName || seat.assignedMember?.memberName;
+  return name ? name.split(" ")[0] : "";
+}
+function seatTitle(seat: Seat) {
+  const who = seat.currentOccupant?.memberName || seat.assignedMember?.memberName;
+  return `Seat ${seat.seatNumber}: ${who ? `${who}, ${MAP_STYLE[seatState(seat)].label.toLowerCase()}` : "free"}${seat.isOccupied ? ", checked in" : ""}`;
+}
+const mapCounts = computed(() => {
+  const c: Record<SeatState, number> = { free: 0, paid: 0, due: 0, expired: 0 };
+  for (const s of filteredSeats.value) c[seatState(s)]++;
+  return c;
+});
+const mapLegend = computed(() => (Object.keys(MAP_STYLE) as SeatState[]).map(key => ({ key, ...MAP_STYLE[key] })));
 const stats = ref({
   total: 0,
   occupied: 0,
