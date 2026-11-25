@@ -26,3 +26,16 @@ export function addDaysToDate(date: string, days: number): string {
   const result = new Date(Date.UTC(y!, m! - 1, d! + days));
   return result.toISOString().slice(0, 10);
 }
+
+/** A birthday from a form or import: YYYY-MM-DD (or DD-MM-YYYY / DD/MM/YYYY), else null. */
+export function parseBirthDate(v: unknown): string | null {
+  const s = typeof v === "string" ? v.trim() : "";
+  if (!s) return null;
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  let y: number, mo: number, d: number;
+  if (m) [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  else if ((m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/))) [d, mo, y] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  else return null;
+  if (mo < 1 || mo > 12 || d < 1 || d > 31 || y < 1900 || y > 2100) return null;
+  return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}

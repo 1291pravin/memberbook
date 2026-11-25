@@ -42,6 +42,8 @@ export interface OrgCollectionSettings {
   autoRemindersEnabled: boolean;
   reminderDaysBefore: number;
   thankYouReceipts: boolean;
+  birthdayWishes: boolean;
+  missYouMessages: boolean;
 }
 
 export async function getOrgCollectionSettings(orgId: number): Promise<OrgCollectionSettings | null> {
@@ -55,6 +57,8 @@ export async function getOrgCollectionSettings(orgId: number): Promise<OrgCollec
       autoRemindersEnabled: schema.organizations.autoRemindersEnabled,
       reminderDaysBefore: schema.organizations.reminderDaysBefore,
       thankYouReceipts: schema.organizations.thankYouReceipts,
+      birthdayWishes: schema.organizations.birthdayWishes,
+      missYouMessages: schema.organizations.missYouMessages,
     })
     .from(schema.organizations)
     .where(eq(schema.organizations.id, orgId))

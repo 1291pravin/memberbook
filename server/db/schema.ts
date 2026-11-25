@@ -39,6 +39,10 @@ export const organizations = sqliteTable("organizations", {
   reminderDaysBefore: integer("reminder_days_before").notNull().default(3),
   // Send a WhatsApp thank-you with the PDF receipt when a payment is recorded (counts toward the reminder allowance)
   thankYouReceipts: integer("thank_you_receipts", { mode: "boolean" }).notNull().default(false),
+  // Part of automatic reminders (MemberBook's number): a birthday wish on the member's birthday,
+  // and a "we miss you" note to paid-up members who stopped checking in (needs check-ins)
+  birthdayWishes: integer("birthday_wishes", { mode: "boolean" }).notNull().default(true),
+  missYouMessages: integer("miss_you_messages", { mode: "boolean" }).notNull().default(true),
   checkInToken: text("check_in_token"), // public self check-in link /checkin/<token>, null = not set up
   googleReviewUrl: text("google_review_url"), // owner's Google "write a review" link, for the review poster
   reviewToken: text("review_token"), // public short link /r/<token> that counts scans and goes to googleReviewUrl
@@ -82,6 +86,7 @@ export const members = sqliteTable("members", {
   address: text("address"),
   batch: text("batch"),
   photoKey: text("photo_key"), // R2/blob pathname of the member's photo, null = no photo
+  birthDate: text("birth_date"), // YYYY-MM-DD, for birthday wishes; null = not known
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   orgCreatedIdx: index("members_org_created_idx").on(table.orgId, table.createdAt),
@@ -148,7 +153,7 @@ export const reminderLogs = sqliteTable("reminder_logs", {
   orgId: integer("org_id").notNull().references(() => organizations.id),
   memberId: integer("member_id").notNull().references(() => members.id),
   subscriptionId: integer("subscription_id").notNull().references(() => memberSubscriptions.id),
-  kind: text("kind").notNull(), // due, renewal, receipt (thank-you with the PDF receipt)
+  kind: text("kind").notNull(), // due, renewal, receipt (thank-you with the PDF receipt), birthday, miss_you
   channel: text("channel").notNull(), // whatsapp_link (tap-to-send), whatsapp_api (Cloud API)
   status: text("status").notNull(), // opened, sent, delivered, read, failed
   amount: integer("amount").notNull(), // in paise

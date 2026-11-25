@@ -26,6 +26,7 @@ export default defineEventHandler(async (event) => {
   }
   if (body.notes !== undefined) updates.notes = body.notes?.trim() || null;
   if (body.fatherName !== undefined) updates.fatherName = body.fatherName?.trim() || null;
+  if (body.birthDate !== undefined) updates.birthDate = parseBirthDate(body.birthDate);
   if (body.address !== undefined) updates.address = body.address?.trim() || null;
   if (body.batch !== undefined) updates.batch = body.batch?.trim() || null;
 

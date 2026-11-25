@@ -55,6 +55,13 @@ export default defineEventHandler(async (event) => {
     updates.thankYouReceipts = body.thankYouReceipts === true;
   }
 
+  if (body.birthdayWishes !== undefined) {
+    updates.birthdayWishes = body.birthdayWishes === true;
+  }
+  if (body.missYouMessages !== undefined) {
+    updates.missYouMessages = body.missYouMessages === true;
+  }
+
   if (Object.keys(updates).length === 0) {
     throw createError({ statusCode: 400, statusMessage: "Nothing to update" });
   }
