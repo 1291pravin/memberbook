@@ -2,6 +2,8 @@
  * WhatsApp templates on MemberBook's own account.
  * Body { action }: "list" (default) shows every template with its status,
  * "ensure" creates the v2 reminder and receipt templates if missing,
+ * "ensure_member_messages" submits the birthday and miss-you templates (MARKETING;
+ * only with the founder's OK, per the Meta rule),
  * "delete" with { name } deletes one (not the live v1 reminder while v2 isn't approved).
  */
 export default defineEventHandler(async (event) => {
@@ -26,6 +28,12 @@ export default defineEventHandler(async (event) => {
     return result;
   }
 
+  if (action === "ensure_member_messages") {
+    const result = await ensureMemberMessageTemplates();
+    await recordAdminAuditLog(event, "whatsapp_templates_ensure", { metadata: result.results });
+    return result;
+  }
+
   if (action === "delete") {
     const name = String(body?.name || "");
     if (!/^[a-z0-9_]{1,512}$/.test(name)) throw createError({ statusCode: 400, statusMessage: "name is required" });
@@ -39,5 +47,5 @@ export default defineEventHandler(async (event) => {
     return result;
   }
 
-  throw createError({ statusCode: 400, statusMessage: "action must be list, ensure or delete" });
+  throw createError({ statusCode: 400, statusMessage: "action must be list, ensure, ensure_member_messages or delete" });
 });

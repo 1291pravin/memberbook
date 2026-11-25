@@ -30,6 +30,8 @@ export interface LoadMember {
   email?: string | null;
   gender?: string | null;
   fatherName?: string | null;
+  /** YYYY-MM-DD or DD-MM-YYYY, for birthday wishes */
+  birthDate?: string | null;
   address?: string | null;
   batch?: string | null;
   notes?: string | null;
@@ -229,6 +231,7 @@ export async function loadOrgData(orgId: number, input: LoadInput): Promise<Load
       status: "active",
       notes: clean(raw.notes),
       fatherName: clean(raw.fatherName, 100),
+      birthDate: parseBirthDate(raw.birthDate),
       address: clean(raw.address),
       batch: clean(raw.batch, 100),
       createdAt,

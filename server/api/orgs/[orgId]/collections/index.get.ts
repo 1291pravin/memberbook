@@ -39,6 +39,8 @@ export default defineEventHandler(async (event) => {
       autoRemindersEnabled: org.autoRemindersEnabled,
       reminderDaysBefore: org.reminderDaysBefore,
       thankYouReceipts: org.thankYouReceipts,
+      birthdayWishes: org.birthdayWishes,
+      missYouMessages: org.missYouMessages,
     },
     cloudAvailable: sending.available,
     // Reminders go out automatically only when both are on: from the business's

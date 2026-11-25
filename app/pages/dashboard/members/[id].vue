@@ -80,6 +80,7 @@
         <p v-if="member.phone"><span class="text-slate-600">Phone:</span> <a :href="`tel:${member.phone}`" class="text-primary-600 hover:underline">{{ formatPhone(member.phone) }}</a></p>
         <p v-if="member.email"><span class="text-slate-600">Email:</span> {{ member.email }}</p>
         <p v-if="member.fatherName"><span class="text-slate-600">Father's Name:</span> {{ member.fatherName }}</p>
+        <p v-if="member.birthDate"><span class="text-slate-600">Birthday:</span> {{ formatBirthday(member.birthDate) }}</p>
         <p v-if="member.address"><span class="text-slate-600">Address:</span> {{ member.address }}</p>
         <p v-if="member.batch"><span class="text-slate-600">Batch:</span> {{ member.batch }}</p>
         <p v-if="member.notes"><span class="text-slate-600">Notes:</span> {{ member.notes }}</p>
@@ -359,6 +360,7 @@
         />
         <AppInput v-model="editForm.email" label="Email" type="email" placeholder="member@example.com" />
         <AppInput v-model="editForm.fatherName" label="Father's Name" placeholder="Optional" />
+        <AppInput v-model="editForm.birthDate" label="Birthday" type="date" placeholder="Optional" />
         <AppInput v-model="editForm.address" label="Address" placeholder="Optional" />
         <AppInput v-model="editForm.batch" label="Batch / Timing" placeholder="e.g., Morning, Afternoon, Evening" />
         <div>
@@ -419,7 +421,13 @@
 </template>
 
 <script setup lang="ts">
+
 import { validatePhone, normalizePhone, formatPhone } from "~~/shared/utils/phone";
+
+function formatBirthday(d: string) {
+  const [, m, day] = d.split("-").map(Number);
+  return new Date(2000, (m || 1) - 1, day || 1).toLocaleDateString("en-IN", { day: "numeric", month: "long" });
+}
 
 definePageMeta({ layout: "dashboard", middleware: "org-required" });
 
@@ -442,6 +450,7 @@ interface MemberDetail {
   status: string;
   notes: string | null;
   fatherName: string | null;
+  birthDate: string | null;
   address: string | null;
   batch: string | null;
   photoKey: string | null;
@@ -940,6 +949,7 @@ const editForm = reactive({
   phone: "",
   email: "",
   fatherName: "",
+  birthDate: "",
   address: "",
   batch: "",
   notes: "",
@@ -951,6 +961,7 @@ function openEditMember() {
   editForm.phone = member.value.phone || "";
   editForm.email = member.value.email || "";
   editForm.fatherName = member.value.fatherName || "";
+  editForm.birthDate = member.value.birthDate || "";
   editForm.address = member.value.address || "";
   editForm.batch = member.value.batch || "";
   editForm.notes = member.value.notes || "";
@@ -981,6 +992,7 @@ async function saveEditMember() {
         phone: editForm.phone ? normalizePhone(editForm.phone) : null,
         email: editForm.email || null,
         fatherName: editForm.fatherName || null,
+        birthDate: editForm.birthDate || null,
         address: editForm.address || null,
         batch: editForm.batch || null,
         notes: editForm.notes || null,

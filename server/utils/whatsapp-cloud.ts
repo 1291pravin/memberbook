@@ -652,6 +652,93 @@ export async function ensureSharedTemplates(samplePdf: Uint8Array, appUrl: strin
   return { ok: !Object.values(results).some(v => v.startsWith("error")), results };
 }
 
+// ------------------------------------------------------------ member messages (part of automatic reminders)
+
+/**
+ * birthday_wish: {{1}} first name, {{2}} business, {{3}} business emoji.
+ * member_miss_you: {{1}} first name, {{2}} business, {{3}} days since the last visit.
+ * Meta treats both as MARKETING (they aren't about a transaction), so they cost
+ * more per message than reminders; each counts toward the monthly allowance.
+ * Nothing sends until Meta approves them (see memberMessageTemplateStatus).
+ */
+export const BIRTHDAY_TEMPLATE_NAME = "birthday_wish";
+export const MISS_YOU_TEMPLATE_NAME = "member_miss_you";
+
+const BIRTHDAY_BODY = [
+  "Happy birthday {{1}} 🎂🎉",
+  "",
+  "Everyone at *{{2}}* wishes you a wonderful year ahead, full of health and happiness. {{3}}",
+  "",
+  "See you soon!",
+].join("\n");
+
+const MISS_YOU_BODY = [
+  "Hi {{1}} 👋",
+  "",
+  "We haven't seen you at *{{2}}* for {{3}} days, and we miss you!",
+  "",
+  "Your membership is active, so just drop in any time. We'd love to see you back.",
+].join("\n");
+
+/** Send a body-only template (no buttons or header) from MemberBook's number. */
+export async function sendSimpleTemplate(name: string, to: string, body: string[]): Promise<TemplateSendResult> {
+  const c = getWhatsAppCloudConfig();
+  const r = await graph<{ messages?: { id: string }[] }>(`${c.phoneNumberId}/messages`, {
+    method: "POST",
+    body: {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "template",
+      template: {
+        name,
+        language: { code: c.templateLanguage || "en" },
+        components: [{ type: "body", parameters: body.map(text => ({ type: "text", text: cleanVar(text) })) }],
+      },
+    },
+  }).catch(err => ({ ok: false, data: { error: { message: String(err) } } as GraphError, status: 0 }));
+  const id = (r.data as { messages?: { id: string }[] }).messages?.[0]?.id;
+  if (!r.ok || !id) return { ok: false, error: graphError(r).slice(0, 500) };
+  return { ok: true, messageId: id };
+}
+
+/**
+ * Submit the birthday and miss-you templates to Meta if they are missing.
+ * Only run with the founder's OK (META RULE): marketing templates can affect
+ * the number's quality rating if members block them.
+ */
+export async function ensureMemberMessageTemplates(): Promise<{ ok: boolean; results: Record<string, string>; error?: string }> {
+  const c = getWhatsAppCloudConfig();
+  const lang = c.templateLanguage || "en";
+  const list = await listSharedTemplates();
+  if (!list.ok) return { ok: false, results: {}, error: list.error };
+  const have = new Map((list.templates ?? []).map(t => [t.name, t.status]));
+  const wabaId = await findBusinessAccountId().catch(() => null);
+  const results: Record<string, string> = {};
+  const defs = [
+    { name: BIRTHDAY_TEMPLATE_NAME, text: BIRTHDAY_BODY, example: ["Rahul", "Iron Temple Gym", "🏋️"] },
+    { name: MISS_YOU_TEMPLATE_NAME, text: MISS_YOU_BODY, example: ["Rahul", "Iron Temple Gym", "9"] },
+  ];
+  for (const d of defs) {
+    if (have.has(d.name)) {
+      results[d.name] = have.get(d.name)!;
+      continue;
+    }
+    const r = await graph<{ id?: string; status?: string }>(`${wabaId}/message_templates`, {
+      method: "POST",
+      body: {
+        name: d.name,
+        language: lang,
+        category: "MARKETING",
+        components: [{ type: "BODY", text: d.text, example: { body_text: [d.example] } }],
+      },
+    });
+    results[d.name] = r.ok ? (r.data.status ?? "PENDING") : `error: ${graphError(r)}`;
+  }
+  statusCache = null;
+  return { ok: !Object.values(results).some(v => v.startsWith("error")), results };
+}
+
 /** Delete a template from MemberBook's account by name (all languages). */
 export async function deleteSharedTemplate(name: string): Promise<{ ok: boolean; error?: string }> {
   const wabaId = await findBusinessAccountId().catch(() => null);

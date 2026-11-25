@@ -43,7 +43,7 @@ Everything runs through `scripts/uploads.mjs`, which needs `MEMBERBOOK_ADMIN_TOK
     - A future due date means the member is paid up, and we remind them before it.
     - A due date today or earlier means they owe the fee now.
   - `pendingAmount` (rupees) is an unpaid balance for the current period, such as a partial payment.
-  - Optional fields: `email`, `gender` (`male` or `female`), `fatherName`, `address`, `batch` (a timing or batch, such as "Morning 6-7"), `notes`.
+  - Optional fields: `email`, `gender` (`male` or `female`), `fatherName`, `address`, `batch` (a timing or batch, such as "Morning 6-7"), `birthDate` (YYYY-MM-DD, when the register has dates of birth), `notes`.
   - A member already in MemberBook (same phone number, or same name when there is no phone) is skipped automatically, so loading twice is safe.
   - Don't load rows that are clearly struck out, marked left or discontinued, or that are only totals.
 - **skipped**: rows you could not use, each with a short reason the owner will understand. The owner sees this list.

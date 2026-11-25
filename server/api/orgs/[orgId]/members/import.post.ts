@@ -8,6 +8,7 @@ interface ImportRow {
   status?: string;
   notes?: string;
   fatherName?: string;
+  birthDate?: string;
   address?: string;
   batch?: string;
   plan?: string;
@@ -109,6 +110,7 @@ export default defineEventHandler(async (event) => {
             status: row.status === "inactive" ? "inactive" as const : "active" as const,
             notes: row.notes?.trim() || null,
             fatherName: row.fatherName?.trim() || null,
+            birthDate: parseBirthDate(row.birthDate),
             address: row.address?.trim() || null,
             batch: row.batch?.trim() || null,
           })),
@@ -137,6 +139,7 @@ export default defineEventHandler(async (event) => {
           status: row.status === "inactive" ? "inactive" : "active",
           notes: row.notes?.trim() || null,
           fatherName: row.fatherName?.trim() || null,
+          birthDate: parseBirthDate(row.birthDate),
           address: row.address?.trim() || null,
           batch: row.batch?.trim() || null,
         }).returning();

@@ -4,7 +4,7 @@ import { normalizePhone, validatePhone } from "~~/shared/utils/phone";
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
   const body = await readBody(event);
-  const { name, phone, email, gender, notes, fatherName, address, batch, planId, startDate, payment } = body;
+  const { name, phone, email, gender, notes, fatherName, address, batch, planId, startDate, payment, birthDate } = body;
 
   if (!name) {
     throw createError({ statusCode: 400, statusMessage: "Name is required" });
@@ -66,6 +66,7 @@ export default defineEventHandler(async (event) => {
     gender: gender || null,
     notes: notes?.trim() || null,
     fatherName: fatherName?.trim() || null,
+    birthDate: parseBirthDate(birthDate),
     address: address?.trim() || null,
     batch: batch?.trim() || null,
   }).returning();

@@ -16,6 +16,8 @@ import { db, schema } from "@nuxthub/db";
  * From MemberBook's number a business needs the auto_reminders add-on, gets
  * INCLUDED_REMINDERS a month, and pauses while an add-on bill is overdue.
  *
+ * It also sends birthday wishes and "we miss you" notes (server/utils/member-messages.ts).
+ *
  * Afterwards it starts the 14-day free trial for businesses that have loaded
  * their members (server/utils/reminder-trials.ts).
  */
@@ -34,6 +36,7 @@ export default defineTask({
     const gapMs = AUTO_REMINDER_GAP_DAYS * 86400000 - 3600000; // an hour of slack for cron jitter
     let sent = 0;
     let failed = 0;
+    let memberMessages = 0;
 
     for (const { id } of orgs) {
       const org = await getOrgCollectionSettings(id);
@@ -50,13 +53,29 @@ export default defineTask({
         && i.remindersSent < MAX_AUTO_REMINDERS
         && (!i.lastAttemptAt || Date.now() - new Date(i.lastAttemptAt).getTime() >= gapMs),
       ).slice(0, Math.min(200, cap));
-      if (toSend.length === 0) continue;
 
-      await ensurePaymentLinks(id, toSend);
-      for (const item of toSend) {
-        const result = await sendCloudReminder(item, org, null, sending.sender);
-        if (result.ok) sent++;
-        else failed++;
+      let orgSent = 0;
+      if (toSend.length > 0) {
+        await ensurePaymentLinks(id, toSend);
+        for (const item of toSend) {
+          const result = await sendCloudReminder(item, org, null, sending.sender);
+          if (result.ok) {
+            sent++;
+            orgSent++;
+          }
+          else failed++;
+        }
+      }
+
+      // Birthday wishes and "we miss you" notes: MemberBook's number only (the
+      // templates live there), within what's left of the month's allowance.
+      if (sending.via === "memberbook" && (org.birthdayWishes || org.missYouMessages)) {
+        const extra = await sendMemberMessages(org, Math.min(50, cap - orgSent)).catch((err) => {
+          console.error(`[reminders:daily] member messages org=${id}`, err);
+          return { sent: 0, failed: 0 };
+        });
+        memberMessages += extra.sent;
+        failed += extra.failed;
       }
     }
 
@@ -67,7 +86,7 @@ export default defineTask({
       return { started: [], askedUpi: [] };
     });
 
-    const summary = `orgs=${orgs.length} sent=${sent} failed=${failed} trialsStarted=${trials.started.join(",") || 0} askedUpi=${trials.askedUpi.join(",") || 0}`;
+    const summary = `orgs=${orgs.length} sent=${sent} birthdayMissYou=${memberMessages} failed=${failed} trialsStarted=${trials.started.join(",") || 0} askedUpi=${trials.askedUpi.join(",") || 0}`;
     console.log(`[reminders:daily] ${summary}`);
     return { result: summary };
   },

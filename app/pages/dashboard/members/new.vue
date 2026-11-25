@@ -79,6 +79,7 @@
           ]"
         />
         <AppInput v-model="form.fatherName" label="Father's Name" placeholder="Optional" />
+        <AppInput v-model="form.birthDate" label="Birthday" type="date" placeholder="Optional" />
         <AppInput v-model="form.address" label="Address" placeholder="Optional" />
         <div>
           <div class="flex items-center">
@@ -155,6 +156,7 @@ const form = reactive({
   email: "",
   gender: "",
   fatherName: "",
+  birthDate: "",
   address: "",
   batch: "",
   notes: "",
@@ -217,6 +219,7 @@ function resetForm() {
   form.email = "";
   form.gender = "";
   form.fatherName = "";
+  form.birthDate = "";
   form.address = "";
   form.batch = "";
   form.notes = "";
@@ -257,6 +260,7 @@ async function handleSubmit() {
       email: form.email,
       gender: form.gender || null,
       fatherName: form.fatherName || null,
+      birthDate: form.birthDate || null,
       address: form.address || null,
       batch: form.batch || null,
       notes: form.notes,
