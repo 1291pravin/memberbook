@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const access = event.context.access;
@@ -32,6 +32,11 @@ export default defineEventHandler(async (event) => {
     db.delete(schema.payments).where(and(
       eq(schema.payments.memberId, memberId),
       eq(schema.payments.orgId, access.orgId),
+    )),
+    db.delete(schema.subscriptionInstalments).where(and(
+      eq(schema.subscriptionInstalments.orgId, access.orgId),
+      inArray(schema.subscriptionInstalments.subscriptionId, db.select({ id: schema.memberSubscriptions.id }).from(schema.memberSubscriptions)
+        .where(and(eq(schema.memberSubscriptions.memberId, memberId), eq(schema.memberSubscriptions.orgId, access.orgId)))),
     )),
     db.delete(schema.memberSubscriptions).where(and(
       eq(schema.memberSubscriptions.memberId, memberId),

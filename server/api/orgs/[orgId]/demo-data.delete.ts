@@ -93,6 +93,10 @@ export default defineEventHandler(async (event) => {
       eq(schema.payments.orgId, orgId),
       inArray(schema.payments.subscriptionId, doomedIds),
     )));
+    stmts.push(db.delete(schema.subscriptionInstalments).where(and(
+      eq(schema.subscriptionInstalments.orgId, orgId),
+      inArray(schema.subscriptionInstalments.subscriptionId, doomedIds),
+    )));
     stmts.push(db.delete(schema.memberSubscriptions).where(and(
       eq(schema.memberSubscriptions.orgId, orgId),
       or(...doomedSubscriptions),

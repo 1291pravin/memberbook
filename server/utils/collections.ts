@@ -89,10 +89,10 @@ export async function getCollections(orgId: number, daysBefore: number): Promise
   const [dueRows, renewalRows] = await Promise.all([
     db.all<{
       subscription_id: number; member_id: number; member_name: string; member_phone: string | null;
-      plan_name: string; start_date: string; pending: number;
+      plan_name: string; start_date: string; pending: number; sub_amount: number;
     }>(sql`
       SELECT ms.id AS subscription_id, m.id AS member_id, m.name AS member_name, m.phone AS member_phone,
-        sp.name AS plan_name, ms.start_date,
+        sp.name AS plan_name, ms.start_date, ms.amount AS sub_amount,
         ms.amount - COALESCE((SELECT SUM(p.amount) FROM payments p
           WHERE p.subscription_id = ms.id AND p.org_id = ms.org_id), 0) AS pending
       FROM member_subscriptions ms
@@ -128,9 +128,21 @@ export async function getCollections(orgId: number, daysBefore: number): Promise
     `),
   ]);
 
+  // Instalment plans: only the part due by the horizon is asked for.
+  const plans = dueRows.length ? await instalmentsFor(orgId, dueRows.map(r => r.subscription_id)) : new Map();
+
   const items: CollectionItem[] = [];
   for (const r of dueRows) {
-    const daysLate = daysBetween(r.start_date, today);
+    let amount = Number(r.pending);
+    let dueDate = r.start_date;
+    const plan = plans.get(r.subscription_id);
+    if (plan?.length) {
+      const due = instalmentDue(plan, Number(r.sub_amount) - amount, horizon);
+      if (!due) continue;
+      amount = due.amount;
+      dueDate = due.dueDate;
+    }
+    const daysLate = daysBetween(dueDate, today);
     items.push({
       key: `due:${r.subscription_id}`,
       kind: "due",
@@ -139,10 +151,10 @@ export async function getCollections(orgId: number, daysBefore: number): Promise
       memberPhone: r.member_phone,
       subscriptionId: r.subscription_id,
       planName: r.plan_name,
-      amount: Number(r.pending),
-      dueDate: r.start_date,
+      amount,
+      dueDate,
       daysLate,
-      overdue: true,
+      overdue: daysLate >= 0,
       remindersSent: 0,
       lastRemindedAt: null,
       lastAttemptAt: null,
@@ -431,7 +443,7 @@ export function reminderV2Parts(item: Pick<CollectionItem, "kind" | "planName" |
   const p = reminderParts(item, org);
   const what = item.kind === "due" ? `${p.what} balance` : `${p.what} renewal`;
   const due = item.kind === "due"
-    ? "Now"
+    ? item.daysLate < 0 ? formatShortDate(item.dueDate) : "Now"
     : item.daysLate > 0
       ? `Overdue since ${formatShortDate(addDaysToDate(item.dueDate, 1))}`
       : item.daysLate === 0 ? "Tomorrow" : formatShortDate(addDaysToDate(item.dueDate, 1));
@@ -481,7 +493,7 @@ export async function sendCloudReminder(item: CollectionItem, org: OrgCollection
   const p = reminderParts(item, org);
   const what = item.kind === "due" ? `${p.what} balance` : `${p.what} renewal`;
   const when = item.kind === "due"
-    ? "now"
+    ? item.daysLate < 0 ? `on ${formatShortDate(item.dueDate)}` : "now"
     : item.daysLate > 0
       ? `now (it was due on ${formatShortDate(addDaysToDate(item.dueDate, 1))})`
       : item.daysLate === 0 ? "tomorrow" : `on ${formatShortDate(addDaysToDate(item.dueDate, 1))}`;

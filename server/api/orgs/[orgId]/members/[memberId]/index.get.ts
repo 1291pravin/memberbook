@@ -24,6 +24,8 @@ export default defineEventHandler(async (event) => {
         status: schema.memberSubscriptions.status,
         autoRenew: schema.memberSubscriptions.autoRenew,
         paymentStatus: schema.memberSubscriptions.paymentStatus,
+        pauseStart: schema.memberSubscriptions.pauseStart,
+        pauseEnd: schema.memberSubscriptions.pauseEnd,
         durationType: schema.subscriptionPlans.durationType,
         durationValue: schema.subscriptionPlans.durationValue,
       })
@@ -56,8 +58,11 @@ export default defineEventHandler(async (event) => {
   const paidMap = new Map(subPayments.map(p => [p.subscriptionId, p.totalPaid]));
 
   const today = todayIST();
+  const instalments = await instalmentsFor(access.orgId, subscriptions.map((s: { id: number }) => s.id));
   const subscriptionsWithPaid = subscriptions.map(s => ({
     ...s,
+    instalments: instalments.get(s.id) ?? [],
+    paused: !!s.pauseStart && !!s.pauseEnd && s.pauseStart <= today && s.pauseEnd >= today,
     status: s.status === "active" && s.endDate < today ? "expired" : s.status,
     totalPaid: paidMap.get(s.id) ?? 0,
   }));

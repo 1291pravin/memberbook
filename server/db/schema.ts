@@ -43,6 +43,10 @@ export const organizations = sqliteTable("organizations", {
   // and a "we miss you" note to paid-up members who stopped checking in (needs check-ins)
   birthdayWishes: integer("birthday_wishes", { mode: "boolean" }).notNull().default(true),
   missYouMessages: integer("miss_you_messages", { mode: "boolean" }).notNull().default(true),
+  // GST: when a GSTIN is set, receipts become tax invoices (prices include GST at gstRate %)
+  gstin: text("gstin"),
+  gstRate: integer("gst_rate").notNull().default(18),
+  gstAddress: text("gst_address"), // business address printed on tax invoices
   checkInToken: text("check_in_token"), // public self check-in link /checkin/<token>, null = not set up
   googleReviewUrl: text("google_review_url"), // owner's Google "write a review" link, for the review poster
   reviewToken: text("review_token"), // public short link /r/<token> that counts scans and goes to googleReviewUrl
@@ -103,10 +107,25 @@ export const memberSubscriptions = sqliteTable("member_subscriptions", {
   status: text("status").notNull().default("active"), // active, expired, cancelled
   autoRenew: integer("auto_renew", { mode: "boolean" }).notNull().default(true),
   paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid, partial, paid
+  // Paused (frozen) membership: endDate was pushed out by the pause length
+  pauseStart: text("pause_start"), // YYYY-MM-DD
+  pauseEnd: text("pause_end"), // YYYY-MM-DD, last paused day
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   orgMemberIdx: index("member_subscriptions_org_member_idx").on(table.orgId, table.memberId),
   orgEndDateIdx: index("member_subscriptions_org_end_date_idx").on(table.orgId, table.endDate),
+}));
+
+/** Instalment plan for a subscription: the fee is due in parts on these dates. */
+export const subscriptionInstalments = sqliteTable("subscription_instalments", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  subscriptionId: integer("subscription_id").notNull().references(() => memberSubscriptions.id),
+  dueDate: text("due_date").notNull(), // YYYY-MM-DD
+  amount: integer("amount").notNull(), // in paise
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+}, table => ({
+  subIdx: index("subscription_instalments_sub_idx").on(table.orgId, table.subscriptionId),
 }));
 
 export const payments = sqliteTable("payments", {
