@@ -31,6 +31,10 @@ export interface ReceiptData {
   periodEnd: string | null;
   balanceDue: number;
   subscriptionId: number | null;
+  /** Set when the business added its GSTIN: the receipt is a tax invoice. */
+  gstin?: string | null;
+  gstRate?: number | null;
+  gstAddress?: string | null;
 }
 
 /** Give a payment its receipt number and public token if it doesn't have them yet. */
@@ -69,6 +73,9 @@ async function loadReceipt(where: ReturnType<typeof eq>): Promise<Omit<ReceiptDa
     businessName: schema.organizations.name,
     businessType: schema.organizations.type,
     businessPhone: schema.organizations.ownerWhatsapp,
+    gstin: schema.organizations.gstin,
+    gstRate: schema.organizations.gstRate,
+    gstAddress: schema.organizations.gstAddress,
     memberName: schema.members.name,
     memberPhone: schema.members.phone,
     periodStart: schema.memberSubscriptions.startDate,
@@ -112,6 +119,9 @@ async function loadReceipt(where: ReturnType<typeof eq>): Promise<Omit<ReceiptDa
     periodEnd: row.periodEnd ?? null,
     balanceDue,
     subscriptionId: row.subscriptionId,
+    gstin: row.gstin,
+    gstRate: row.gstRate,
+    gstAddress: row.gstAddress,
   };
 }
 
@@ -161,6 +171,17 @@ function longDate(date: string | null): string {
   return Number.isNaN(d.getTime()) ? date : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 }
 
+/**
+ * GST inside an amount that includes it, split into CGST and SGST (intra-state
+ * service: the business and its members are in the same state). Paise.
+ */
+export function gstBreakup(amount: number, rate: number) {
+  const taxable = Math.round(amount * 100 / (100 + rate));
+  const tax = amount - taxable;
+  const cgst = Math.floor(tax / 2);
+  return { taxable, cgst, sgst: tax - cgst, tax };
+}
+
 export async function renderReceiptPdf(r: ReceiptData): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Receipt ${r.receiptNo} - ${pdfText(r.businessName, "Receipt")}`);
@@ -188,11 +209,17 @@ export async function renderReceiptPdf(r: ReceiptData): Promise<Uint8Array> {
   // Header band
   page.drawRectangle({ x: 0, y: height - 92, width, height: 92, color: teal });
   text(fit(pdfText(r.businessName, "Receipt"), 18, bold, width - 72), left, height - 46, 18, bold, rgb(1, 1, 1));
-  if (r.businessPhone) text(`Phone: ${pdfText(r.businessPhone)}`, left, height - 66, 10, font, rgb(0.9, 0.97, 0.96));
+  const gst = r.gstin ? { rate: r.gstRate ?? 18, ...gstBreakup(r.amount, r.gstRate ?? 18) } : null;
+  if (gst) {
+    text(`GSTIN: ${pdfText(r.gstin)}`, left, height - 66, 10, bold, rgb(1, 1, 1));
+    const sub = [r.businessPhone ? `Phone: ${pdfText(r.businessPhone)}` : "", pdfText(r.gstAddress)].filter(Boolean).join("  |  ");
+    if (sub) text(fit(sub, 8.5, font, width - 72), left, height - 80, 8.5, font, rgb(0.9, 0.97, 0.96));
+  }
+  else if (r.businessPhone) text(`Phone: ${pdfText(r.businessPhone)}`, left, height - 66, 10, font, rgb(0.9, 0.97, 0.96));
 
   let y = height - 128;
-  text("PAYMENT RECEIPT", left, y, 12, bold, teal);
-  textRight(`Receipt no. ${r.receiptNo}`, y, 10, bold);
+  text(gst ? "TAX INVOICE" : "PAYMENT RECEIPT", left, y, 12, bold, teal);
+  textRight(`${gst ? "Invoice" : "Receipt"} no. ${r.receiptNo}`, y, 10, bold);
   y -= 16;
   textRight(longDate(r.date), y, 10, font, soft);
 
@@ -222,6 +249,11 @@ export async function renderReceiptPdf(r: ReceiptData): Promise<Uint8Array> {
     y -= 16;
   };
   if (r.planName) row("For", pdfText(r.planName, "Membership"));
+  if (gst) {
+    row("Taxable value", rupees(gst.taxable));
+    row(`CGST @ ${gst.rate / 2}%`, rupees(gst.cgst));
+    row(`SGST @ ${gst.rate / 2}%`, rupees(gst.sgst));
+  }
   if (r.periodStart && r.periodEnd) row("Period", `${longDate(r.periodStart)} to ${longDate(r.periodEnd)}`);
   row("Payment date", longDate(r.date));
   if (r.subscriptionId) row("Balance due", r.balanceDue > 0 ? rupees(r.balanceDue) : "Nil");
@@ -229,7 +261,7 @@ export async function renderReceiptPdf(r: ReceiptData): Promise<Uint8Array> {
 
   // Footer
   text("Thank you!", left, 92, 14, bold, teal);
-  text("This is a computer-generated receipt and needs no signature.", left, 70, 8.5, font, soft);
+  text(`This is a computer-generated ${gst ? "invoice" : "receipt"} and needs no signature.${gst ? " Amount includes GST." : ""}`, left, 70, 8.5, font, soft);
   text("Made with MemberBook - memberbook.in", left, 56, 8.5, font, soft);
 
   return pdf.save();

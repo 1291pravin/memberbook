@@ -146,10 +146,19 @@
             <AppBadge :color="paymentStatusColor(sub.paymentStatus)" class="text-xs">
               {{ paymentStatusLabel(sub.paymentStatus) }}
             </AppBadge>
+            <AppBadge v-if="sub.paused" color="blue" class="text-xs">Paused till {{ formatDate(sub.pauseEnd!) }}</AppBadge>
+            <AppBadge v-else-if="sub.pauseStart && sub.pauseStart > todayStr" color="blue" class="text-xs">Pause from {{ formatDate(sub.pauseStart) }}</AppBadge>
             <span v-if="sub.totalPaid > 0 && sub.paymentStatus !== 'paid'" class="text-xs text-slate-600">
               Paid {{ formatCurrency(sub.totalPaid) }} of {{ formatCurrency(sub.amount) }}
             </span>
           </div>
+          <ul v-if="sub.instalments?.length" class="mt-2 space-y-0.5 rounded-lg bg-slate-50 px-3 py-2 text-xs">
+            <li class="font-medium text-slate-700">Instalments</li>
+            <li v-for="(it, i) in instalmentRows(sub)" :key="i" class="flex justify-between gap-2" :class="it.paid ? 'text-slate-500 line-through' : 'text-slate-700'">
+              <span>{{ formatDate(it.dueDate) }}</span>
+              <span>{{ formatCurrency(it.amount) }}<span v-if="it.paid" class="no-underline"> paid</span></span>
+            </li>
+          </ul>
           <div class="mt-2 flex items-center justify-between gap-2 border-t border-slate-100 pt-1.5">
             <div class="-ml-2.5 flex flex-wrap items-center gap-1">
               <AppAction
@@ -169,9 +178,13 @@
               :loading="deletingSubscriptionId === sub.id"
               :items="[
                 ...(sub.id === latestSubscriptionId ? [{ key: 'change', label: 'Change plan' }] : []),
+                ...(sub.paymentStatus !== 'paid' ? [{ key: 'instalments', label: sub.instalments?.length ? 'Change instalments' : 'Pay in instalments' }] : []),
+                ...(sub.id === latestSubscriptionId && sub.endDate >= todayStr
+                  ? [sub.pauseEnd && sub.pauseEnd >= todayStr ? { key: 'resume', label: 'Resume membership now' } : { key: 'pause', label: 'Pause membership' }]
+                  : []),
                 ...(isOwner ? [{ key: 'delete', label: 'Delete subscription', danger: true }] : []),
               ]"
-              @select="k => k === 'change' ? openChangePlan(sub) : deleteSubscription(sub)"
+              @select="k => onSubscriptionAction(k, sub)"
             />
           </div>
         </div>
@@ -291,6 +304,48 @@
     </AppModal>
 
     <!-- Record Payment Modal -->
+    <AppModal :open="!!instalmentSub" title="Pay in instalments" size="sm" @close="instalmentSub = null">
+      <form v-if="instalmentSub" class="space-y-4" @submit.prevent="saveInstalments">
+        <p class="text-sm text-slate-600">
+          Split {{ formatCurrency(instalmentSub.amount) }} into equal parts. Fees due and reminders will ask only for the part that's due.
+        </p>
+        <AppSelect v-model="instalmentForm.count" label="Number of instalments" :options="[2, 3, 4, 6, 12].map(n => ({ value: String(n), label: String(n) }))" />
+        <AppInput v-model="instalmentForm.firstDueDate" type="date" label="First instalment due on" required />
+        <AppSelect
+          v-model="instalmentForm.everyDays"
+          label="Then every"
+          :options="[{ value: '7', label: 'Week' }, { value: '15', label: '15 days' }, { value: '30', label: 'Month' }, { value: '91', label: '3 months' }]"
+        />
+        <ul class="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700 space-y-0.5">
+          <li v-for="(it, i) in instalmentPreview" :key="i" class="flex justify-between"><span>{{ formatDate(it.dueDate) }}</span><span class="font-medium">{{ formatCurrency(it.amount) }}</span></li>
+        </ul>
+        <p v-if="instalmentError" class="text-sm text-danger-700" role="alert">{{ instalmentError }}</p>
+        <div class="flex justify-between gap-2">
+          <AppButton v-if="instalmentSub.instalments?.length" variant="ghost" type="button" @click="clearInstalments">Remove plan</AppButton>
+          <span v-else />
+          <AppButton type="submit" :loading="savingInstalments">Save</AppButton>
+        </div>
+      </form>
+    </AppModal>
+
+    <AppModal :open="!!pauseSub" title="Pause membership" size="sm" @close="pauseSub = null">
+      <form v-if="pauseSub" class="space-y-4" @submit.prevent="savePause">
+        <p class="text-sm text-slate-600">
+          Going away or injured? The membership end date moves later by the paused days, so nothing is lost.
+        </p>
+        <AppInput v-model="pauseForm.from" type="date" label="First day of the pause" required />
+        <AppInput v-model="pauseForm.until" type="date" label="Last day of the pause" required />
+        <p v-if="pauseDays > 0" class="text-sm text-slate-700">
+          {{ pauseDays }} day{{ pauseDays === 1 ? '' : 's' }}. New end date: <strong>{{ formatDate(addDays(pauseSub.endDate, pauseDays)) }}</strong>
+        </p>
+        <p v-if="pauseError" class="text-sm text-danger-700" role="alert">{{ pauseError }}</p>
+        <div class="flex justify-end gap-2">
+          <AppButton variant="ghost" type="button" @click="pauseSub = null">Cancel</AppButton>
+          <AppButton type="submit" :loading="savingPause">Pause</AppButton>
+        </div>
+      </form>
+    </AppModal>
+
     <AppModal :open="showPaymentModal" title="Record Payment" @close="showPaymentModal = false">
       <form class="space-y-4" @submit.prevent="recordPayment">
         <AppInput v-model="paymentForm.amount" label="Amount (Rupees)" type="number" required />
@@ -469,6 +524,10 @@ interface Subscription {
   durationType: string;
   durationValue: number;
   totalPaid: number;
+  pauseStart: string | null;
+  pauseEnd: string | null;
+  paused: boolean;
+  instalments: { dueDate: string; amount: number }[];
 }
 
 interface Payment {
@@ -1165,4 +1224,124 @@ async function deleteSubscription(sub: Subscription) {
   }
 }
 
+
+// ---------------------------------------------------------------- instalments and pause
+const todayStr = new Date(Date.now() + 5.5 * 3600000).toISOString().slice(0, 10);
+
+function addDays(date: string, n: number) {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function instalmentRows(sub: Subscription) {
+  let left = sub.totalPaid;
+  return sub.instalments.map((it) => {
+    const paid = left >= it.amount;
+    left = Math.max(0, left - it.amount);
+    return { ...it, paid };
+  });
+}
+
+const instalmentSub = ref<Subscription | null>(null);
+const instalmentForm = reactive({ count: "3", firstDueDate: todayStr, everyDays: "30" });
+const instalmentError = ref("");
+const savingInstalments = ref(false);
+const instalmentPreview = computed(() => {
+  const sub = instalmentSub.value;
+  const count = Number(instalmentForm.count);
+  if (!sub || !instalmentForm.firstDueDate || !count) return [];
+  const part = Math.floor(sub.amount / count / 100) * 100;
+  return Array.from({ length: count }, (_, i) => ({
+    dueDate: addDays(instalmentForm.firstDueDate, i * Number(instalmentForm.everyDays)),
+    amount: i === count - 1 ? sub.amount - part * (count - 1) : part,
+  }));
+});
+
+const pauseSub = ref<Subscription | null>(null);
+const pauseForm = reactive({ from: todayStr, until: addDays(todayStr, 13) });
+const pauseError = ref("");
+const savingPause = ref(false);
+const pauseDays = computed(() => {
+  if (!pauseForm.from || !pauseForm.until || pauseForm.until < pauseForm.from) return 0;
+  return Math.round((Date.parse(pauseForm.until) - Date.parse(pauseForm.from)) / 86400000) + 1;
+});
+
+function apiError(err: unknown, fallback: string) {
+  const e = err as { data?: { statusMessage?: string }; message?: string };
+  return e.data?.statusMessage || e.message || fallback;
+}
+
+function onSubscriptionAction(key: string, sub: Subscription) {
+  if (key === "change") openChangePlan(sub);
+  else if (key === "delete") deleteSubscription(sub);
+  else if (key === "instalments") {
+    instalmentForm.count = String(sub.instalments?.length || 3);
+    instalmentForm.firstDueDate = sub.instalments?.[0]?.dueDate || (sub.startDate > todayStr ? sub.startDate : todayStr);
+    instalmentError.value = "";
+    instalmentSub.value = sub;
+  }
+  else if (key === "pause") {
+    pauseForm.from = todayStr;
+    pauseForm.until = addDays(todayStr, 13);
+    pauseError.value = "";
+    pauseSub.value = sub;
+  }
+  else if (key === "resume") resumeSubscription(sub);
+}
+
+async function saveInstalments(count?: number) {
+  if (!instalmentSub.value) return;
+  savingInstalments.value = true;
+  instalmentError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/subscriptions/${instalmentSub.value.id}/instalments`, {
+      method: "PUT",
+      body: count === 0 ? { count: 0 } : { count: Number(instalmentForm.count), firstDueDate: instalmentForm.firstDueDate, everyDays: Number(instalmentForm.everyDays) },
+    });
+    instalmentSub.value = null;
+    await refreshMember();
+  }
+  catch (err) {
+    instalmentError.value = apiError(err, "Could not save the instalments");
+  }
+  finally {
+    savingInstalments.value = false;
+  }
+}
+
+function clearInstalments() {
+  saveInstalments(0);
+}
+
+async function savePause() {
+  if (!pauseSub.value) return;
+  savingPause.value = true;
+  pauseError.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/subscriptions/${pauseSub.value.id}/pause`, {
+      method: "POST",
+      body: { from: pauseForm.from, until: pauseForm.until },
+    });
+    pauseSub.value = null;
+    await refreshMember();
+  }
+  catch (err) {
+    pauseError.value = apiError(err, "Could not pause the membership");
+  }
+  finally {
+    savingPause.value = false;
+  }
+}
+
+async function resumeSubscription(sub: Subscription) {
+  errorMessage.value = "";
+  try {
+    await $fetch(`/api/orgs/${orgId.value}/members/${memberId}/subscriptions/${sub.id}/pause`, { method: "POST", body: { resume: true } });
+    await refreshMember();
+  }
+  catch (err) {
+    errorMessage.value = apiError(err, "Could not resume the membership");
+  }
+}
 </script>

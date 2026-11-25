@@ -67,6 +67,29 @@
       </form>
     </AppCard>
 
+    <!-- GST invoices (owner only) -->
+    <AppCard v-if="isOwner" title="GST invoices">
+      <p class="text-sm text-slate-600 mb-3">
+        Registered for GST? Add your GSTIN and every receipt becomes a tax invoice with CGST and SGST shown. Leave it empty if you're not registered.
+      </p>
+      <form class="space-y-4" @submit.prevent="saveGst">
+        <AppInput v-model="gstForm.gstin" label="GSTIN" placeholder="e.g. 27ABCDE1234F1Z5" maxlength="15" />
+        <AppSelect
+          v-model="gstForm.gstRate"
+          label="GST rate (your prices include it)"
+          :options="[
+            { value: '18', label: '18% (gyms, coaching, most services)' },
+            { value: '12', label: '12%' },
+            { value: '5', label: '5%' },
+            { value: '28', label: '28%' },
+          ]"
+        />
+        <AppInput v-model="gstForm.gstAddress" label="Business address on the invoice" placeholder="Shop no., street, city, state" />
+        <p v-if="gstMessage" class="text-sm" :class="gstError ? 'text-danger-700' : 'text-primary-700'" role="status">{{ gstMessage }}</p>
+        <AppButton type="submit" size="sm" :loading="savingGst">Save</AppButton>
+      </form>
+    </AppCard>
+
     <!-- Expense Categories (owner only) -->
     <AppCard v-if="isOwner" title="Expense Categories">
       <p class="text-sm text-slate-600 mb-3">
@@ -287,6 +310,45 @@ const savingOrg = ref(false);
 
 const subscriptionForm = reactive({ gracePeriodDays: String(currentOrg.value?.gracePeriodDays ?? 0) });
 const savingSubscriptionSettings = ref(false);
+
+const gstForm = reactive({ gstin: "", gstRate: "18", gstAddress: "" });
+const savingGst = ref(false);
+const gstMessage = ref("");
+const gstError = ref(false);
+
+async function loadGst() {
+  try {
+    const { org } = await $fetch<{ org: { gstin: string | null; gstRate: number; gstAddress: string | null } }>(`/api/orgs/${orgId.value}`);
+    gstForm.gstin = org.gstin ?? "";
+    gstForm.gstRate = String(org.gstRate ?? 18);
+    gstForm.gstAddress = org.gstAddress ?? "";
+  }
+  catch { /* the card still works empty */ }
+}
+
+async function saveGst() {
+  savingGst.value = true;
+  gstMessage.value = "";
+  gstError.value = false;
+  try {
+    await $fetch(`/api/orgs/${orgId.value}`, {
+      method: "PUT",
+      body: { gstin: gstForm.gstin, gstRate: Number(gstForm.gstRate), gstAddress: gstForm.gstAddress },
+    });
+    gstMessage.value = gstForm.gstin ? "Saved. Receipts are now GST tax invoices." : "Saved. Receipts stay plain receipts.";
+  }
+  catch (err) {
+    gstError.value = true;
+    gstMessage.value = (err as { data?: { statusMessage?: string } })?.data?.statusMessage || "Could not save.";
+  }
+  finally {
+    savingGst.value = false;
+  }
+}
+
+onMounted(() => {
+  if (isOwner.value) loadGst();
+});
 
 const showInviteModal = ref(false);
 const generatingInvite = ref(false);

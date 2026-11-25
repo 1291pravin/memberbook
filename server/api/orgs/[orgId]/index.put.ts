@@ -24,6 +24,25 @@ export default defineEventHandler(async (event) => {
     updates.gracePeriodDays = days;
   }
 
+  if (body.gstin !== undefined) {
+    const gstin = typeof body.gstin === "string" ? body.gstin.trim().toUpperCase() : "";
+    // 15 characters: 2-digit state code, PAN, entity number, Z, check character.
+    if (gstin && !/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gstin)) {
+      throw createError({ statusCode: 400, statusMessage: "That doesn't look like a GSTIN. It has 15 characters, like 27ABCDE1234F1Z5." });
+    }
+    updates.gstin = gstin || null;
+  }
+  if (body.gstRate !== undefined) {
+    const rate = Number(body.gstRate);
+    if (![5, 12, 18, 28].includes(rate)) {
+      throw createError({ statusCode: 400, statusMessage: "GST rate must be 5, 12, 18 or 28%" });
+    }
+    updates.gstRate = rate;
+  }
+  if (body.gstAddress !== undefined) {
+    updates.gstAddress = typeof body.gstAddress === "string" && body.gstAddress.trim() ? body.gstAddress.trim().slice(0, 200) : null;
+  }
+
   if (Object.keys(updates).length === 0) {
     throw createError({ statusCode: 400, statusMessage: "Nothing to update" });
   }

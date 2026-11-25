@@ -373,7 +373,7 @@ function plural(n: number, word: string) {
 
 function describe(item: CollectionItem): string {
   if (item.kind === "due") {
-    return item.daysLate > 0 ? `Balance unpaid since ${shortDate(item.dueDate)}` : "Balance due today";
+    return item.daysLate > 0 ? `Balance unpaid since ${shortDate(item.dueDate)}` : item.daysLate < 0 ? `Instalment due ${shortDate(item.dueDate)}` : "Balance due today";
   }
   if (item.daysLate > 0) return `Ended ${plural(item.daysLate, "day")} ago (${shortDate(item.dueDate)})`;
   if (item.daysLate === 0) return "Ends today";

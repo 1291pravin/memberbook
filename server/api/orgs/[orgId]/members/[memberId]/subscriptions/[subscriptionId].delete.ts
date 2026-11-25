@@ -24,6 +24,10 @@ export default defineEventHandler(async (event) => {
     eq(schema.payments.subscriptionId, subscriptionId),
     eq(schema.payments.orgId, access.orgId),
   ));
+  await db.delete(schema.subscriptionInstalments).where(and(
+    eq(schema.subscriptionInstalments.subscriptionId, subscriptionId),
+    eq(schema.subscriptionInstalments.orgId, access.orgId),
+  ));
   await db.delete(schema.memberSubscriptions).where(and(
     eq(schema.memberSubscriptions.id, subscriptionId),
     eq(schema.memberSubscriptions.orgId, access.orgId),
