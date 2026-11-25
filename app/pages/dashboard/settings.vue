@@ -67,12 +67,15 @@
       </form>
     </AppCard>
 
-    <!-- GST invoices (owner only) -->
-    <AppCard v-if="isOwner" title="GST invoices">
-      <p class="text-sm text-slate-600 mb-3">
-        Registered for GST? Add your GSTIN and every receipt becomes a tax invoice with CGST and SGST shown. Leave it empty if you're not registered.
-      </p>
+    <!-- Business details and GST invoices (owner only) -->
+    <AppCard v-if="isOwner" title="Business details and GST">
       <form class="space-y-4" @submit.prevent="saveGst">
+        <AppInput v-model="gstForm.ownerWhatsapp" label="Business WhatsApp number" type="tel" placeholder="98765 43210" />
+        <AppInput v-model="gstForm.gstAddress" label="Business address" placeholder="Shop no., street, area, city" />
+        <p class="text-xs text-slate-600 -mt-2">Shown on receipts and your free business page.</p>
+        <p class="pt-2 text-sm text-slate-600">
+          Registered for GST? Add your GSTIN and every receipt becomes a tax invoice with CGST and SGST shown. Leave it empty if you're not registered.
+        </p>
         <AppInput v-model="gstForm.gstin" label="GSTIN" placeholder="e.g. 27ABCDE1234F1Z5" maxlength="15" />
         <AppSelect
           v-model="gstForm.gstRate"
@@ -84,7 +87,6 @@
             { value: '28', label: '28%' },
           ]"
         />
-        <AppInput v-model="gstForm.gstAddress" label="Business address on the invoice" placeholder="Shop no., street, city, state" />
         <p v-if="gstMessage" class="text-sm" :class="gstError ? 'text-danger-700' : 'text-primary-700'" role="status">{{ gstMessage }}</p>
         <AppButton type="submit" size="sm" :loading="savingGst">Save</AppButton>
       </form>
@@ -311,17 +313,18 @@ const savingOrg = ref(false);
 const subscriptionForm = reactive({ gracePeriodDays: String(currentOrg.value?.gracePeriodDays ?? 0) });
 const savingSubscriptionSettings = ref(false);
 
-const gstForm = reactive({ gstin: "", gstRate: "18", gstAddress: "" });
+const gstForm = reactive({ gstin: "", gstRate: "18", gstAddress: "", ownerWhatsapp: "" });
 const savingGst = ref(false);
 const gstMessage = ref("");
 const gstError = ref(false);
 
 async function loadGst() {
   try {
-    const { org } = await $fetch<{ org: { gstin: string | null; gstRate: number; gstAddress: string | null } }>(`/api/orgs/${orgId.value}`);
+    const { org } = await $fetch<{ org: { gstin: string | null; gstRate: number; gstAddress: string | null; ownerWhatsapp: string | null } }>(`/api/orgs/${orgId.value}`);
     gstForm.gstin = org.gstin ?? "";
     gstForm.gstRate = String(org.gstRate ?? 18);
     gstForm.gstAddress = org.gstAddress ?? "";
+    gstForm.ownerWhatsapp = org.ownerWhatsapp ?? "";
   }
   catch { /* the card still works empty */ }
 }
@@ -333,9 +336,9 @@ async function saveGst() {
   try {
     await $fetch(`/api/orgs/${orgId.value}`, {
       method: "PUT",
-      body: { gstin: gstForm.gstin, gstRate: Number(gstForm.gstRate), gstAddress: gstForm.gstAddress },
+      body: { gstin: gstForm.gstin, gstRate: Number(gstForm.gstRate), gstAddress: gstForm.gstAddress, ownerWhatsapp: gstForm.ownerWhatsapp },
     });
-    gstMessage.value = gstForm.gstin ? "Saved. Receipts are now GST tax invoices." : "Saved. Receipts stay plain receipts.";
+    gstMessage.value = gstForm.gstin ? "Saved. Receipts are now GST tax invoices." : "Saved.";
   }
   catch (err) {
     gstError.value = true;
