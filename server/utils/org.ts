@@ -27,3 +27,10 @@ export async function getUserOrgs(userId: number) {
     .where(eq(schema.orgMemberships.userId, userId));
   return rows;
 }
+
+/** An organization row without stored secrets, safe to send to the dashboard. */
+export function publicOrg<T extends { razorpayKeySecretEnc?: string | null; razorpayWebhookSecretEnc?: string | null } | undefined>(org: T) {
+  if (!org) return org;
+  const { razorpayKeySecretEnc: _k, razorpayWebhookSecretEnc: _w, ...rest } = org;
+  return rest;
+}

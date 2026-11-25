@@ -17,6 +17,8 @@ export default defineEventHandler(async (event) => {
     paid: data.paid,
     claimed: !!data.link.claimedAt,
     upiId: data.upiId,
+    // Owner connected their own Razorpay: the member can pay online and it confirms itself.
+    onlinePay: !data.paid && data.amount > 0 && !!data.razorpayKeyId,
     payeeName,
     upiLink: data.upiId && !data.paid
       ? buildUpiLink({ upiId: data.upiId, payeeName, amount: data.amount, note })

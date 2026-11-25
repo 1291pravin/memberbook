@@ -12,6 +12,7 @@ export async function loadPayLink(token: string) {
       orgType: schema.organizations.type,
       upiId: schema.organizations.upiId,
       upiPayeeName: schema.organizations.upiPayeeName,
+      razorpayKeyId: schema.organizations.razorpayKeyId,
       memberName: schema.members.name,
       planName: schema.subscriptionPlans.name,
       subAmount: schema.memberSubscriptions.amount,

@@ -41,7 +41,7 @@
           <p class="mt-1 text-3xl font-bold tracking-tight text-slate-800">{{ formatCurrency(d.amount) }}</p>
           <p class="mt-0.5 text-sm" :class="d.overdue ? 'text-amber-800' : 'text-slate-600'">{{ dueText(d) }}</p>
           <a v-if="d.payUrl" :href="d.payUrl" class="mt-4 flex w-full items-center justify-center rounded-xl bg-primary-600 px-4 py-3.5 text-base font-semibold text-white hover:bg-primary-700">
-            Pay now by UPI
+            Pay now
           </a>
           <p v-else class="mt-3 text-sm text-slate-700">Please pay at the front desk on your next visit.</p>
         </div>

@@ -8,5 +8,5 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.organizations.id, access.orgId))
     .limit(1);
 
-  return { org: rows[0], role: access.role };
+  return { org: publicOrg(rows[0]), role: access.role };
 });

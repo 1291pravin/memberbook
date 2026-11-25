@@ -33,7 +33,36 @@
               <p class="text-4xl font-bold text-slate-800 mt-3 tracking-tight">{{ formatCurrency(pay.amount) }}</p>
             </div>
 
-            <template v-if="pay.upiLink">
+            <div v-if="onlineResult === 'pending'" class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+              We're confirming your payment with the bank. This page will show "All paid" once it's done. Please don't pay again.
+            </div>
+            <div v-else-if="onlineResult === 'failed'" class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              The online payment didn't go through. No money was taken. Please try again.
+            </div>
+
+            <template v-if="pay.onlinePay">
+              <button
+                type="button"
+                class="flex w-full items-center justify-center rounded-xl bg-primary-600 px-4 py-3.5 text-base font-semibold text-white hover:bg-primary-700 disabled:opacity-60"
+                :disabled="startingOnline"
+                @click="payOnline"
+              >
+                {{ startingOnline ? "Opening…" : "Pay now" }}
+              </button>
+              <p class="text-xs text-slate-600 text-center -mt-2">
+                UPI, card or net banking. Confirmed straight away, no screenshot needed.
+              </p>
+              <p v-if="onlineError" class="text-sm text-danger-700 text-center">{{ onlineError }}</p>
+              <details v-if="pay.upiLink" class="rounded-xl border border-slate-200 p-3">
+                <summary class="cursor-pointer text-sm font-medium text-slate-700">Or pay directly to their UPI ID</summary>
+                <div class="mt-3 space-y-2">
+                  <a :href="pay.upiLink" class="flex w-full items-center justify-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50">Open my UPI app</a>
+                  <p class="text-xs text-slate-600">UPI ID: <span class="font-mono text-slate-800">{{ pay.upiId }}</span>. Tap "I have paid" below after paying.</p>
+                </div>
+              </details>
+            </template>
+
+            <template v-else-if="pay.upiLink">
               <!-- iPhone has no UPI app picker, so offer the common apps directly. -->
               <div v-if="isIos" class="space-y-2">
                 <a
@@ -74,7 +103,7 @@
             </template>
             <p v-else class="text-sm text-slate-700">Please pay at the front desk on your next visit.</p>
 
-            <div class="border-t border-slate-100 pt-4">
+            <div v-if="!pay.onlinePay || pay.upiLink" class="border-t border-slate-100 pt-4">
               <p v-if="claimed" class="text-sm text-success-700 text-center">
                 Thanks! We've let {{ pay.orgName }} know. They'll confirm your payment soon.
               </p>
@@ -117,6 +146,7 @@ interface PayInfo {
   upiId: string | null;
   payeeName: string;
   upiLink: string | null;
+  onlinePay: boolean;
 }
 
 const { data: pay, error } = await useFetch<PayInfo>(`/api/pay/${token}`);
@@ -150,7 +180,7 @@ onMounted(() => {
   const ua = navigator.userAgent || "";
   isIos.value = /iPhone|iPad|iPod/i.test(ua);
   const p = pay.value;
-  if (!p?.upiLink || p.paid || claimed.value || !/Android/i.test(ua)) return;
+  if (!p?.upiLink || p.paid || p.onlinePay || claimed.value || !/Android/i.test(ua)) return;
   const key = `upi-opened-${token}`;
   try {
     if (sessionStorage.getItem(key)) return;
@@ -162,6 +192,27 @@ onMounted(() => {
   autoOpened.value = true;
   window.location.href = p.upiLink;
 });
+
+// Back from Razorpay: ?online=paid|pending|failed. "paid" shows as All paid from the server.
+const onlineResult = computed(() => {
+  const v = String(route.query.online ?? "");
+  return v === "pending" || v === "failed" ? v : null;
+});
+const startingOnline = ref(false);
+const onlineError = ref("");
+async function payOnline() {
+  startingOnline.value = true;
+  onlineError.value = "";
+  try {
+    const r = await $fetch<{ url: string }>(`/api/pay/${token}/online`, { method: "POST" });
+    window.location.href = r.url;
+  }
+  catch (e) {
+    const err = e as { data?: { statusMessage?: string } };
+    onlineError.value = err.data?.statusMessage || "Couldn't open the payment page. Please try again.";
+    startingOnline.value = false;
+  }
+}
 
 const claimed = ref(false);
 watch(pay, (p) => { if (p?.claimed) claimed.value = true; }, { immediate: true });
