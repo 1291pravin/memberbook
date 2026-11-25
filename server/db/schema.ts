@@ -91,6 +91,7 @@ export const members = sqliteTable("members", {
   batch: text("batch"),
   photoKey: text("photo_key"), // R2/blob pathname of the member's photo, null = no photo
   birthDate: text("birth_date"), // YYYY-MM-DD, for birthday wishes; null = not known
+  portalToken: text("portal_token"), // public member page /m/<token>, made the first time it's shared
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   orgCreatedIdx: index("members_org_created_idx").on(table.orgId, table.createdAt),

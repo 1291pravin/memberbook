@@ -90,6 +90,7 @@
         <AppAction v-if="canWhatsApp" icon="whatsapp" tone="whatsapp" :href="getWhatsAppLink(member.phone!, '')" external>WhatsApp</AppAction>
         <AppAction v-if="canWhatsApp && needsPaymentReminder" icon="send" tone="whatsapp" @click="sendPaymentReminder">Payment reminder</AppAction>
         <AppAction v-else-if="canWhatsApp && needsRenewalReminder" icon="send" tone="whatsapp" @click="sendRenewalReminder">Renewal reminder</AppAction>
+        <AppAction icon="eye" :loading="sharingPage" @click="shareMemberPage">Member page</AppAction>
       </div>
     </AppCard>
 
@@ -1342,6 +1343,31 @@ async function resumeSubscription(sub: Subscription) {
   }
   catch (err) {
     errorMessage.value = apiError(err, "Could not resume the membership");
+  }
+}
+
+// ---------------------------------------------------------------- member's own page
+const sharingPage = ref(false);
+async function shareMemberPage() {
+  if (!member.value) return;
+  sharingPage.value = true;
+  errorMessage.value = "";
+  try {
+    const { url } = await $fetch<{ url: string }>(`/api/orgs/${orgId.value}/members/${memberId}/page-link`, { method: "POST" });
+    const name = member.value.name.split(" ")[0];
+    const text = `Hi ${name}, here is your ${currentOrg.value?.name ?? ""} member page. See your plan, fees, receipts and visits any time:\n${url}`;
+    if (member.value.phone && canWhatsApp.value) window.open(getWhatsAppLink(member.value.phone, text), "_blank");
+    else if (navigator.share) await navigator.share({ text });
+    else {
+      await navigator.clipboard.writeText(url);
+      errorMessage.value = "Member page link copied.";
+    }
+  }
+  catch (err) {
+    if ((err as Error)?.name !== "AbortError") errorMessage.value = apiError(err, "Could not make the member page link");
+  }
+  finally {
+    sharingPage.value = false;
   }
 }
 </script>
