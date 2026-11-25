@@ -15,6 +15,9 @@ import { db, schema } from "@nuxthub/db";
  *
  * From MemberBook's number a business needs the auto_reminders add-on, gets
  * INCLUDED_REMINDERS a month, and pauses while an add-on bill is overdue.
+ *
+ * Afterwards it starts the 14-day free trial for businesses that have loaded
+ * their members (server/utils/reminder-trials.ts).
  */
 export default defineTask({
   meta: {
@@ -57,7 +60,15 @@ export default defineTask({
       }
     }
 
-    console.log(`[reminders:daily] orgs=${orgs.length} sent=${sent} failed=${failed}`);
-    return { result: `orgs=${orgs.length} sent=${sent} failed=${failed}` };
+    // After today's sends: start the free trial for businesses that have loaded
+    // their members (first reminders go out tomorrow, so the owner can opt out).
+    const trials = await autoStartReminderTrials().catch((err) => {
+      console.error("[reminders:daily] auto trials", err);
+      return { started: [], askedUpi: [] };
+    });
+
+    const summary = `orgs=${orgs.length} sent=${sent} failed=${failed} trialsStarted=${trials.started.join(",") || 0} askedUpi=${trials.askedUpi.join(",") || 0}`;
+    console.log(`[reminders:daily] ${summary}`);
+    return { result: summary };
   },
 });

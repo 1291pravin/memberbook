@@ -119,7 +119,7 @@ Optional support channels (defaults in `nuxt.config.ts`, used by `useSupport()`)
 
 ## Fee collection (Collections page)
 
-`/dashboard/collections` lists overdue and due-soon payments (`server/utils/collections.ts`). Reminders carry a public pay link `/pay/<token>` that opens the member's UPI app to pay the owner's UPI ID directly. Tap-to-send works today; automatic sending via Meta WhatsApp Cloud API is off until `NUXT_WHATSAPP_CLOUD_ENABLED=true` plus its secrets are set (see `docs/whatsapp-cloud-api-setup.md`). Daily job: `server/tasks/reminders/daily.ts`, cron in `wrangler.jsonc`.
+`/dashboard/collections` lists overdue and due-soon payments (`server/utils/collections.ts`). Reminders carry a public pay link `/pay/<token>` that opens the member's UPI app to pay the owner's UPI ID directly. Tap-to-send works today; automatic sending via Meta WhatsApp Cloud API is off until `NUXT_WHATSAPP_CLOUD_ENABLED=true` plus its secrets are set (see `docs/whatsapp-cloud-api-setup.md`). Daily job: `server/tasks/reminders/daily.ts`, cron in `wrangler.jsonc`. After its sends it auto-starts the 14-day free reminder trial for businesses with 5+ real members and a UPI ID (no UPI: one email asking for it), and emails the owner how to switch off (`server/utils/reminder-trials.ts`, exclusions in `AUTO_TRIAL_EXCLUDED_ORGS`). Businesses that ever had the add-on are never auto-started.
 
 ## Add-ons (paid extras)
 
@@ -145,7 +145,7 @@ AI answers messages to the MemberBook WhatsApp number (`docs/whatsapp-auto-reply
 
 ## Cold email outreach
 
-Outreach to gyms, libraries and coaching centres goes out from support@memberbook.in through Resend (`server/utils/outreach.ts`), never from anyone's personal Gmail. Leads (only publicly listed emails) are added with `POST /api/admin/outreach/leads`; the daily task `outreach:send` (09:00 IST) sends follow-ups then new leads up to 20 a day, one follow-up after 5 days, then stops. Unsubscribe page: `/unsubscribe/<token>` (plus one-click List-Unsubscribe). Needs the secret `NUXT_RESEND_API_KEY`; nothing sends until `NUXT_OUTREACH_ENABLED=true` (wrangler.jsonc vars). `POST /api/admin/outreach/test` sends a sample to support@ even while it's off. Mark replies with `POST /api/admin/outreach/leads/<id>` `{status:"replied"}`.
+Outreach to gyms, libraries and coaching centres goes out from support@memberbook.in through Resend (`server/utils/outreach.ts`), never from anyone's personal Gmail. Leads (only publicly listed emails) are added with `POST /api/admin/outreach/leads`; the daily task `outreach:send` (09:00 IST) sends follow-ups then new leads up to 50 a day, one follow-up after 5 days, then stops. Unsubscribe page: `/unsubscribe/<token>` (plus one-click List-Unsubscribe). Needs the secret `NUXT_RESEND_API_KEY`; nothing sends until `NUXT_OUTREACH_ENABLED=true` (wrangler.jsonc vars). `POST /api/admin/outreach/test` sends a sample to support@ even while it's off. Mark replies with `POST /api/admin/outreach/leads/<id>` `{status:"replied"}`.
 
 ## Email auto-reply (support@)
 
