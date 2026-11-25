@@ -13,6 +13,7 @@ export type AddOnKey =
   | "reviews"
   | "review_poster"
   | "business_page"
+  | "online_payments"
   | "self_check_in"
   | "auto_reminders"
   | "own_number"
@@ -137,6 +138,19 @@ export const ADD_ONS: AddOnDef[] = [
     price: 0,
     ready: true,
     page: "/dashboard/add-ons/business-page",
+  },
+  {
+    key: "online_payments",
+    name: "Payments that confirm themselves",
+    tagline: "Connect your own Razorpay. When a member pays from a reminder, MemberBook marks them paid and renews them on its own.",
+    points: [
+      "UPI, card or net banking from the same pay link",
+      "No screenshots to check, no \"I have paid\" to confirm",
+      "Money goes to your Razorpay account. We take no cut",
+    ],
+    price: 0,
+    ready: true,
+    page: "/dashboard/add-ons/online-payments",
   },
   {
     key: "self_check_in",

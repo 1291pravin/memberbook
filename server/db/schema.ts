@@ -47,6 +47,11 @@ export const organizations = sqliteTable("organizations", {
   gstin: text("gstin"),
   gstRate: integer("gst_rate").notNull().default(18),
   gstAddress: text("gst_address"), // business address printed on tax invoices
+  // Owner's own Razorpay account: members pay online and the payment confirms itself. Secrets are AES-GCM encrypted.
+  razorpayKeyId: text("razorpay_key_id"),
+  razorpayKeySecretEnc: text("razorpay_key_secret_enc"),
+  razorpayWebhookSecretEnc: text("razorpay_webhook_secret_enc"),
+  razorpayConnectedAt: text("razorpay_connected_at"),
   checkInToken: text("check_in_token"), // public self check-in link /checkin/<token>, null = not set up
   googleReviewUrl: text("google_review_url"), // owner's Google "write a review" link, for the review poster
   reviewToken: text("review_token"), // public short link /r/<token> that counts scans and goes to googleReviewUrl
@@ -140,12 +145,14 @@ export const payments = sqliteTable("payments", {
   notes: text("notes"),
   receiptNo: integer("receipt_no"), // per-business receipt number, given the first time a receipt is made
   receiptToken: text("receipt_token"), // public PDF link /receipt/<token>
+  externalRef: text("external_ref"), // e.g. "razorpay:pay_XXXX", so an online payment is recorded once
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => ({
   orgDateIdx: index("payments_org_date_idx").on(table.orgId, table.date),
   receiptTokenUnique: uniqueIndex("payments_receipt_token_unique").on(table.receiptToken),
   subscriptionIdx: index("payments_subscription_idx").on(table.subscriptionId),
   memberIdx: index("payments_member_idx").on(table.memberId),
+  externalRefUnique: uniqueIndex("payments_external_ref_unique").on(table.externalRef),
 }));
 
 // Fee collection (Collections page): public pay links and the reminders sent.

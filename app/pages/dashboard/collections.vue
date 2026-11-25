@@ -182,6 +182,10 @@
             A business UPI ID (PhonePe Business, Paytm for Business, Google Pay for Business) works best, because some apps limit payments to personal UPI IDs from links.
           </p>
         </div>
+        <NuxtLink to="/dashboard/add-ons/online-payments" class="block rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 hover:bg-slate-100">
+          <span class="font-semibold text-slate-800">Tired of checking who really paid?</span>
+          Connect your own Razorpay and payments mark themselves paid. <span class="font-medium text-primary-700">Set it up →</span>
+        </NuxtLink>
         <div>
           <AppInput v-model="settingsForm.upiPayeeName" label="Name shown in the UPI app" :placeholder="currentOrg?.name || 'Your business name'" />
         </div>
