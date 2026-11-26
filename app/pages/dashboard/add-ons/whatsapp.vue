@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-3xl space-y-6 p-4 lg:p-6">
     <div>
-      <NuxtLink to="/dashboard/add-ons" class="text-sm font-medium text-primary-700 hover:underline">← Add-ons</NuxtLink>
+      <NuxtLink to="/dashboard/billing" class="text-sm font-medium text-primary-700 hover:underline">← MemberBook plan</NuxtLink>
       <h1 class="mt-1 text-2xl font-bold text-slate-800">Reminders from your own WhatsApp</h1>
       <p class="mt-1 text-sm text-slate-600">
         Connect your WhatsApp Business number once. After that, fee reminders go out from your number, so
@@ -11,10 +11,7 @@
 
     <p v-if="error" class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{{ error }}</p>
 
-    <AppCard v-if="data && !data.active" class="!bg-accent-50">
-      <p class="text-base font-semibold text-slate-800">Switch on "Reminders from your own WhatsApp" first.</p>
-      <AppButton class="mt-3" size="sm" @click="navigateTo('/dashboard/add-ons')">Go to add-ons</AppButton>
-    </AppCard>
+    <ProPlanCard v-if="data && !data.active" title="Sending from your own WhatsApp number comes with Pro (coming soon)" />
 
     <template v-else-if="data">
       <!-- Connected -->

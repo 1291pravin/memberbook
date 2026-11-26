@@ -119,6 +119,7 @@ export default defineEventHandler(async (event) => {
     stages: ADMIN_STAGES,
     ownWhatsapp: serializeOwnAccount(await getOwnAccount(orgId)),
     // Reminders from MemberBook's number this month: Meta bills us for each.
-    sharedReminders: { used: await sharedRemindersThisMonth(orgId), limit: INCLUDED_REMINDERS },
+    sharedReminders: { used: await sharedRemindersThisMonth(orgId), limit: (await getOrgPlan(orgId)).reminderLimit || INCLUDED_REMINDERS },
+    plan: await getOrgPlan(orgId),
   };
 });

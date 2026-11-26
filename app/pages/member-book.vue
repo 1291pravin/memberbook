@@ -118,7 +118,7 @@ useHead({
             "name": "Is MemberBook free?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. MemberBook is free forever for gyms, libraries and tuition centers, and we set it up for you for free. Only optional add-ons, like your own website, are paid.",
+              "text": "Yes. MemberBook is free forever for gyms, libraries and tuition centers, and we set it up for you for free. Paid plans are optional: Autopilot sends your fee reminders for you, and Pro adds your own website.",
             },
           },
           {

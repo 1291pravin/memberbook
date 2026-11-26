@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-3xl space-y-6 p-4 lg:p-6">
     <div>
-      <NuxtLink to="/dashboard/add-ons" class="text-sm font-medium text-primary-700 hover:underline">← Add-ons</NuxtLink>
+      <NuxtLink to="/dashboard/billing" class="text-sm font-medium text-primary-700 hover:underline">← MemberBook plan</NuxtLink>
       <h1 class="mt-1 text-2xl font-bold text-slate-800">Your website</h1>
       <p class="mt-1 text-sm text-slate-600">
         Tell us about your business and send a few photos. We make the website, check it, and show it to you before
@@ -13,11 +13,7 @@
 
     <template v-else-if="site">
       <!-- Not switched on -->
-      <AppCard v-if="!site.active" class="!bg-accent-50">
-        <p class="text-base font-semibold text-slate-800">Switch on the website add-on to get started</p>
-        <p class="mt-1 text-sm text-slate-600">First month free, then {{ formatCurrency(29900) }} a month. Switch off any time.</p>
-        <AppButton v-if="isOwner" class="mt-3" size="sm" :loading="starting" @click="start">Start free month</AppButton>
-      </AppCard>
+      <ProPlanCard v-if="!site.active" title="Your own website comes with the Pro plan" />
 
       <!-- Status -->
       <AppCard v-else-if="stage !== 'details'">
@@ -222,7 +218,6 @@ interface SiteData {
 
 const { orgId, currentOrg } = useOrg();
 const { api } = useApi();
-const { formatCurrency } = useFormatCurrency();
 const isOwner = computed(() => currentOrg.value?.role === "owner");
 
 const { data: site, pending, refresh } = await useFetch<SiteData>(() => `/api/orgs/${orgId.value}/add-ons/website`, {
@@ -261,7 +256,6 @@ const savedNote = ref("");
 const saving = ref(false);
 const submitting = ref(false);
 const publishing = ref(false);
-const starting = ref(false);
 const uploading = ref<"logo" | "photo" | null>(null);
 const showChange = ref(false);
 const changeText = ref("");
@@ -271,20 +265,6 @@ function errMsg(e: unknown, fallback: string) {
   return (e as { data?: { statusMessage?: string } })?.data?.statusMessage || fallback;
 }
 
-async function start() {
-  starting.value = true;
-  error.value = "";
-  try {
-    await api(`/api/orgs/${orgId.value}/add-ons/switch`, { method: "POST", body: JSON.stringify({ addOn: "website", action: "start" }) });
-    await refresh();
-  }
-  catch (e) {
-    error.value = errMsg(e, "Could not switch it on.");
-  }
-  finally {
-    starting.value = false;
-  }
-}
 
 async function save(quiet = false) {
   saving.value = !quiet;

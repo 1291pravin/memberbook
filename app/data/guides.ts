@@ -102,7 +102,7 @@ export const guides: Guide[] = [
 <p>A dash means the seat is free in that shift. When the sheet gets too big to scan, that is the moment software starts saving you time.</p>
 `,
     faqs: [
-      { q: "Is MemberBook's library software really free?", a: "Yes. The software and the setup are free forever, with no card and no contract. Only optional add-ons, like your own website, are paid, and each starts with a free month." },
+      { q: "Is MemberBook's library software really free?", a: "Yes. The software and the setup are free forever, with no card and no contract. Paid plans are optional (Autopilot ₹199 a month sends your fee reminders for you) and start with 14 days free." },
       { q: "Can one seat have different students in different shifts?", a: "Yes. Create your shifts (for example morning, afternoon and evening) and assign a different student to the same seat in each shift. Full-day students hold the seat in every shift." },
       { q: "Do students need to download an app?", a: "No. Students get a WhatsApp message and pay by UPI. The app is only for you and your staff, on any phone or computer." },
       { q: "Can I move my existing register into it?", a: "Yes. Send a photo of the register or your Excel sheet and we load seats, students, shifts and due dates for you, usually within one working day." },
@@ -139,7 +139,7 @@ export const guides: Guide[] = [
 <ul>
   <li><strong>Students and seats:</strong> each student has a seat, shift, plan and next due date.</li>
   <li><strong>Fees due:</strong> today's and overdue fees in one list, with one-tap WhatsApp reminders that carry the amount and your UPI pay link.</li>
-  <li><strong>Self check-in:</strong> a free add-on gives you a QR poster; students scan it to mark attendance.</li>
+  <li><strong>Self check-in:</strong> a free QR poster; students scan it to mark attendance.</li>
   <li><strong>Enquiries:</strong> note walk-ins and follow up when a seat frees up.</li>
   <li><strong>Staff access:</strong> add a desk manager without sharing your password.</li>
 </ul>
@@ -187,7 +187,7 @@ UPI ने भरण्यासाठी: {लिंक}
     faqs: [
       { q: "Can I send fee reminders in Marathi?", a: "Yes. You can write your reminder in Marathi, Hindi or English. MemberBook fills in the student's name, amount, date and your UPI pay link." },
       { q: "My register is handwritten in Marathi. Can you still load it?", a: "Yes. Send clear photos and we type it in for you, free." },
-      { q: "How much does it cost?", a: "Nothing. MemberBook and its setup are free forever. Optional add-ons such as your own website are paid after a free month." },
+      { q: "How much does it cost?", a: "Nothing. MemberBook and its setup are free forever. Optional paid plans start at ₹199 a month, with 14 days free." },
     ],
     publishedISO: PUBLISHED,
     updatedISO: PUBLISHED,
@@ -262,7 +262,7 @@ UPI ने भरण्यासाठी: {लिंक}
 <p>Send us your student list in any form: a register photo, an Excel sheet, or even a WhatsApp list of names, phone numbers and fees. We set up your batches, plans and students, usually within one working day, free.</p>
 `,
     faqs: [
-      { q: "Is there free software for coaching class fee management?", a: "Yes. MemberBook is free forever for coaching classes and tuition centres, including setup. Optional add-ons are paid after a free month." },
+      { q: "Is there free software for coaching class fee management?", a: "Yes. MemberBook is free forever for coaching classes and tuition centres, including setup. Optional paid plans start at ₹199 a month, with 14 days free." },
       { q: "Can reminders go to parents instead of students?", a: "Yes. Save the parent's WhatsApp number on the student and reminders go to the parent." },
       { q: "Can I handle instalments?", a: "Yes. Record each payment against the student as it comes in, and set the next due date for the next instalment." },
     ],
@@ -601,11 +601,11 @@ UPI-তে এক ট্যাপে পেমেন্ট করুন: {লি
 </ul>
 
 <h2>Where MemberBook fits</h2>
-<p>MemberBook is free forever for the core: members, plans, the daily due list, one-tap WhatsApp reminders with a UPI link, payment history, staff logins and Excel export. We also load your register for free. Optional paid add-ons, like your own gym website, come with a free first month.</p>
+<p>MemberBook is free forever for the core: members, plans, the daily due list, one-tap WhatsApp reminders with a UPI link, payment history, staff logins and Excel export. We also load your register for free. Optional paid plans start with 14 days free: Autopilot (₹199 a month) sends your fee reminders for you, and Pro (₹499 a month) adds your own gym website.</p>
 `,
     faqs: [
       { q: "Is free gym software safe to use?", a: "Check who can see your data and whether you can export it. In MemberBook only you and the staff you add can see your members, we never sell or share numbers, and you can export everything to Excel." },
-      { q: "How does free software make money?", a: "MemberBook keeps the core free and charges for optional add-ons, such as building a website for your gym or Google review help." },
+      { q: "How does free software make money?", a: "MemberBook keeps the core free and charges for optional plans: Autopilot sends your fee reminders automatically, and Pro adds a website for your gym and Google review replies." },
     ],
     publishedISO: PUBLISHED,
     updatedISO: PUBLISHED,
@@ -653,7 +653,7 @@ UPI-তে এক ট্যাপে পেমেন্ট করুন: {লি
     faqs: [
       { q: "What is the best free gym management software in India?", a: "The best one is the one that shows you every morning who owes you money and makes paying easy. MemberBook does that for free, with setup included; larger gyms needing biometrics or member apps may need paid software." },
       { q: "Is there free library management software for study rooms?", a: "Yes. MemberBook is free for self-study libraries and reading rooms, with seats, shifts, monthly fees and WhatsApp reminders." },
-      { q: "Is MemberBook really free, or a trial?", a: "Really free, forever, including setup. You only pay if you switch on an optional add-on, and each one starts free: a free month on most, and 14 free days on automatic WhatsApp reminders." },
+      { q: "Is MemberBook really free, or a trial?", a: "Really free, forever, including setup. You only pay if you pick a paid plan (from ₹199 a month), and both paid plans start with 14 days free." },
     ],
     publishedISO: PUBLISHED,
     updatedISO: PUBLISHED,

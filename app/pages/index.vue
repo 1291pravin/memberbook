@@ -90,54 +90,56 @@
         <div class="sec-head">
           <div>
             <span class="eyebrow">Pricing</span>
-            <h2 style="margin-top: 16px;">Free forever. <em>Add more when you need it.</em></h2>
+            <h2 style="margin-top: 16px;">Free forever. <em>Let us do more when you want.</em></h2>
           </div>
-          <p>No card, no contract. Paid add-ons are optional, most start with a free month, and you can stop any time.</p>
+          <p>Three simple plans. No card, no contract, and both paid plans start with {{ PLAN_TRIAL_DAYS }} days free.</p>
         </div>
 
-        <div class="price-split">
-          <div class="plan featured">
-            <h3>MemberBook</h3>
-            <div class="price">₹0<small> forever</small></div>
+        <div class="pricing">
+          <div v-for="p in PLANS" :key="p.key" class="plan" :class="{ featured: p.key === 'autopilot' }">
+            <span v-if="p.key === 'autopilot'" class="ribbon">Most popular</span>
+            <h3>{{ p.name }}</h3>
+            <div class="price">{{ p.monthly ? planRupees(p.monthly) : '₹0' }}<small>&nbsp;{{ p.monthly ? 'a month' : 'forever' }}</small></div>
+            <p class="blurb">
+              {{ p.tagline }}
+              <template v-if="p.yearly"><br>Or {{ planRupees(p.yearly) }} a year (2 months free).</template>
+            </p>
+            <p v-if="p.includes" class="blurb" style="font-weight: 600;">Everything in {{ getPlanDef(p.includes).name }}, plus:</p>
             <ul>
-              <li v-for="f in freeFeatures" :key="f">{{ f }}</li>
+              <li v-for="f in p.features" :key="f.text">{{ f.text }}<template v-if="f.soon"> (coming soon)</template></li>
             </ul>
-            <a
-              v-if="setupLink.startsWith('http')"
-              :href="setupLink"
-              target="_blank"
-              rel="noopener"
-              class="btn btn-accent"
-              style="margin-top: auto;"
-              @click="trackCtaClick('home_pricing_done_for_you')"
-            >Send us your register</a>
+            <template v-if="p.key === 'free'">
+              <a
+                v-if="setupLink.startsWith('http')"
+                :href="setupLink"
+                target="_blank"
+                rel="noopener"
+                class="btn btn-ghost"
+                style="margin-top: auto;"
+                @click="trackCtaClick('home_pricing_done_for_you')"
+              >Send us your register</a>
+              <NuxtLink
+                v-else
+                to="/register"
+                class="btn btn-ghost"
+                style="margin-top: auto;"
+                @click="trackCtaClick('home_pricing_free')"
+              >Start free</NuxtLink>
+            </template>
             <NuxtLink
               v-else
-              to="/register"
-              class="btn btn-accent"
+              :to="`/register?plan=${p.key}`"
+              class="btn"
+              :class="p.key === 'autopilot' ? 'btn-accent' : 'btn-ghost'"
               style="margin-top: auto;"
-              @click="trackCtaClick('home_pricing_free')"
-            >Start free</NuxtLink>
-          </div>
-
-          <div class="addon-list">
-            <h3>Add-ons</h3>
-            <ul>
-              <li v-for="a in pricedAddOns" :key="a.key" :class="{ soon: !a.ready }">
-                <div>
-                  <strong>{{ a.name }}</strong>
-                  <span>{{ a.tagline }}</span>
-                </div>
-                <div class="addon-price">
-                  <template v-if="a.price">{{ formatRupees(a.price) }}<small>/month</small></template>
-                  <template v-else>Free</template>
-                  <em v-if="!a.ready">Coming soon</em>
-                </div>
-              </li>
-            </ul>
-            <p class="addon-note">First month free on paid add-ons, and 14 days free on WhatsApp reminders. Switch them on from the app.</p>
+              @click="trackCtaClick(`home_pricing_${p.key}`)"
+            >Start {{ PLAN_TRIAL_DAYS }} days free</NuxtLink>
           </div>
         </div>
+        <p class="addon-note" style="text-align: center;">
+          Nothing is charged automatically: after the free trial you pay by UPI only if you want to keep the plan.
+          More reminders than your plan includes? Each extra one is 20 paise.
+        </p>
       </div>
     </section>
 
@@ -280,28 +282,13 @@ const setupSteps = [
 ];
 
 /* ── Pricing ──────────────────────────────────────────────────────────
- * The free plan is one list. Add-on names and prices come from the same
- * catalog as /dashboard/add-ons (shared/utils/add-ons.ts), so they never drift.
+ * The three plans come from shared/utils/plans.ts, the same catalog as the
+ * in-app plan page (/dashboard/billing), so they never drift.
  */
-const freeFeatures = [
-  "Members, plans and payments",
-  "Fees due list and one-tap WhatsApp reminders",
-  "UPI pay link for every member",
-  "We load your register for you",
-  "A page for every member: plan, dues and receipts",
-  "Free business page with an enquiry form",
-  "GST invoices, instalments and pausing",
-  "Staff logins and more than one branch",
-];
-
-const pricedAddOns = ADD_ONS.filter(a => a.ready || ["auto_reminders", "front_desk"].includes(a.key));
-
-function formatRupees(paise: number) {
-  return `₹${(paise / 100).toLocaleString("en-IN")}`;
-}
 
 const faqs: { question: string; answer: string }[] = [
-  { question: "Is it really free?", answer: "Yes. The app and setup are free forever, with no card and no contract. You only pay if you switch on a paid add-on, like your own website, and paid add-ons start free: a free month on most, and 14 free days on automatic WhatsApp reminders." },
+  { question: "Is it really free?", answer: "Yes. The Free plan and the setup are free forever, with no card and no contract. Pay only if you want Autopilot (₹199 a month, we send your fee reminders) or Pro (₹499 a month, plus your website and Google review replies). Both start with 14 days free." },
+  { question: "Can payments mark themselves as paid?", answer: "When a member pays your UPI ID from the reminder, the bank doesn't tell us, so the member taps \"I've paid\" and you confirm in one tap. If you connect your own Razorpay account (free), payments made through it mark themselves paid and renew the member on their own." },
   { question: "How long does setup take?", answer: "Usually one working day after we get your register. You get a login, check everything, and tell us anything to fix." },
   { question: "Do my members need to install anything?", answer: "No. They get WhatsApp messages and pay by UPI. The app is for you and your staff, on any phone or computer." },
   { question: "Is my data safe?", answer: "Only you and the staff you add can see it. We never share or sell your members' numbers, and you can export everything to Excel any time." },

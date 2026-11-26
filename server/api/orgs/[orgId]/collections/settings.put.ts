@@ -42,8 +42,8 @@ export default defineEventHandler(async (event) => {
       // admin verifies the payment; until then sending stays paused.
       if (sending.needsAddOn) await startAddOn(access.orgId, "auto_reminders");
     }
-    else if (sending.via !== "own") {
-      // Off: stop the plan so no renewal bill comes, and drop a bill they haven't paid.
+    else if (sending.via !== "own" && (await getOrgPlan(access.orgId)).plan === "autopilot") {
+      // Off on Autopilot: stop the plan so no renewal bill comes (Pro stays on: it has more in it), and drop a bill they haven't paid.
       // A paid period is kept, so switching on again within it costs nothing.
       await stopAddOn(access.orgId, "auto_reminders");
       await dropUnpaidPrepaidBill(access.orgId, "auto_reminders");

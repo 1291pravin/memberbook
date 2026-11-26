@@ -16,13 +16,15 @@ export default defineEventHandler(async (event) => {
 
   // Waiting for the ₹199 payment: hand the page the bill so the owner can pay right here.
   const reminderPlan = getAddOn("auto_reminders")!;
+  const plan = await getOrgPlan(access.orgId);
+  const planKey = plan.addOnKey ?? "auto_reminders";
   // During the free trial the renewal bill appears a few days before the end, so
   // the owner can pay early and reminders never stop.
   const trialStart = sending.trialUntil || sending.trialEndedOn;
   const [bill, trialResults] = await Promise.all([
     sending.blocked === "unpaid"
-      ? ensurePrepaidBill(access.orgId, "auto_reminders")
-      : sending.trialUntil ? openPrepaidBill(access.orgId, "auto_reminders") : null,
+      ? ensurePrepaidBill(access.orgId, planKey)
+      : sending.trialUntil ? openPrepaidBill(access.orgId, planKey) : null,
     trialStart && (sending.trialUntil || sending.blocked === "unpaid")
       ? reminderResultsSince(access.orgId, addDaysToDate(trialStart, -((reminderPlan.trialDays ?? 14) - 1)))
       : null,
@@ -59,16 +61,18 @@ export default defineEventHandler(async (event) => {
     trialResults,
     // The owner can tick "Send reminders automatically": already set up, or by paying for the plan.
     canTurnOnReminders: sending.available || sending.needsAddOn,
-    reminderPlan: { price: reminderPlan.price, included: INCLUDED_REMINDERS, trialDays: reminderPlan.trialDays ?? 0 },
+    reminderPlan: { price: reminderPlan.price, included: plan.reminderLimit || INCLUDED_REMINDERS, trialDays: reminderPlan.trialDays ?? 0, current: plan.plan, currentName: plan.name },
     reminderBill: bill
       ? {
           id: bill.id,
           amount: bill.amount,
           status: bill.status,
           upiRef: bill.upiRef,
-          upiLink: billing.upiId ? buildUpiLink({ upiId: billing.upiId, payeeName: billing.payeeName, amount: bill.amount, note: "MemberBook WhatsApp reminders" }) : null,
+          upiLink: billing.upiId ? buildUpiLink({ upiId: billing.upiId, payeeName: billing.payeeName, amount: bill.amount, note: `MemberBook ${plan.name} plan` }) : null,
           payTo: billing.upiId || null,
           payeeName: billing.payeeName,
+          days: parseJson<BillItem[]>(bill.items, []).find(i => i.prepaid)?.days ?? 30,
+          planName: plan.name,
         }
       : null,
     summary: {

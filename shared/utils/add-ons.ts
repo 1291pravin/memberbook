@@ -1,5 +1,11 @@
 /**
- * The add-on services a business can switch on from /dashboard/add-ons.
+ * Features and plan rows, keyed as they are stored in org_add_ons.
+ *
+ * The owner no longer browses these as an "add-ons menu": they pick a plan
+ * (shared/utils/plans.ts) on /dashboard/billing. `auto_reminders` holds the
+ * Autopilot plan, `pro` holds the Pro plan, website / reviews / own_number /
+ * front_desk come with Pro, and the free ones (business page, poster,
+ * check-in, online payments) are part of every plan with a one-tap switch.
  *
  * `ready: false` add-ons show as "coming soon" with a "tell me when it's
  * ready" button. An admin can still switch one on for a single business
@@ -16,6 +22,7 @@ export type AddOnKey =
   | "online_payments"
   | "self_check_in"
   | "auto_reminders"
+  | "pro"
   | "own_number"
   | "front_desk"
   | "diet_plans"
@@ -96,7 +103,7 @@ export const ADD_ONS: AddOnDef[] = [
       "Enquiries from the site come straight into MemberBook",
       "Tell us any change and we'll make it",
     ],
-    price: 29900,
+    price: 0, // part of the Pro plan
     ready: true,
     page: "/dashboard/add-ons/website",
   },
@@ -109,7 +116,7 @@ export const ADD_ONS: AddOnDef[] = [
       "Monthly summary: what members love and what to fix",
       "Free review poster for your front desk included",
     ],
-    price: 19900,
+    price: 0, // part of the Pro plan
     ready: true,
     page: "/dashboard/add-ons/reviews",
   },
@@ -167,7 +174,7 @@ export const ADD_ONS: AddOnDef[] = [
   },
   {
     key: "auto_reminders",
-    name: "Automatic fee reminders",
+    name: "Autopilot plan",
     tagline: "We send fee reminders on WhatsApp every morning, so you don't have to.",
     points: [
       "Sent from the MemberBook WhatsApp number with your business name",
@@ -183,6 +190,22 @@ export const ADD_ONS: AddOnDef[] = [
     notInMenu: true,
   },
   {
+    key: "pro",
+    name: "Pro plan",
+    tagline: "Autopilot, plus your website and Google review replies.",
+    points: [
+      "1,500 automatic reminders a month",
+      "A ready-made website for your business",
+      "Reply drafts for your Google reviews",
+    ],
+    price: 49900,
+    prepaid: true,
+    trialDays: REMINDER_TRIAL_DAYS,
+    ready: true,
+    page: "/dashboard/billing",
+    notInMenu: true,
+  },
+  {
     key: "own_number",
     name: "Reminders from your own WhatsApp",
     tagline: "The same automatic reminders, sent from your own WhatsApp Business number.",
@@ -192,7 +215,7 @@ export const ADD_ONS: AddOnDef[] = [
       "Connect in two minutes with your Facebook login",
       "WhatsApp bills your business directly for each message (about 14 paise), so you add a card in Meta once",
     ],
-    price: 4900,
+    price: 0, // part of the Pro plan
     ready: false,
     waitingOn: "Meta Tech Provider app review (embedded signup is built; switch on per business to test)",
     page: "/dashboard/add-ons/whatsapp",
@@ -206,7 +229,7 @@ export const ADD_ONS: AddOnDef[] = [
       "Books trial visits and reminds them to come",
       "Hands over to you when it's not sure",
     ],
-    price: 49900,
+    price: 0, // part of the Pro plan
     ready: false,
     waitingOn: "Meta Tech Provider status (needs the owner's own number)",
   },

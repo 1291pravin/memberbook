@@ -37,8 +37,10 @@ export async function grantReferralRewards(): Promise<number> {
       .where(sql`${schema.organizations.id} = ${r.referrer}`).limit(1);
     if (!referrer) continue;
 
+    // The free month goes on the plan they're on: Pro if they have it, else Autopilot.
+    const planKey = (await getOrgPlan(r.referrer)).plan === "pro" ? "pro" : "auto_reminders";
     const [addOn] = await db.select({ paidUntil: schema.orgAddOns.paidUntil }).from(schema.orgAddOns)
-      .where(sql`${schema.orgAddOns.orgId} = ${r.referrer} AND ${schema.orgAddOns.addOn} = 'auto_reminders'`).limit(1);
+      .where(sql`${schema.orgAddOns.orgId} = ${r.referrer} AND ${schema.orgAddOns.addOn} = ${planKey}`).limit(1);
     const from = addOn?.paidUntil && addOn.paidUntil >= today ? addDaysToDate(addOn.paidUntil, 1) : today;
     const paidUntil = addDaysToDate(from, REFERRAL_REWARD_DAYS - 1);
     const now = new Date().toISOString();
@@ -46,11 +48,11 @@ export async function grantReferralRewards(): Promise<number> {
     await db.batch([
       db.insert(schema.referralRewards).values({ referredOrgId: r.referred, referrerOrgId: r.referrer, days: REFERRAL_REWARD_DAYS }).onConflictDoNothing(),
       db.insert(schema.orgAddOns)
-        .values({ orgId: r.referrer, addOn: "auto_reminders", status: "off", price: 19900, paidUntil, createdAt: now, updatedAt: now })
+        .values({ orgId: r.referrer, addOn: planKey, status: "off", price: getAddOn(planKey)!.price, paidUntil, createdAt: now, updatedAt: now })
         .onConflictDoUpdate({ target: [schema.orgAddOns.orgId, schema.orgAddOns.addOn], set: { paidUntil, updatedAt: now } }),
     ]);
     // A renewal bill they haven't paid isn't needed now: the free month covers it.
-    await dropUnpaidPrepaidBill(r.referrer, "auto_reminders");
+    await dropUnpaidPrepaidBill(r.referrer, planKey);
     granted++;
   }
   return granted;

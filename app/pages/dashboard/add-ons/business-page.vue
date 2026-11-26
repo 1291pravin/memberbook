@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-3xl space-y-6 p-4 lg:p-6">
     <div>
-      <NuxtLink to="/dashboard/add-ons" class="text-sm font-medium text-primary-700 hover:underline">← Add-ons</NuxtLink>
+      <NuxtLink to="/dashboard/billing" class="text-sm font-medium text-primary-700 hover:underline">← MemberBook plan</NuxtLink>
       <h1 class="mt-1 text-2xl font-bold text-slate-800">Free business page</h1>
       <p class="mt-1 text-sm text-slate-600">
         A page for your business with your plans and prices, made from what's already in MemberBook.
@@ -9,10 +9,7 @@
       </p>
     </div>
 
-    <AppCard v-if="data && !data.active" class="!bg-accent-50">
-      <p class="text-base font-semibold text-slate-800">Switch on your free business page first.</p>
-      <AppButton class="mt-3" size="sm" @click="navigateTo('/dashboard/add-ons')">Go to add-ons</AppButton>
-    </AppCard>
+    <FeatureSwitchOn v-if="data && !data.active" feature="business_page" title="Make your free business page" @done="refresh()" />
 
     <template v-else-if="data?.active">
       <AppCard title="Your page is live">
@@ -41,7 +38,7 @@ definePageMeta({ layout: "dashboard", middleware: "org-required" });
 useHead({ title: "Free business page - MemberBook" });
 
 const { orgId, currentOrg } = useOrg();
-const { data } = await useFetch<{ active: boolean; url?: string; hasPhone?: boolean; hasAddress?: boolean; enquiries?: number }>(
+const { data, refresh } = await useFetch<{ active: boolean; url?: string; hasPhone?: boolean; hasAddress?: boolean; enquiries?: number }>(
   () => `/api/orgs/${orgId.value}/add-ons/business-page`,
   { key: `business-page-${orgId.value}` },
 );

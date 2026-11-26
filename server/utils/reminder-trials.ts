@@ -59,12 +59,12 @@ export function trialStartedEmailText(c: TrialCandidate, trialEndsOn: string) {
   const people = peopleWord(c.type);
   return [
     hi ? `Hi ${hi},` : "Hello,",
-    `${c.businessName} now has ${c.members} ${people} in MemberBook, so we've switched on automatic WhatsApp fee reminders for you, free for ${REMINDER_TRIAL_DAYS} days (until ${prettyDate(trialEndsOn)}).`,
+    `${c.businessName} now has ${c.members} ${people} in MemberBook, so we've started a free ${REMINDER_TRIAL_DAYS}-day trial of the Autopilot plan for you (until ${prettyDate(trialEndsOn)}): we send your fee reminders on WhatsApp automatically.`,
     `From tomorrow morning, each ${people.replace(/s$/, "")} whose fee is due gets a WhatsApp reminder with your business name and a pay link to your UPI ID (${c.upiId}). The money goes straight to you.`,
     [
       `- Up to ${INCLUDED_REMINDERS} reminders free in the trial`,
       `- Anyone who taps "I have paid" isn't reminded again until you confirm`,
-      `- Nothing is charged automatically: after the trial it's ₹199 a month, only if you choose to pay`,
+      `- Nothing is charged automatically: after the trial Autopilot is ₹199 a month, only if you choose to pay. Or stay on the Free plan`,
     ].join("\n"),
     "Rather send reminders yourself? Switch them off in Payment settings before tomorrow morning:",
     `[Open Payment settings](${SETTINGS_LINK})`,
@@ -99,7 +99,7 @@ export async function findTrialCandidates(): Promise<TrialCandidate[]> {
     WHERE o.id NOT IN (${excluded})
       AND lower(o.name) NOT LIKE '%test%'
       AND o.auto_reminders_enabled = 0
-      AND NOT EXISTS (SELECT 1 FROM org_add_ons a WHERE a.org_id = o.id AND a.add_on = 'auto_reminders')
+      AND NOT EXISTS (SELECT 1 FROM org_add_ons a WHERE a.org_id = o.id AND a.add_on IN ('auto_reminders', 'pro'))
   `) as TrialCandidate[];
   return rows
     .map(r => ({ ...r, orgId: Number(r.orgId), members: Number(r.members) }))
@@ -155,7 +155,7 @@ export async function autoStartReminderTrials() {
         await sendNewEmail({
           to: c.ownerEmail,
           name: c.ownerName,
-          subject: `Automatic fee reminders are on for ${c.businessName}, free for ${REMINDER_TRIAL_DAYS} days`,
+          subject: `Automatic fee reminders are on for ${c.businessName}: ${REMINDER_TRIAL_DAYS} days of Autopilot, free`,
           text: trialStartedEmailText(c, plan.trialEndsOn),
           by: "system",
         });

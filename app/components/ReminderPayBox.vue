@@ -9,7 +9,7 @@
 
     <template v-else>
       <p class="text-sm text-slate-700">
-        Pay {{ formatCurrency(bill.amount) }} for 30 days. That covers up to {{ included }} WhatsApp reminders.
+        Pay {{ formatCurrency(bill.amount) }} for {{ periodText }}. That covers up to {{ included }} WhatsApp reminders a month.
         Reminders start the morning after we confirm your payment.
       </p>
 
@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-// The ₹199 payment for automatic WhatsApp reminders: QR, UPI button and the
+// The payment for the Autopilot or Pro plan (automatic WhatsApp reminders): QR, UPI button and the
 // "I have paid" form. Used in Fees due (settings and the pay banner).
 import { renderSVG } from "uqr";
 
@@ -47,6 +47,9 @@ export interface ReminderBill {
   upiLink: string | null;
   payTo: string | null;
   payeeName: string;
+  /** Days this payment buys (365 for a yearly plan). */
+  days?: number;
+  planName?: string;
 }
 
 const props = defineProps<{ bill: ReminderBill; included: number }>();
@@ -54,6 +57,11 @@ const emit = defineEmits<{ claimed: [] }>();
 
 const { orgId } = useOrg();
 const { formatCurrency } = useFormatCurrency();
+
+const periodText = computed(() => {
+  const span = (props.bill.days ?? 30) > 30 ? "1 year" : "30 days";
+  return props.bill.planName ? `${span} of ${props.bill.planName}` : span;
+});
 
 const upiRef = ref("");
 const claiming = ref(false);
