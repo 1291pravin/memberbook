@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-3xl space-y-6 p-4 lg:p-6">
     <div>
-      <NuxtLink to="/dashboard/add-ons" class="text-sm font-medium text-primary-700 hover:underline">← Add-ons</NuxtLink>
+      <NuxtLink to="/dashboard/billing" class="text-sm font-medium text-primary-700 hover:underline">← MemberBook plan</NuxtLink>
       <h1 class="mt-1 text-2xl font-bold text-slate-800">Google review poster</h1>
       <p class="mt-1 text-sm text-slate-600">
         More Google reviews bring more walk-ins. Put this poster at your front desk so {{ t.membersLower }} can review you
@@ -9,10 +9,7 @@
       </p>
     </div>
 
-    <AppCard v-if="settings && !settings.active" class="!bg-accent-50">
-      <p class="text-base font-semibold text-slate-800">Switch on the review poster first. It's free.</p>
-      <AppButton class="mt-3" size="sm" @click="navigateTo('/dashboard/add-ons')">Go to add-ons</AppButton>
-    </AppCard>
+    <FeatureSwitchOn v-if="settings && !settings.active" feature="review_poster" title="Make your free review poster" @done="refreshSettings()" />
 
     <template v-else-if="settings">
       <AppCard v-if="(settings && !settings.googleReviewUrl) || editingLink" title="Make your review poster">

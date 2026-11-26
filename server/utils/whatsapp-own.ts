@@ -220,7 +220,7 @@ export interface ReminderSending {
   via: "own" | "memberbook" | null;
   sender: WhatsAppSender | undefined;
   displayPhoneNumber: string | null;
-  /** MemberBook's number is live but the business hasn't switched on the auto_reminders add-on. */
+  /** MemberBook's number is live but the business is on the Free plan (no Autopilot or Pro). */
   needsAddOn: boolean;
   /** Shared-number usage this month (null when sending from their own number). */
   usage: { used: number; limit: number } | null;
@@ -245,7 +245,7 @@ export async function reminderSending(orgId: number): Promise<ReminderSending> {
   // Look up the add-on state alongside the own-number check (saves a database
   // round trip on every Fees due / Home load); it's simply unused if they have their own number.
   const sharedState = isWhatsAppCloudEnabled()
-    ? Promise.all([isPrepaidAddOnPaid(orgId, "auto_reminders"), sharedRemindersThisMonth(orgId)])
+    ? Promise.all([getOrgPlan(orgId), sharedRemindersThisMonth(orgId)])
     : null;
   sharedState?.catch(() => {});
   const own = await getOwnSender(orgId);
@@ -256,18 +256,19 @@ export async function reminderSending(orgId: number): Promise<ReminderSending> {
     return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: false, usage: null, blocked: null, paidUntil: null };
   }
   const [plan, used] = await sharedState;
-  if (!plan.active) {
+  if (plan.plan === "free") {
     return { available: false, via: null, sender: undefined, displayPhoneNumber: null, needsAddOn: true, usage: null, blocked: null, paidUntil: plan.paidUntil, trialEndedOn: plan.trialEndsOn };
   }
   // Paid months go past the limit and pay for the extras; the free trial stops there.
-  const blocked: ReminderBlock | null = !plan.paid ? "unpaid" : plan.inTrial && used >= INCLUDED_REMINDERS ? "limit" : null;
+  const limit = plan.reminderLimit;
+  const blocked: ReminderBlock | null = !plan.paid ? "unpaid" : plan.inTrial && used >= limit ? "limit" : null;
   return {
     available: true,
     via: "memberbook",
     sender: undefined,
     displayPhoneNumber: null,
     needsAddOn: false,
-    usage: { used, limit: INCLUDED_REMINDERS },
+    usage: { used, limit },
     blocked,
     paidUntil: plan.paidUntil,
     trialUntil: plan.inTrial ? plan.trialEndsOn : null,

@@ -1,6 +1,7 @@
 import type { H3Event } from "h3";
 import { and, eq, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import { db, schema } from "@nuxthub/db";
+import { PRO_FEATURES } from "../../shared/utils/plans";
 
 export interface AddOnState {
   key: AddOnKey;
@@ -33,15 +34,26 @@ export async function getOrgAddOnStates(orgId: number): Promise<AddOnState[]> {
   });
 }
 
+/**
+ * Can this business use the feature? Free features (business page, poster,
+ * check-in, online payments) need their one-tap switch. Pro features (website,
+ * review replies, own number) come with the Pro plan while it's paid or in its
+ * trial; the own number also needs connecting (its row switched on). An admin
+ * flag on the row lets one business use a feature for testing without Pro.
+ */
 export async function isAddOnActive(orgId: number, key: AddOnKey) {
-  const [row] = await db.select({ status: schema.orgAddOns.status }).from(schema.orgAddOns)
+  const [row] = await db.select({ status: schema.orgAddOns.status, adminEnabled: schema.orgAddOns.adminEnabled }).from(schema.orgAddOns)
     .where(and(eq(schema.orgAddOns.orgId, orgId), eq(schema.orgAddOns.addOn, key))).limit(1);
-  return row?.status === "active";
+  if (!(PRO_FEATURES as readonly string[]).includes(key)) return row?.status === "active";
+  if (key === "own_number" && row?.status !== "active") return false;
+  if (row?.adminEnabled && row.status === "active") return true;
+  return isProPaid(orgId);
 }
 
 export async function requireAddOn(orgId: number, key: AddOnKey) {
   if (!(await isAddOnActive(orgId, key))) {
-    throw createError({ statusCode: 403, statusMessage: `Switch on "${getAddOn(key)?.name ?? key}" first` });
+    const pro = (PRO_FEATURES as readonly string[]).includes(key);
+    throw createError({ statusCode: 403, statusMessage: pro ? `"${getAddOn(key)?.name ?? key}" is part of the Pro plan` : `Switch on "${getAddOn(key)?.name ?? key}" first` });
   }
 }
 
@@ -56,7 +68,7 @@ async function upsertAddOn(orgId: number, key: AddOnKey, set: Partial<typeof sch
 }
 
 /** Owner switches an add-on on. Paid add-ons get a free month, once per add-on. */
-export async function startAddOn(orgId: number, key: AddOnKey) {
+export async function startAddOn(orgId: number, key: AddOnKey, opts: { price?: number; cycle?: BillingCycle } = {}) {
   const def = getAddOn(key);
   if (!def) throw createError({ statusCode: 404, statusMessage: "Unknown add-on" });
 
@@ -70,13 +82,16 @@ export async function startAddOn(orgId: number, key: AddOnKey) {
   // Prepaid: a free trial the first time (if the add-on has one), else bill
   // now unless it's still paid up; it works once the admin verifies the payment.
   if (def.prepaid && def.price > 0) {
+    const cycle = opts.cycle ?? "monthly";
+    const price = opts.price ?? def.price;
     const firstTime = !row?.trialEndsOn && !row?.paidUntil;
     const trialEndsOn = firstTime && def.trialDays
       ? addDaysToDate(todayIST(), def.trialDays - 1)
       : (row?.trialEndsOn ?? null);
     await upsertAddOn(orgId, key, {
       status: "active",
-      price: def.price,
+      price,
+      billingCycle: cycle,
       trialEndsOn,
       // The trial is simply a free prepaid period, so renewal bills, pausing and
       // payment all work the same way as after a paid month.
@@ -85,7 +100,7 @@ export async function startAddOn(orgId: number, key: AddOnKey) {
       cancelledAt: null,
     });
     if (firstTime && def.trialDays) return;
-    if (!isPrepaidActive(row?.paidUntil ?? null)) await createPrepaidBill(orgId, key, def.price, todayIST());
+    if (!isPrepaidActive(row?.paidUntil ?? null)) await createPrepaidBill(orgId, key, price, todayIST(), cycleDays(cycle));
     return;
   }
 
@@ -128,7 +143,7 @@ export async function isPrepaidAddOnPaid(orgId: number, key: AddOnKey) {
  * A bill for one prepaid period. `period` is the IST date the paid period
  * starts (YYYY-MM-DD), so it never clashes with a monthly bill (YYYY-MM).
  */
-async function createPrepaidBill(orgId: number, key: AddOnKey, amount: number, startsOn: string) {
+async function createPrepaidBill(orgId: number, key: AddOnKey, amount: number, startsOn: string, days = PREPAID_DAYS) {
   const def = getAddOn(key)!;
   // One open prepaid bill per add-on at a time.
   const open = await db.select({ items: schema.addOnBills.items }).from(schema.addOnBills)
@@ -139,7 +154,7 @@ async function createPrepaidBill(orgId: number, key: AddOnKey, amount: number, s
     orgId,
     period: startsOn,
     amount,
-    items: JSON.stringify([{ addOn: key, name: def.name, amount, prepaid: true, startsOn }] satisfies BillItem[]),
+    items: JSON.stringify([{ addOn: key, name: days > PREPAID_DAYS ? `${def.name} (1 year)` : def.name, amount, prepaid: true, startsOn, days }] satisfies BillItem[]),
     createdAt: now,
     updatedAt: now,
   }).onConflictDoNothing().returning({ id: schema.addOnBills.id });
@@ -153,11 +168,11 @@ async function createPrepaidBill(orgId: number, key: AddOnKey, amount: number, s
 export async function ensurePrepaidBill(orgId: number, key: AddOnKey) {
   const existing = await openPrepaidBill(orgId, key);
   if (existing) return existing;
-  const [row] = await db.select({ price: schema.orgAddOns.price }).from(schema.orgAddOns)
+  const [row] = await db.select({ price: schema.orgAddOns.price, billingCycle: schema.orgAddOns.billingCycle }).from(schema.orgAddOns)
     .where(and(eq(schema.orgAddOns.orgId, orgId), eq(schema.orgAddOns.addOn, key))).limit(1);
   const price = row?.price || getAddOn(key)?.price || 0;
   if (price <= 0) return null;
-  await createPrepaidBill(orgId, key, price, todayIST());
+  await createPrepaidBill(orgId, key, price, todayIST(), cycleDays((row?.billingCycle as BillingCycle) || "monthly"));
   return openPrepaidBill(orgId, key);
 }
 
@@ -193,7 +208,7 @@ export async function applyPrepaidBill(billId: number) {
       .where(and(eq(schema.orgAddOns.orgId, bill.orgId), eq(schema.orgAddOns.addOn, item.addOn))).limit(1);
     const today = todayIST();
     const from = row?.paidUntil && row.paidUntil >= today ? addDaysToDate(row.paidUntil, 1) : today;
-    await upsertAddOn(bill.orgId, item.addOn, { paidUntil: addDaysToDate(from, PREPAID_DAYS - 1) });
+    await upsertAddOn(bill.orgId, item.addOn, { paidUntil: addDaysToDate(from, (item.days ?? PREPAID_DAYS) - 1) });
   }
 }
 
@@ -207,7 +222,7 @@ export async function generatePrepaidRenewals() {
     const def = getAddOn(r.addOn);
     if (!def?.prepaid || r.price <= 0) continue;
     const startsOn = r.paidUntil! >= todayIST() ? addDaysToDate(r.paidUntil!, 1) : todayIST();
-    if (await createPrepaidBill(r.orgId, def.key, r.price, startsOn)) created++;
+    if (await createPrepaidBill(r.orgId, def.key, r.price, startsOn, cycleDays((r.billingCycle as BillingCycle) || "monthly"))) created++;
   }
   return created;
 }
@@ -415,6 +430,8 @@ export interface BillItem {
   /** Prepaid add-on period starting on `startsOn`; paying it switches the add-on on. */
   prepaid?: boolean;
   startsOn?: string;
+  /** Days of service this prepaid item buys (30, or 365 for a yearly plan). */
+  days?: number;
 }
 
 /** MemberBook's own UPI ID for add-on bills. Empty = show "we'll message you". */
@@ -450,7 +467,11 @@ export async function generateExtraReminderBills() {
     GROUP BY org_id HAVING COUNT(*) > ${INCLUDED_REMINDERS}`) as { orgId: number; n: number }[];
   let created = 0;
   for (const r of rows) {
-    const extra = Number(r.n) - INCLUDED_REMINDERS;
+    // Pro includes more reminders than Autopilot.
+    const plan = await getOrgPlan(Number(r.orgId));
+    const included = Math.max(INCLUDED_REMINDERS, plan.reminderLimit);
+    const extra = Number(r.n) - included;
+    if (extra <= 0) continue;
     const amount = extra * EXTRA_REMINDER_PRICE;
     const now = new Date().toISOString();
     const items: BillItem[] = [{ addOn: "auto_reminders", name: `Extra WhatsApp reminders in ${prev} (${extra} × ₹${(EXTRA_REMINDER_PRICE / 100).toFixed(2)})`, amount }];

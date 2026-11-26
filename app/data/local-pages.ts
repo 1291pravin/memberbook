@@ -109,7 +109,7 @@ export const localPages: LocalPage[] = [
     kind: "library", city: "Lucknow", slug: "lucknow", state: "Uttar Pradesh",
     intro: "Lucknow's self-study libraries in areas like Aliganj, Kapoorthala and Indira Nagar serve students preparing for UPSSSC, UP Police and other exams. Monthly seat fees are small, so chasing each one by hand eats a lot of time.",
     faqs: [
-      { q: "Is it really free?", a: "Yes. The app is free. Automatic WhatsApp reminders are an optional add-on with a 14-day free trial, then ₹199 a month." },
+      { q: "Is it really free?", a: "Yes. The app is free. Automatic WhatsApp reminders come with the optional Autopilot plan: 14 days free, then ₹199 a month." },
       { q: "Do I need a computer?", a: "No. MemberBook works on your phone's browser. You can add it to your home screen like an app." },
     ],
   },

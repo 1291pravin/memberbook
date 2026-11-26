@@ -214,13 +214,14 @@
                   Every morning, MemberBook sends due reminders from its WhatsApp number with your business name and a UPI pay link. Up to 3 reminders per payment, 3 days apart.
                   <span class="mt-1 block font-medium text-slate-700">
                     <template v-if="data.reminderTrialAvailable">
-                      Free for {{ data.reminderPlan.trialDays }} days. Then {{ formatCurrency(data.reminderPlan.price) }} a month for up to {{ data.reminderPlan.included }} reminders, paid upfront.
+                      Part of the Autopilot plan: free for {{ data.reminderPlan.trialDays }} days, then {{ formatCurrency(data.reminderPlan.price) }} a month for up to {{ data.reminderPlan.included }} reminders, paid upfront.
                       <template v-if="settingsForm.autoRemindersEnabled">Save, and reminders start tomorrow morning.</template>
                     </template>
                     <template v-else>
-                      {{ formatCurrency(data.reminderPlan.price) }} a month for up to {{ data.reminderPlan.included }} reminders, paid upfront.
+                      Part of the Autopilot plan: {{ formatCurrency(data.reminderPlan.price) }} a month for up to {{ data.reminderPlan.included }} reminders, paid upfront.
                       <template v-if="settingsForm.autoRemindersEnabled">Save, then pay by UPI on the next screen.</template>
                     </template>
+                    <NuxtLink to="/dashboard/billing" class="ml-1 text-primary-700 underline">Compare plans</NuxtLink>
                   </span>
                 </template>
                 <template v-else>
@@ -286,7 +287,7 @@
         </div>
       </form>
     </AppModal>
-    <!-- Pay ₹199 to start automatic reminders -->
+    <!-- Pay for the Autopilot / Pro plan to start automatic reminders -->
     <AppModal :open="showPay && !!data?.reminderBill" title="Start automatic reminders" size="sm" @close="showPay = false">
       <ReminderPayBox
         v-if="data?.reminderBill"
@@ -343,7 +344,7 @@ interface CollectionsResponse {
   reminderTrialAvailable: boolean;
   trialResults: { sent: number; paidCount: number; paidAmount: number } | null;
   canTurnOnReminders: boolean;
-  reminderPlan: { price: number; included: number; trialDays: number };
+  reminderPlan: { price: number; included: number; trialDays: number; current?: string; currentName?: string };
   reminderBill: ReminderBill | null;
   summary: { overdueCount: number; overdueAmount: number; upcomingCount: number; upcomingAmount: number };
   items: CollectionItem[];

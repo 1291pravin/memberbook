@@ -269,7 +269,7 @@ const mainNav = computed(() => [
 // Everything else lives under "More" so the main menu stays short.
 const extraNav = computed(() => {
   const items = [
-    { to: "/dashboard/add-ons", label: "Add-ons", icon: icon("M12 4.5v15m7.5-7.5h-15M4.5 4.5h15v15h-15z") },
+    { to: "/dashboard/billing", label: "MemberBook plan", icon: icon("M11.48 3.5a.56.56 0 011.04 0l2.13 5.11a.56.56 0 00.47.35l5.52.44c.5.04.7.66.32.99l-4.2 3.6a.56.56 0 00-.18.56l1.28 5.39a.56.56 0 01-.84.61l-4.73-2.89a.56.56 0 00-.59 0l-4.73 2.9a.56.56 0 01-.84-.62l1.28-5.39a.56.56 0 00-.18-.56l-4.2-3.6a.56.56 0 01.32-.99l5.52-.44a.56.56 0 00.47-.35z") },
     { to: "/dashboard/plans", label: "Plans", icon: icon("M4 6h16M4 12h16M4 18h10") },
     { to: "/dashboard/check-ins", label: "Check-ins", icon: icon("M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z") },
     { to: "/dashboard/inquiries", label: "Enquiries", icon: icon("M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z") },

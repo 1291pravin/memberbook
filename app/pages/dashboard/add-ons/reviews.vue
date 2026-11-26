@@ -1,18 +1,15 @@
 <template>
   <div class="mx-auto max-w-3xl space-y-6 p-4 lg:p-6">
     <div>
-      <NuxtLink to="/dashboard/add-ons" class="text-sm font-medium text-primary-700 hover:underline">← Add-ons</NuxtLink>
+      <NuxtLink to="/dashboard/billing" class="text-sm font-medium text-primary-700 hover:underline">← MemberBook plan</NuxtLink>
       <h1 class="mt-1 text-2xl font-bold text-slate-800">Google review replies</h1>
       <p class="mt-1 text-sm text-slate-600">
-        Replying to every review, good or bad, makes new people trust you. Paste a review and we write a reply you can
-        post. Once a month, paste all your new reviews and we tell you what members love and what to fix.
+        Replying to every review, good or bad, makes new people trust you. Paste a review and we draft a reply for you to
+        check and post. Once a month, paste all your new reviews and we tell you what members love and what to fix.
       </p>
     </div>
 
-    <AppCard v-if="notActive" class="!bg-accent-50">
-      <p class="text-base font-semibold text-slate-800">Switch on Google review replies first. The first month is free.</p>
-      <AppButton class="mt-3" size="sm" @click="navigateTo('/dashboard/add-ons')">Go to add-ons</AppButton>
-    </AppCard>
+    <ProPlanCard v-if="notActive" title="Google review reply drafts come with the Pro plan" />
 
     <template v-else>
       <AppCard class="!bg-primary-50">
@@ -94,8 +91,8 @@ interface ReviewRequest {
 const { orgId } = useOrg();
 const { api } = useApi();
 
-const { data: addOns } = await useFetch<{ addOns: { key: string; status: string }[] }>(() => `/api/orgs/${orgId.value}/add-ons`, { key: `add-ons-${orgId.value}` });
-const notActive = computed(() => addOns.value?.addOns.find(a => a.key === "reviews")?.status !== "active");
+const { data: planData } = await useFetch<{ features: Record<string, boolean> }>(() => `/api/orgs/${orgId.value}/plan`, { key: `plan-${orgId.value}` });
+const notActive = computed(() => !planData.value?.features.reviews);
 const { data: requests, refresh } = await useFetch<ReviewRequest[]>(() => `/api/orgs/${orgId.value}/add-ons/requests`, { key: `review-requests-${orgId.value}` });
 
 const mode = ref<"review_reply" | "review_summary">("review_reply");

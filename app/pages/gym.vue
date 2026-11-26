@@ -97,7 +97,7 @@
             <h3 class="font-semibold text-slate-800 mb-2">Reduce payment defaults</h3>
             <p class="text-sm text-slate-600 mb-6">WhatsApp renewal reminders with your UPI ID go out before the plan ends. See exactly which members are about to expire and follow up before they lapse.</p>
             <h3 class="font-semibold text-slate-800 mb-2">Free forever, setup included</h3>
-            <p class="text-sm text-slate-600 mb-6">MemberBook is free forever, and we set your gym up for free. No credit card, no contract. Optional add-ons, like your own website, are priced separately.</p>
+            <p class="text-sm text-slate-600 mb-6">MemberBook is free forever, and we set your gym up for free. No credit card, no contract. Paid plans are optional: Autopilot (₹199 a month) sends your fee reminders for you, and Pro (₹499 a month) adds your own website.</p>
           </div>
         </div>
         <div class="mt-8 text-center">

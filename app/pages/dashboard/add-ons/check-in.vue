@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-3xl space-y-6 p-4 lg:p-6">
     <div class="print:hidden">
-      <NuxtLink to="/dashboard/add-ons" class="text-sm font-medium text-primary-700 hover:underline">← Add-ons</NuxtLink>
+      <NuxtLink to="/dashboard/billing" class="text-sm font-medium text-primary-700 hover:underline">← MemberBook plan</NuxtLink>
       <h1 class="mt-1 text-2xl font-bold text-slate-800">Member self check-in</h1>
       <p class="mt-1 text-sm text-slate-600">
         Print the poster and put it at your door. {{ t.members }} scan it with their phone camera, type their number
@@ -9,10 +9,7 @@
       </p>
     </div>
 
-    <AppCard v-if="data && !data.active" class="!bg-accent-50 print:hidden">
-      <p class="text-base font-semibold text-slate-800">Switch on self check-in first. It's free.</p>
-      <AppButton class="mt-3" size="sm" @click="navigateTo('/dashboard/add-ons')">Go to add-ons</AppButton>
-    </AppCard>
+    <FeatureSwitchOn v-if="data && !data.active" class="print:hidden" feature="self_check_in" title="Switch on member self check-in" @done="refresh()" />
 
     <template v-else-if="data?.active">
       <!-- Poster -->

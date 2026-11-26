@@ -3,7 +3,7 @@
     <!-- Announce bar -->
     <div class="announce">
       <span class="acc">NEW</span>
-      MemberBook is free forever. Get your own website as an add-on, first month free.
+      MemberBook is free forever. Want us to send your fee reminders? Autopilot is ₹199 a month, 14 days free.
       <NuxtLink to="/#pricing">See pricing &rarr;</NuxtLink>
     </div>
 

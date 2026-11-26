@@ -157,6 +157,14 @@
                 <dt class="text-xs text-slate-600">UPI ID</dt>
                 <dd class="font-medium" :class="b.upiSet ? 'text-slate-800' : 'text-amber-700'">{{ b.upiSet ? "Set" : "Not set" }}</dd>
               </div>
+              <div v-if="data?.plan">
+                <dt class="text-xs text-slate-600">MemberBook plan</dt>
+                <dd class="font-medium text-slate-800">
+                  {{ data.plan.name }}<template v-if="data.plan.plan !== 'free'"> ({{ data.plan.cycle }})</template>
+                  <span v-if="data.plan.inTrial" class="text-slate-600">· trial to {{ data.plan.trialEndsOn }}</span>
+                  <span v-else-if="data.plan.paidUntil && data.plan.plan !== 'free'" class="text-slate-600">· paid to {{ data.plan.paidUntil }}</span>
+                </dd>
+              </div>
               <div>
                 <dt class="text-xs text-slate-600">Automatic reminders</dt>
                 <dd class="font-medium text-slate-800">{{ b.autoReminders ? "On" : "Off" }}</dd>
@@ -227,6 +235,7 @@ interface Detail {
   stages: Array<{ value: string; label: string }>;
   ownWhatsapp: { status: string; displayPhoneNumber: string | null; templateStatus: string | null; lastError: string | null } | null;
   sharedReminders?: { used: number; limit: number };
+  plan?: { plan: string; name: string; cycle: string; inTrial: boolean; trialEndsOn: string | null; paidUntil: string | null };
 }
 
 const route = useRoute();
