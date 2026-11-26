@@ -19,6 +19,8 @@ export default defineEventHandler(async (event) => {
     status: schema.outreachLeads.status,
     sentAt: schema.outreachLeads.sentAt,
     followedUpAt: schema.outreachLeads.followedUpAt,
+    clickedAt: schema.outreachLeads.clickedAt,
+    clickCount: schema.outreachLeads.clickCount,
     lastError: schema.outreachLeads.lastError,
   }).from(schema.outreachLeads).orderBy(desc(schema.outreachLeads.id)).limit(200);
   return {

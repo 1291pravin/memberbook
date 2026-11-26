@@ -43,6 +43,9 @@ export default defineEventHandler(async (event) => {
       device: deviceFromUserAgent(ua),
       createdAt: new Date().toISOString(),
     });
+
+    const leadId = Number(url.searchParams.get("mb_lead"));
+    if (isLanding && Number.isInteger(leadId) && leadId > 0) await recordOutreachClick(leadId);
   }
   catch (error) {
     console.warn("site visit beacon failed", error);
