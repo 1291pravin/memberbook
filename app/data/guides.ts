@@ -274,8 +274,8 @@ UPI ने भरण्यासाठी: {लिंक}
     slug: "tuition-fee-reminder-message",
     category: "coaching",
     title: "Tuition Fee Reminder Message Format (English and Hindi)",
-    metaTitle: "Tuition Fee Reminder Message Format: English & Hindi",
-    description: "Copy-paste tuition fee reminder messages for parents in English, Hindi and Hinglish: before the due date, on the day and after. Polite, short and with a UPI pay link.",
+    metaTitle: "Tuition Fee Reminder Message for Parents: Polite Samples",
+    description: "Ready-to-send WhatsApp messages to ask parents for tuition fees politely, in English, Hindi and Hinglish. Before the due date, on the day and after. Copy and send.",
     answer: "A good tuition fee reminder is short, polite and specific: the student's name, the month, the amount, the due date and a way to pay. Send one a few days before, one on the day and one gentle follow-up after.",
     content: `
 <h2>Before the due date</h2>
@@ -416,8 +416,8 @@ Dhanyavaad, {Institute}</div>
     slug: "fee-reminder-message-templates",
     category: "templates",
     title: "Fee Reminder Message Templates in English, Hindi, Hinglish, Marathi, Tamil and Bengali",
-    metaTitle: "Fee Reminder Message Templates: Hindi, Marathi & More",
-    description: "Free WhatsApp fee reminder messages for gyms, libraries and coaching classes in English, Hindi, Hinglish, Marathi, Tamil and Bengali. Copy, fill in the blanks and send.",
+    metaTitle: "Fee Reminder Message in Hindi, English, Marathi: Copy & Send",
+    description: "Free WhatsApp fee reminder messages in Hindi, English, Hinglish, Marathi, Tamil and Bengali for gyms, libraries and coaching classes. Fill in the name and amount and send.",
     answer: "A fee reminder that gets paid has five parts: a greeting with the person's name, the amount, the due date, a one-tap way to pay (a UPI link), and your business name. Below are ready-to-send versions in six languages.",
     content: `
 <p>Replace the words in curly brackets. Each template works for gyms, libraries, coaching classes and any business with monthly fees.</p>
@@ -567,8 +567,8 @@ UPI-তে এক ট্যাপে পেমেন্ট করুন: {লি
     slug: "free-vs-paid-gym-software-india",
     category: "comparison",
     title: "Free vs Paid Gym Management Software in India",
-    metaTitle: "Free vs Paid Gym Management Software in India",
-    description: "What paid gym software adds over free tools, which gyms need it, and which don't. A plain guide for Indian gym owners choosing between free and paid membership software.",
+    metaTitle: "Free vs Paid Gym Software in India: Which Do You Need?",
+    description: "Do you need paid gym management software? What paid tools add over free ones, which gyms need them, and when free gym software covering members, fees and reminders is enough.",
     answer: "Most small and mid-size Indian gyms need only four things from software: members, plans, a daily due list and reminders. Free tools like MemberBook cover those. Paid software earns its price when you need biometric access control, multi-branch reports, diet and workout apps for members, or integrated payment gateways.",
     content: `
 <h2>What every gym needs</h2>
