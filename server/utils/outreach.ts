@@ -80,8 +80,8 @@ export function outreachEmail(lead: Lead, kind: "first" | "follow_up", appUrl: s
   const cityPage = outreachCityPage(lead);
   // City leads land on their city page (utm_campaign=city-<type>-<city>); others on the homepage.
   const site = cityPage
-    ? `${appUrl}${cityPage.path}?utm_source=email&utm_medium=cold-email&utm_campaign=city-${lead.businessType}-${cityPage.slug}&utm_content=${step}`
-    : `${appUrl}/?utm_source=email&utm_medium=cold-email&utm_campaign=outreach-${step}&utm_content=${encodeURIComponent(lead.businessType || "other")}`;
+    ? `${appUrl}${cityPage.path}?utm_source=email&utm_medium=cold-email&utm_campaign=city-${lead.businessType}-${cityPage.slug}&utm_content=${step}&mb_lead=${lead.id}`
+    : `${appUrl}/?utm_source=email&utm_medium=cold-email&utm_campaign=outreach-${step}&utm_content=${encodeURIComponent(lead.businessType || "other")}&mb_lead=${lead.id}`;
   const siteLabel = cityPage ? `See how it works for ${cityPage.label}` : "See how MemberBook works";
   const subject = kind === "first"
     ? `Fee tracking for ${lead.businessName}`
@@ -238,4 +238,33 @@ export async function runOutreachBatch(opts: { limit?: number } = {}) {
     }
   }
   return { sent, failed, followUps: followUps.length, firstEmails: fresh.length };
+}
+
+/** A visit this soon after a send is an email security scanner opening the link, not a person. */
+export const OUTREACH_SCANNER_WINDOW_MS = 2 * 60 * 1000;
+
+/**
+ * Records a landing visit from a cold email link (?mb_lead=<id>), called by the /api/t beacon.
+ * Visits within OUTREACH_SCANNER_WINDOW_MS of the first email or the follow-up count as scanner hits.
+ */
+export async function recordOutreachClick(leadId: number, at = new Date()) {
+  const [lead] = await db.select({ sentAt: schema.outreachLeads.sentAt, followedUpAt: schema.outreachLeads.followedUpAt })
+    .from(schema.outreachLeads).where(eq(schema.outreachLeads.id, leadId)).limit(1);
+  if (!lead?.sentAt) return null;
+  const now = at.getTime();
+  const isScanner = [lead.sentAt, lead.followedUpAt].some((t) => {
+    if (!t) return false;
+    const gap = now - new Date(t).getTime();
+    return gap >= 0 && gap < OUTREACH_SCANNER_WINDOW_MS;
+  });
+  if (isScanner) {
+    await db.update(schema.outreachLeads).set({ scannerHits: sql`${schema.outreachLeads.scannerHits} + 1` })
+      .where(eq(schema.outreachLeads.id, leadId));
+    return "scanner";
+  }
+  await db.update(schema.outreachLeads).set({
+    clickedAt: sql`coalesce(${schema.outreachLeads.clickedAt}, ${at.toISOString()})`,
+    clickCount: sql`${schema.outreachLeads.clickCount} + 1`,
+  }).where(eq(schema.outreachLeads.id, leadId));
+  return "click";
 }

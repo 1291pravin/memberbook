@@ -99,6 +99,8 @@ type Lead = {
   status: string;
   sentAt: string | null;
   followedUpAt: string | null;
+  clickedAt: string | null;
+  clickCount: number;
   lastError: string | null;
 };
 type Outreach = {
@@ -165,6 +167,7 @@ function timeline(lead: Lead) {
     const due = new Date(new Date(lead.sentAt).getTime() + (data.value?.followUpDays ?? 5) * 86400000);
     parts.push(`follow-up due ${due.toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" })}`);
   }
+  if (lead.clickedAt) parts.push(`clicked ${fmt(lead.clickedAt)}${lead.clickCount > 1 ? ` (${lead.clickCount} times)` : ""}`);
   return parts.join(" · ");
 }
 

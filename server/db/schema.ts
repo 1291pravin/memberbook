@@ -682,6 +682,9 @@ export const outreachLeads = sqliteTable("outreach_leads", {
   token: text("token").notNull().unique(),
   sentAt: text("sent_at"),
   followedUpAt: text("followed_up_at"),
+  clickedAt: text("clicked_at"), // first real click on an email link (?mb_lead=<id>)
+  clickCount: integer("click_count").notNull().default(0),
+  scannerHits: integer("scanner_hits").notNull().default(0), // link checks within 2 minutes of a send
   lastError: text("last_error"),
   notes: text("notes"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
