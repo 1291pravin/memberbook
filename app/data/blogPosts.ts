@@ -13,6 +13,10 @@ export interface BlogPost {
   keywords: string[];
   /** Last meaningful update, used as dateModified. */
   updatedISO?: string;
+  /** Search result title (about 60 characters). Defaults to "<title> - MemberBook Blog". */
+  metaTitle?: string;
+  /** Search result description (about 155 characters). Defaults to the excerpt. */
+  metaDescription?: string;
 }
 
 export const blogPosts: BlogPost[] = [
@@ -181,6 +185,9 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "gym-owner-income-india",
+    metaTitle: "Gym Owner Income in India: ₹25,000 to ₹5 Lakh a Month (2026)",
+    metaDescription:
+      "Small gyms in India earn their owners ₹25,000 to ₹60,000 a month, mid-size gyms up to ₹1.5 lakh. See the breakdown by gym size, costs and a worked example.",
     title: "How Much Does a Gym Owner Earn in India? ₹25,000 to ₹5 Lakh a Month (2026)",
     excerpt:
       "Most small gym owners in India take home ₹25,000 to ₹60,000 a month, mid-size gyms ₹60,000 to ₹1.5 lakh, and large metro gyms ₹1.5 lakh or more. See the breakdown by gym size, costs and a worked example.",

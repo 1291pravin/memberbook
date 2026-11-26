@@ -70,17 +70,17 @@ const pageUrl = `${appUrl}/member-book`;
 const { trackCtaClick } = useAnalytics();
 
 useSeoMeta({
-  title: "Member Book: Free Digital Member Register for Gyms & Libraries",
+  title: "Member Book Online: Free Digital Register for Gyms, Libraries",
   description:
-    "A member book records each member's name, phone, plan, due date and payments. MemberBook is a free digital member book for Indian gyms, libraries and coaching centres. We type in your register for you.",
-  ogTitle: "Member Book: Free Digital Member Register for Gyms & Libraries",
+    "Replace your paper member book: every member's name, phone, plan, fees and due date on your phone, with WhatsApp reminders. Free, and we type in your register.",
+  ogTitle: "Member Book Online: Free Digital Register for Gyms, Libraries",
   ogDescription:
-    "A member book records each member's name, phone, plan, due date and payments. MemberBook is a free digital member book for Indian gyms, libraries and coaching centres. We type in your register for you.",
+    "Replace your paper member book: every member's name, phone, plan, fees and due date on your phone, with WhatsApp reminders. Free, and we type in your register.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: pageUrl,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Member Book: Free Digital Member Register for Gyms & Libraries",
+  twitterTitle: "Member Book Online: Free Digital Register for Gyms, Libraries",
   twitterDescription:
     "Manage members, payments, and renewals for gyms, libraries, and tuition centers. Free forever with MemberBook.",
   twitterImage: `${appUrl}/og-image.png`,

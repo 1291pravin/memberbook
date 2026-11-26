@@ -109,10 +109,10 @@ const articleUrl = `${appUrl}/blog/${slug}`;
 const ogImage = `${appUrl}${article.image}`;
 
 useSeoMeta({
-  title: `${article.title} - MemberBook Blog`,
-  description: article.excerpt,
-  ogTitle: article.title,
-  ogDescription: article.excerpt,
+  title: article.metaTitle ?? `${article.title} - MemberBook Blog`,
+  description: article.metaDescription ?? article.excerpt,
+  ogTitle: article.metaTitle ?? article.title,
+  ogDescription: article.metaDescription ?? article.excerpt,
   ogImage,
   ogUrl: articleUrl,
   ogType: "article",
@@ -120,8 +120,8 @@ useSeoMeta({
   articleAuthor: article.author,
   articleTag: article.keywords,
   twitterCard: "summary_large_image",
-  twitterTitle: article.title,
-  twitterDescription: article.excerpt,
+  twitterTitle: article.metaTitle ?? article.title,
+  twitterDescription: article.metaDescription ?? article.excerpt,
   twitterImage: ogImage,
 });
 

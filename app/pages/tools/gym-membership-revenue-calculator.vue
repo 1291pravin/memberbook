@@ -421,17 +421,17 @@ const faqs = [
 // --- SEO & Schemas ---
 
 useSeoMeta({
-  title: "Gym Income Calculator India: Monthly Revenue & Profit (Free)",
+  title: "Gym Monthly Income Calculator: What Your Gym Earns (India)",
   description:
-    "A 150-member gym at ₹1,200 a month earns about ₹1.8 lakh a month before costs. Enter your members and fees to see your gym's monthly income, yearly revenue and loss from unpaid fees. Free.",
-  ogTitle: "Gym Income Calculator India: Monthly Revenue & Profit (Free)",
+    "How much does a gym earn a month? 150 members at ₹1,200 bring in ₹1.8 lakh. Enter your own members and fees to see your monthly income in seconds. Free.",
+  ogTitle: "Gym Monthly Income Calculator: What Your Gym Earns (India)",
   ogDescription:
-    "Estimate monthly gym revenue, annual profit, member churn loss, and owner earnings from membership plans.",
+    "How much does a gym earn a month? 150 members at ₹1,200 bring in ₹1.8 lakh. Enter your own members and fees to see your monthly income in seconds. Free.",
   ogImage: `${appUrl}/og-image.png`,
   ogUrl: `${appUrl}/tools/gym-membership-revenue-calculator`,
   ogType: "website",
   twitterCard: "summary_large_image",
-  twitterTitle: "Gym Income Calculator India: Monthly Revenue & Profit (Free)",
+  twitterTitle: "Gym Monthly Income Calculator: What Your Gym Earns (India)",
   twitterDescription:
     "Free calculator for Indian gym owners: estimate monthly revenue, owner income, churn loss, and membership plan pricing.",
   twitterImage: `${appUrl}/og-image.png`,
