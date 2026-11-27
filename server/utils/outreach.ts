@@ -235,9 +235,31 @@ export async function runOutreachBatch(opts: { limit?: number } = {}) {
         .where(eq(schema.outreachLeads.id, lead.id));
       // A bad key or a Resend-side block will fail every send: stop the batch.
       if (/Resend (401|403|429)/.test(message)) break;
+      // Out of Worker subrequests for this run: not the lead's fault, retry it next run.
+      if (/Too many subrequests/i.test(message)) {
+        await db.update(schema.outreachLeads).set({ status: lead.status, lastError: null, updatedAt: now })
+          .where(eq(schema.outreachLeads.id, lead.id));
+        failed--;
+        break;
+      }
     }
   }
   return { sent, failed, followUps: followUps.length, firstEmails: fresh.length };
+}
+
+/**
+ * Emails per task run. The Workers Free plan allows 50 subrequests per invocation
+ * (each Resend call is one), so the day's cap is sent in small runs on the
+ * every-10-minutes cron between OUTREACH_WINDOW_IST hours.
+ */
+export const OUTREACH_PER_RUN = 12;
+
+/** IST hours [start, end) when cold email goes out. */
+export const OUTREACH_WINDOW_IST: [number, number] = [9, 12];
+
+export function inOutreachWindow(at = new Date()) {
+  const istHour = new Date(at.getTime() + 330 * 60000).getUTCHours();
+  return istHour >= OUTREACH_WINDOW_IST[0] && istHour < OUTREACH_WINDOW_IST[1];
 }
 
 /** A visit this soon after a send is an email security scanner opening the link, not a person. */
