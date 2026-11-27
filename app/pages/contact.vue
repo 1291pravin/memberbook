@@ -16,6 +16,7 @@
             <p class="mt-2 text-sm text-slate-600">Response time is typically within one business day.</p>
 
             <form class="mt-6 space-y-4" @submit.prevent="submitContact">
+              <input v-model="form.websiteHp" type="text" name="website_hp" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
               <div class="grid gap-4 sm:grid-cols-2">
                 <AppInput id="name" v-model="form.name" label="Your Name" placeholder="Aman Sharma" required :error="errors.name" />
                 <AppInput
@@ -113,6 +114,7 @@ useHead({
 });
 
 const form = reactive({
+  websiteHp: "",
   name: "",
   email: "",
   phone: "",
@@ -150,8 +152,8 @@ function validateForm() {
     hasError = true;
   }
 
-  if (!form.phone.trim()) {
-    errors.phone = "Please enter your phone number.";
+  if (form.phone.replace(/\D/g, "").length < 10) {
+    errors.phone = "Please enter your 10-digit phone number.";
     hasError = true;
   }
 
@@ -196,6 +198,7 @@ async function submitContact() {
         email: form.email,
         business: form.business,
         message: form.message,
+        website_hp: form.websiteHp,
       },
     });
 

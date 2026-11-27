@@ -184,7 +184,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Nav */
 .announce { background: var(--ink); color: var(--paper); font-size: 13px; padding: 9px 16px; text-align: center; }
 .announce a { text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--paper) 40%, transparent); text-underline-offset: 3px; }
-.announce .acc { color: var(--accent); margin-right: 8px; font-weight: 600; }
+.announce .acc { color: var(--color-primary-300); margin-right: 8px; font-weight: 600; }
 
 .mb-nav { position: sticky; top: 0; z-index: 80; backdrop-filter: blur(14px) saturate(180%); -webkit-backdrop-filter: blur(14px) saturate(180%); background: color-mix(in oklab, var(--paper) 78%, transparent); border-bottom: 1px solid var(--border); }
 .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; gap: 24px; }
@@ -394,7 +394,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Footer (marketing) */
 .mb-footer { padding: 64px 0 32px; border-top: 1px solid var(--border); background: var(--paper); }
 .footer-grid { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 40px; }
-.footer-grid h5 { font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px; font-weight: 500; }
+.footer-grid .footer-h { font-family: var(--font-mono); font-size: 11px; line-height: 1.5; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px; font-weight: 500; text-wrap: wrap; }
 .footer-grid ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .footer-grid a { font-size: 14px; color: var(--ink-2); }
 .footer-grid a:hover { color: var(--ink); }

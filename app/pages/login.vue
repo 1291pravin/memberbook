@@ -84,6 +84,8 @@ definePageMeta({ layout: "default", middleware: "guest" });
 
 // Prevent indexing of login page
 useSeoMeta({
+  title: "Log in - MemberBook",
+  description: "Log in to MemberBook to see fees due, members and payments for your gym, library or coaching centre.",
   robots: "noindex, nofollow",
 });
 

@@ -53,7 +53,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default", middleware: "auth" });
 
-useSeoMeta({ robots: "noindex, nofollow" });
+useSeoMeta({ title: "Your businesses - MemberBook", robots: "noindex, nofollow" });
 
 const { fetch: refreshSession } = useUserSession();
 

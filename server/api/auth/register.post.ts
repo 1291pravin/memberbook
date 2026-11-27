@@ -1,6 +1,10 @@
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { email, password, name } = body;
+  // Spam trap: a hidden field people never see. Bots fill it; give them nothing.
+  if (body?.website_hp) {
+    throw createError({ statusCode: 400, statusMessage: "Registration failed" });
+  }
 
   if (!email || !password || !name) {
     throw createError({

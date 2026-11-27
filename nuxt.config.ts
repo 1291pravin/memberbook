@@ -25,9 +25,12 @@ export default defineNuxtConfig({
         { property: "og:type", content: "website" },
         { property: "og:site_name", content: "MemberBook" },
         { property: "og:locale", content: "en_IN" },
+        // Default share image; pages with their own og:image override it.
+        { property: "og:image", content: "https://memberbook.in/og-image.png" },
         // Twitter Card defaults
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:site", content: "@memberbook" },
+        { name: "twitter:image", content: "https://memberbook.in/og-image.png" },
         // Indian market targeting
         { name: "geo.region", content: "IN" },
         { name: "geo.placename", content: "India" },
@@ -64,6 +67,7 @@ export default defineNuxtConfig({
       "/dashboard",
       "/dashboard/**",
       "/onboarding",
+      "/outlets",
       "/invite/**",
       "/login",
       "/register",
@@ -71,6 +75,7 @@ export default defineNuxtConfig({
       "/checkin/**",
       "/r/**",
       "/review-poster/**",
+      "/m/**",
     ],
     defaults: {
       changefreq: "weekly",

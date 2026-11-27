@@ -1,5 +1,7 @@
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
+  // Spam trap: a hidden field people never see. Bots fill it; pretend it worked.
+  if (body?.website_hp) return { ok: true, submission: { id: null } };
   const name = body?.name?.trim();
   const phone = body?.phone?.trim();
   const email = body?.email?.trim().toLowerCase();
@@ -17,6 +19,20 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 400,
       statusMessage: "Please provide a valid email address",
+    });
+  }
+
+  if (name.length > 100 || business.length > 150 || email.length > 200) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Please shorten your name, business or email",
+    });
+  }
+
+  if (phone.replace(/\D/g, "").length < 10 || phone.length > 20) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Please provide a valid phone number",
     });
   }
 

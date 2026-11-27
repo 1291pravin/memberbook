@@ -80,6 +80,11 @@ interface Biz {
   plans: { name: string; price: number; durationType: string; durationValue: number }[];
 }
 const { data: biz, error } = await useFetch<Biz>(`/api/p/${slug}`);
+// A missing page answers 404 so search engines drop it instead of indexing an empty page.
+if (import.meta.server && error.value) {
+  const reqEvent = useRequestEvent();
+  if (reqEvent) setResponseStatus(reqEvent, 404);
+}
 
 const typeLabel = computed(() => ({ gym: "Gym and fitness", library: "Study library", tuition: "Coaching and tuition" } as Record<string, string>)[biz.value?.type ?? ""] ?? "");
 
@@ -91,6 +96,7 @@ useHead(() => {
     titleTemplate: null,
     meta: [
       { name: "description", content: desc },
+      ...(b ? [] : [{ name: "robots", content: "noindex" }]),
       { property: "og:title", content: b?.name ?? "" },
       { property: "og:description", content: desc },
       { property: "og:site_name", content: b?.name ?? "" },
