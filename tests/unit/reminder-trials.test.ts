@@ -28,3 +28,14 @@ describe("reminder trial emails", () => {
     expect(AUTO_TRIAL_EXCLUDED_ORGS).toContain(17);
   });
 });
+
+describe("cold email window", async () => {
+  const { inOutreachWindow, OUTREACH_PER_RUN } = await import("../../server/utils/outreach");
+  it("sends only 09:00-12:00 IST, in runs that fit 50 subrequests", () => {
+    expect(inOutreachWindow(new Date("2026-11-27T03:30:00Z"))).toBe(true); // 09:00 IST
+    expect(inOutreachWindow(new Date("2026-11-27T06:20:00Z"))).toBe(true); // 11:50 IST
+    expect(inOutreachWindow(new Date("2026-11-27T06:30:00Z"))).toBe(false); // 12:00 IST
+    expect(inOutreachWindow(new Date("2026-11-27T03:20:00Z"))).toBe(false); // 08:50 IST
+    expect(OUTREACH_PER_RUN).toBeLessThanOrEqual(20);
+  });
+});

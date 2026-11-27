@@ -145,7 +145,7 @@ AI answers messages to the MemberBook WhatsApp number (`docs/whatsapp-auto-reply
 
 ## Cold email outreach
 
-Outreach to gyms, libraries and coaching centres goes out from support@memberbook.in through Resend (`server/utils/outreach.ts`), never from anyone's personal Gmail. Leads (only publicly listed emails) are added with `POST /api/admin/outreach/leads`; the daily task `outreach:send` (09:00 IST) sends follow-ups then new leads up to 50 a day, one follow-up after 5 days, then stops. Unsubscribe page: `/unsubscribe/<token>` (plus one-click List-Unsubscribe). Needs the secret `NUXT_RESEND_API_KEY`; nothing sends until `NUXT_OUTREACH_ENABLED=true` (wrangler.jsonc vars). `POST /api/admin/outreach/test` sends a sample to support@ even while it's off. Mark replies with `POST /api/admin/outreach/leads/<id>` `{status:"replied"}`.
+Outreach to gyms, libraries and coaching centres goes out from support@memberbook.in through Resend (`server/utils/outreach.ts`), never from anyone's personal Gmail. Leads (only publicly listed emails) are added with `POST /api/admin/outreach/leads`; the task `outreach:send` (on the `*/10` cron, 12 per run between 09:00 and 12:00 IST, because Workers Free allows 50 subrequests per invocation) sends follow-ups then new leads up to 50 a day, one follow-up after 5 days, then stops. Unsubscribe page: `/unsubscribe/<token>` (plus one-click List-Unsubscribe). Needs the secret `NUXT_RESEND_API_KEY`; nothing sends until `NUXT_OUTREACH_ENABLED=true` (wrangler.jsonc vars). `POST /api/admin/outreach/test` sends a sample to support@ even while it's off. Mark replies with `POST /api/admin/outreach/leads/<id>` `{status:"replied"}`.
 
 ## Email auto-reply (support@)
 

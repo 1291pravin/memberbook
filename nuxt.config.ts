@@ -127,11 +127,13 @@ export default defineNuxtConfig({
     experimental: { tasks: true },
     // 03:30 UTC = 09:00 IST. The same crons must be listed in wrangler.jsonc "triggers".
     scheduledTasks: {
-      "30 3 * * *": ["reminders:daily", "addons:billing", "admin:digest", "outreach:send"],
+      "30 3 * * *": ["reminders:daily", "addons:billing", "admin:digest"],
       // Every 10 minutes: WhatsApp auto-reply backup (server/tasks/inbox/check.ts), and
       // the zero-token AI-run backup (server/tasks/ai/wake.ts), which only acts once an
-      // hour (minutes 40-49). One cron string: the Workers Free plan allows 5 crons per account.
-      "*/10 * * * *": ["inbox:check", "ai:wake"],
+      // hour (minutes 40-49), and cold email (server/tasks/outreach/send.ts), a few at a time
+      // 09:00-12:00 IST to stay under 50 subrequests per run. One cron string: the Workers
+      // Free plan allows 5 crons per account.
+      "*/10 * * * *": ["inbox:check", "ai:wake", "outreach:send"],
     },
   },
   hub: {
