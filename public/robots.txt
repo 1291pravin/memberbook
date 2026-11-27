@@ -9,5 +9,12 @@ Disallow: /invite/
 Disallow: /pay/
 Disallow: /api/
 Disallow: /auth/
+Disallow: /outlets
+Disallow: /checkin/
+Disallow: /m/
+Disallow: /r/
+Disallow: /review-poster/
+Disallow: /receipt/
+Disallow: /unsubscribe/
 
 Sitemap: https://memberbook.in/sitemap.xml

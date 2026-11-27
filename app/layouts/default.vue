@@ -112,7 +112,7 @@
             </a>
           </div>
           <div>
-            <h5>Product</h5>
+            <h2 class="footer-h">Product</h2>
             <ul>
               <li><NuxtLink to="/features">Features</NuxtLink></li>
               <li><NuxtLink to="/#pricing">Pricing</NuxtLink></li>
@@ -122,7 +122,7 @@
             </ul>
           </div>
           <div>
-            <h5>For</h5>
+            <h2 class="footer-h">For</h2>
             <ul>
               <li><NuxtLink to="/gym">Gyms</NuxtLink></li>
               <li><NuxtLink to="/tuition">Tuition centers</NuxtLink></li>
@@ -132,7 +132,7 @@
             </ul>
           </div>
           <div>
-            <h5>Company</h5>
+            <h2 class="footer-h">Company</h2>
             <ul>
               <li><NuxtLink to="/about">About</NuxtLink></li>
               <li><NuxtLink to="/guides">Guides</NuxtLink></li>
@@ -141,7 +141,7 @@
             </ul>
           </div>
           <div>
-            <h5>Help</h5>
+            <h2 class="footer-h">Help</h2>
             <ul>
               <li v-if="WHATSAPP_NUMBER">
                 <a :href="`https://wa.me/${WHATSAPP_NUMBER}`" target="_blank" rel="noopener">WhatsApp us</a>

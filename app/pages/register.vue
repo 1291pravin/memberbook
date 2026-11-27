@@ -16,6 +16,7 @@
       </div>
 
       <form class="space-y-4" @submit.prevent="handleRegister">
+        <input v-model="form.websiteHp" type="text" name="website_hp" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
         <AppInput
           v-model="form.name"
           label="Name"
@@ -94,12 +95,14 @@ definePageMeta({ layout: "default", middleware: "guest" });
 
 // Prevent indexing of register page
 useSeoMeta({
+  title: "Sign up free - MemberBook",
+  description: "Create your free MemberBook account. Send us your register and we set up members, plans and WhatsApp fee reminders for you.",
   robots: "noindex, nofollow",
 });
 
 const { fetch: refreshSession } = useUserSession();
 
-const form = reactive({ name: "", email: "", password: "" });
+const form = reactive({ name: "", email: "", password: "", websiteHp: "" });
 const error = ref("");
 const loading = ref(false);
 const { trackFunnelStep } = useAnalytics();
@@ -119,7 +122,7 @@ async function handleRegister() {
     trackFunnelStep("registration_submit", { method: "email" });
     await $fetch("/api/auth/register", {
       method: "POST",
-      body: { name: form.name, email: form.email, password: form.password },
+      body: { name: form.name, email: form.email, password: form.password, website_hp: form.websiteHp },
     });
     trackFunnelStep("registration_success", { method: "email" });
     await refreshSession();
