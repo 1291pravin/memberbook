@@ -52,6 +52,7 @@ export const organizations = sqliteTable("organizations", {
   razorpayKeySecretEnc: text("razorpay_key_secret_enc"),
   razorpayWebhookSecretEnc: text("razorpay_webhook_secret_enc"),
   razorpayConnectedAt: text("razorpay_connected_at"),
+  dueDateNudgeAt: text("due_date_nudge_at"), // the one "add due dates" email after an upload (owner-emails.ts)
   checkInToken: text("check_in_token"), // public self check-in link /checkin/<token>, null = not set up
   googleReviewUrl: text("google_review_url"), // owner's Google "write a review" link, for the review poster
   reviewToken: text("review_token"), // public short link /r/<token> that counts scans and goes to googleReviewUrl
