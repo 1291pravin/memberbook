@@ -18,7 +18,7 @@ describe("cold email city pages", () => {
 
   it("links a city lead to its city page with UTM tags", () => {
     const m = outreachEmail(lead(), "first", "https://memberbook.in");
-    const url = "https://memberbook.in/library-software/patna?utm_source=email&utm_medium=cold-email&utm_campaign=city-library-patna&utm_content=first";
+    const url = "https://memberbook.in/library-software/patna?utm_source=email&utm_medium=cold-email&utm_campaign=city-library-patna&utm_content=first&mb_lead=1";
     expect(m.text).toContain(`See how it works for libraries in Patna: ${url}`);
     expect(m.text).toContain("while looking at libraries in Patna");
     expect(m.html).toContain(`href="${url}"`);

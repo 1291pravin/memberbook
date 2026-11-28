@@ -52,6 +52,7 @@ export default defineEventHandler(async (event) => {
   if (final && merged.plansCreated + merged.membersLoaded > 0) {
     await autoCompleteOnboardingStep(upload.orgId, "plansSetupCompleted");
   }
+  if (final && upload.source === "owner") sendDueDatesMissingEmail(event, upload.orgId, merged);
 
   return { ...merged, status: final ? "done" : "processing" };
 });

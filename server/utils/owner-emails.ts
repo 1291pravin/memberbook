@@ -1,10 +1,11 @@
 import type { H3Event } from "h3";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db, schema } from "@nuxthub/db";
 
 /**
  * Automatic emails to business owners at moments where they need us: right after sign-up
- * (we offer to load their register) and when an upload couldn't be read (what to send instead).
+ * (we offer to load their register), when an upload couldn't be read (what to send instead), and
+ * once per business when an upload loaded members but most have no due date (what's still missing).
  * They go out from support@ in the branded layout (sendNewEmail -> brandedEmail) and are saved as
  * an inbox thread, so the owner's reply reaches /admin/inbox and the AI answers it.
  */
@@ -91,6 +92,59 @@ export function sendUploadFailedEmail(event: H3Event, orgId: number, message: st
       name: row.ownerName,
       subject: `We couldn't read your upload for ${row.businessName}`,
       text: uploadFailedEmailText({ ownerName: row.ownerName, businessName: row.businessName, message }),
+      by: "system",
+    });
+  })());
+}
+
+/** Our own test businesses never get the automatic setup emails. */
+export const OWNER_EMAIL_TEST_ORGS = [3, 42, 46, 47, 49];
+
+/** Send the "add due dates" email when at least half of the loaded members have no due date. */
+export function needsDueDateNudge(result: { membersLoaded: number; membersWithoutDueDate: number }) {
+  return result.membersLoaded > 0 && result.membersWithoutDueDate * 2 >= result.membersLoaded;
+}
+
+export function dueDatesMissingEmailText(opts: { ownerName: string | null; businessName: string; type: string; loaded: number; withoutDueDate: number }) {
+  const hi = firstName(opts.ownerName);
+  const people = peopleWord(opts.type);
+  const one = people.replace(/s$/, "");
+  const all = opts.withoutDueDate >= opts.loaded;
+  return [
+    hi ? `Hi ${hi},` : "Hello,",
+    `We've loaded ${opts.loaded} ${opts.loaded === 1 ? one : people} into ${opts.businessName}. ${all ? "None of them have" : `${opts.withoutDueDate} of them don't have`} a fee due date yet, so MemberBook can't show you who has to pay or remind them.`,
+    [
+      "To finish your setup, just send us:",
+      `1. Your fee plans, for example "Monthly ₹800, Quarterly ₹2,200"`,
+      `2. For each ${one}: their plan, the date their next fee is due, and their phone number`,
+    ].join("\n"),
+    `[Send it on WhatsApp](${whatsAppLink(opts.businessName)})`,
+    `Or upload it in the app: [Send us your data](${APP}/dashboard/upload)`,
+    `Once due dates are in, you'll see every morning who has to pay, and each ${one} can get a WhatsApp reminder with a pay link to your own UPI.`,
+    "If this list wasn't meant for fees, just reply and tell us what you'd like to use MemberBook for.",
+  ].join("\n\n");
+}
+
+/** Once per business, after an owner's upload loaded members that mostly have no due date. */
+export function sendDueDatesMissingEmail(event: H3Event, orgId: number, result: { membersLoaded: number; membersWithoutDueDate: number }) {
+  if (OWNER_EMAIL_TEST_ORGS.includes(orgId) || !needsDueDateNudge(result)) return;
+  inBackground(event, (async () => {
+    // Claim first, so two uploads finishing together still send one email.
+    const claimed = await db.update(schema.organizations).set({ dueDateNudgeAt: new Date().toISOString() })
+      .where(and(eq(schema.organizations.id, orgId), isNull(schema.organizations.dueDateNudgeAt)))
+      .returning({ id: schema.organizations.id });
+    if (!claimed.length) return;
+    const [row] = await db.select({ businessName: schema.organizations.name, type: schema.organizations.type, email: schema.users.email, ownerName: schema.users.name })
+      .from(schema.organizations)
+      .innerJoin(schema.orgMemberships, and(eq(schema.orgMemberships.orgId, schema.organizations.id), eq(schema.orgMemberships.role, "owner")))
+      .innerJoin(schema.users, eq(schema.users.id, schema.orgMemberships.userId))
+      .where(eq(schema.organizations.id, orgId)).limit(1);
+    if (!row || !deliverable(row.email)) return;
+    await sendNewEmail({
+      to: row.email,
+      name: row.ownerName,
+      subject: `One more step for ${row.businessName}: fee due dates`,
+      text: dueDatesMissingEmailText({ ownerName: row.ownerName, businessName: row.businessName, type: row.type, loaded: result.membersLoaded, withoutDueDate: result.membersWithoutDueDate }),
       by: "system",
     });
   })());
